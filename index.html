@@ -381,14 +381,7 @@ async function buildDesglose(D) {
 function entregaPDF(bytes, fname, titulo, intro) {
   const box = el('div'); box.style.display = 'grid'; box.style.gap = '10px';
   const blob = new Blob([bytes], { type: 'application/pdf' });
-  const file = (() => { try { return new File([blob], fname, { type: 'application/pdf' }); } catch (e) { return null; } })();
-  const canShare = !!(file && navigator.canShare && navigator.canShare({ files: [file] }));
   box.append(el('div', null, intro));
-  if (canShare) {
-    const b = el('button', 'btn wa', 'Compartir o guardar PDF'); b.type = 'button';
-    b.onclick = async () => { try { await navigator.share({ files: [file], title: titulo }); } catch (e) {} };
-    box.append(b);
-  }
   const a = el('a', 'btn alt dl', 'Descargar PDF'); a.href = URL.createObjectURL(blob); a.download = fname; box.append(a);
   bot(box);
 }
