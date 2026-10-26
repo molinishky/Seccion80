@@ -312,7 +312,7 @@ async function refresh() {
   return session.data;
 }
 
-const MENU = ['Saldo actual', 'Historial semanal', 'Movimientos', 'Cerrar sesión'];
+const MENU = ['Desglose de nómina', 'Saldo actual', 'Historial semanal', 'Movimientos', 'Cerrar sesión'];
 /* ---------- Desglose de nómina (solo si el trabajador lo pide) ---------- */
 function entregaPDF(bytes, fname, titulo, intro) {
   const box = el('div'); box.style.display = 'grid'; box.style.gap = '10px';
@@ -527,14 +527,14 @@ async function submit(raw) {
       session = { socio: pendSocio, pin, id, data, key: unseal.key, salt: blob.s };
       fails = 0; t.remove();
       const first = data.orden === 'nomina' ? '' : titulo((data.nombre || '').split(' ')[0]);
+      const hola = `¡Hola${first ? ', ' + first : ''}! Entraste correctamente.`;
       if (data.fondo === false) {
-        bot(`¡Hola${first ? ', ' + first : ''}! Entraste correctamente.`);
-        bot('Por ahora no tienes saldo registrado en el fondo de ahorro. ¿En qué te puedo ayudar?');
-        setMode('chat'); setChips(['Cerrar sesión']);
+        bot(hola);
+        bot('Puedo entregarte tu desglose de nómina. Por ahora no tienes saldo registrado en el fondo de ahorro. Toca la opción o escríbeme.');
+        setMode('chat'); setChips(['Desglose de nómina', 'Cerrar sesión']);
       } else {
-        bot(`¡Hola${first ? ', ' + first : ''}! Este es tu saldo:`);
-        bot(passbook(data), true);
-        bot('¿Qué más quieres consultar? Puedes tocar una opción o escribirme.');
+        bot(hola);
+        bot('Puedo entregarte tu desglose de nómina o mostrarte tu saldo actual del fondo de ahorro. ¿Qué necesitas?');
         setMode('chat'); setChips(MENU);
       }
     } catch (e) {
@@ -554,18 +554,18 @@ async function submit(raw) {
   if (/(desglose|nomina|recibo|percepcion|deduccion)/.test(q)) { await pedirDesglose(q); return; }
   if (/(prestamo|credito|adelanto)/.test(q)) { await startLoan(); return; }
   if (/(cerrar|salir|adios|logout)/.test(q)) { logout(); return; }
-  if (/^(hola|buen|que tal|hey)/.test(q) && !/(saldo|hist|mov|aport|retir)/.test(q)) { bot('¡Hola! ¿Quieres ver tu saldo, tu historial o tus movimientos?'); return; }
+  if (/^(hola|buen|que tal|hey)/.test(q) && !/(saldo|hist|mov|aport|retir)/.test(q)) { bot('¡Hola! ¿Quieres tu desglose de nómina o tu saldo actual del fondo de ahorro?'); return; }
   const t = typing();
   let d;
   try { d = await refresh(); } catch (e) { t.remove(); bot('No pude cargar tu información. Revisa tu conexión e inténtalo de nuevo.'); return; }
   await wait(250); t.remove();
-  if (d.fondo === false) { bot('No tienes saldo registrado en el fondo de ahorro. Si crees que es un error, comunícate con la Secretaría de Relaciones.'); return; }
+  if (d.fondo === false) { bot('No tienes saldo registrado en el fondo de ahorro. Puedo entregarte tu desglose de nómina; solo pídemelo.'); return; }
   if (/(hist|semana|evolucion|grafic)/.test(q)) bot(historyCard(d), true);
   else if (/aport|deposit|abono/.test(q)) bot(movsCard(d, 'A'), true);
   else if (/retir/.test(q)) bot(movsCard(d, 'R'), true);
   else if (/mov|transac/.test(q)) bot(movsCard(d), true);
   else if (/(saldo|cuanto|tengo|dinero|fondo|total)/.test(q)) bot(passbook(d), true);
-  else bot('Puedo mostrarte tu saldo actual, tu historial semanal o tus aportaciones y retiros. Toca una opción de abajo.');
+  else bot('Puedo entregarte tu desglose de nómina o mostrarte tu saldo actual del fondo de ahorro, tu historial semanal y tus aportaciones. Toca una opción de abajo.');
 }
 
 function logout() {
