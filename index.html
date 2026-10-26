@@ -368,11 +368,8 @@ async function buildDesglose(D) {
     row({ code: r.code, name: r.name, origen: r.origen, fecha: r.fecha, tno: r.tno, puesto: r.puesto, tno_p: r.tno_p, dias: r.dias, ctro: r.ctro,
       per: d ? '' : money(r.imp), ded: d ? money(r.imp) : '' }, i % 2 ? ZEB : null, false);
   });
-  row({ name: 'TOTALES POR EMPLEADO', per: '$' + money(D.tot[0]), ded: '$' + money(D.tot[1]) }, GRAY, true);
+  row({ name: 'TOTALES POR EMPLEADO', per: '$' + money(D.tot[0]), ded: '-$' + money(D.tot[1]) }, GRAY, true);
   row({ name: 'NETO', ded: '$' + money(D.tot[2]) }, ZEB, true);
-  y -= 12;
-  const pg = D.pages, src = pg.length > 1 ? `de las páginas ${pg.slice(0, -1).join(', ')} y ${pg[pg.length - 1]}` : `de la página ${pg[0]}`;
-  txt(`Movimientos tomados ${src} del reporte original (\\\\SERVER-ERP\\ERP\\reportes\\ERPNORPNOM2.rpt)` + (pg.length > 1 ? ', unidos en una sola hoja.' : '.'), L, y, R, 7);
   doc.setTitle(`Desglose de nómina semana ${I.periodo} - ${D.id}`);
   return doc.save();
 }
