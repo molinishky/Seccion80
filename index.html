@@ -313,6 +313,70 @@ async function refresh() {
 }
 
 const MENU = ['Desglose de nómina', 'Saldo actual', 'Historial semanal', 'Movimientos', 'Cerrar sesión'];
+
+/* ---------- PDF del desglose (se arma al momento de pedirlo) ---------- */
+async function buildDesglose(D) {
+  await loadPdfLib();
+  const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+  const doc = await PDFDocument.create();
+  const W = 792, H = 612; const page = doc.addPage([W, H]);
+  const R = await doc.embedFont(StandardFonts.Helvetica), B = await doc.embedFont(StandardFonts.HelveticaBold);
+  const black = rgb(0, 0, 0), GRAY = rgb(0.902, 0.902, 0.902), ZEB = rgb(0.953, 0.953, 0.953);
+  const safe = s => String(s == null ? '' : s).replace(/[^\x20-\x7E -ÿ—·]/g, '?');
+  const money = v => Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const txt = (s, x, y, f, z) => page.drawText(safe(s), { x, y, size: z, font: f, color: black });
+  const wid = (s, f, z) => f.widthOfTextAtSize(safe(s), z);
+  const fit = (s, f, z, w) => { s = safe(s); while (s.length > 3 && f.widthOfTextAtSize(s, z) > w) s = s.slice(0, -1); return s; };
+  const I = D.info, L = 36, Rr = W - 36; let y = H - 36 - 8;
+  txt('INGENIO TAMAZULA, S.A. DE C.V.', L, y, B, 8.5); y -= 10;
+  txt('[ERPNORPNOM2] Movimientos por Empleado — Nómina: 2 - OBREROS', L, y, R, 7.5); y -= 10;
+  txt(`Empresa 33 · Documento 50 NÓMINAS · Serie 2 OBREROS · Ejercicio ${I.ejercicio} · Periodo ${I.periodo} ${I.periodo_txt} · Folio ${I.folio} · Impreso ${I.impreso}`, L, y, R, 7.5); y -= 19;
+  const rows = D.rows.map(r => ({ code: r[0], name: r[1], origen: r[2], fecha: r[3], tno: r[4], puesto: r[5], tno_p: r[6], dias: r[7], ctro: r[8], imp: r[9] }));
+  const cnt = {}; let best = null;
+  const cand = rows.filter(r => r.tno_p).length ? rows.filter(r => r.tno_p) : rows;
+  cand.forEach(r => { const k = [r.tno, r.puesto, r.tno_p, r.ctro].join('|'); cnt[k] = (cnt[k] || 0) + 1; if (!best || cnt[k] > cnt[best]) best = k; });
+  const [tno, pu, tp, ct] = (best || '|||').split('|');
+  let t = `${D.id} — ${D.nombre}`; txt(t, L, y, B, 8); let x = L + wid(t, B, 8) + 12;
+  t = `Factor: ${D.factor || ''}`; txt(t, x, y, R, 7.5); x += wid(t, R, 7.5) + 12;
+  txt([tno ? `Turno ${tno}` : '', pu ? `Puesto ${pu}` : '', tp ? `TNO_P ${tp}` : '', ct ? `Centro ${ct}` : ''].filter(Boolean).join(' · '), x, y, R, 7.5);
+  y -= 8;
+  const n = rows.length + 3, rh = Math.min(14.6, (y - 60) / n), fs = Math.min(7.5, rh * 0.55);
+  const COLS = [['code', 44, 'l', 'CONCEPTO'], ['name', 72, 'l', null], ['origen', 283, 'l', 'ORIGEN'], ['fecha', 400, 'c', 'FECHA'], ['tno', 442, 'c', 'TNO'],
+    ['puesto', 493, 'c', 'PUESTO'], ['tno_p', 547, 'c', 'TNO_P'], ['dias', 578, 'c', 'DÍAS'], ['ctro', 606, 'c', 'CTRO.'], ['per', 682, 'r', 'PERCEPCIÓN'], ['ded', 750, 'r', 'DEDUCCIÓN']];
+  const band = c => page.drawRectangle({ x: L, y: y - rh, width: Rr - L, height: rh, color: c });
+  const put = (v, x0, al, f) => {
+    const by = y - rh + (rh - fs) / 2 + fs * 0.18;
+    if (al === 'l') txt(v, x0, by, f, fs);
+    else if (al === 'r') txt(v, x0 - wid(v, f, fs), by, f, fs);
+    else txt(v, x0 - wid(v, f, fs) / 2, by, f, fs);
+  };
+  const row = (vals, bg, bold) => {
+    if (bg) band(bg);
+    const f = bold ? B : R;
+    COLS.forEach(([k, x0, al]) => {
+      let v = vals[k]; if (!v) return;
+      if (k === 'name') v = fit(v, f, fs, 278 - x0);
+      if (k === 'origen') v = fit(v, f, fs, 372 - x0);
+      if (k === 'puesto') v = fit(v, f, fs, 90);
+      put(v, x0, al, f);
+    });
+    y -= rh;
+  };
+  band(GRAY); COLS.forEach(([k, x0, al, lab]) => { if (lab) put(lab, x0, al, B); }); y -= rh;
+  rows.forEach((r, i) => {
+    const d = parseInt(r.code, 10) >= 500;
+    row({ code: r.code, name: r.name, origen: r.origen, fecha: r.fecha, tno: r.tno, puesto: r.puesto, tno_p: r.tno_p, dias: r.dias, ctro: r.ctro,
+      per: d ? '' : money(r.imp), ded: d ? money(r.imp) : '' }, i % 2 ? ZEB : null, false);
+  });
+  row({ name: 'TOTALES POR EMPLEADO', per: '$' + money(D.tot[0]), ded: '$' + money(D.tot[1]) }, GRAY, true);
+  row({ name: 'NETO', ded: '$' + money(D.tot[2]) }, ZEB, true);
+  y -= 12;
+  const pg = D.pages, src = pg.length > 1 ? `de las páginas ${pg.slice(0, -1).join(', ')} y ${pg[pg.length - 1]}` : `de la página ${pg[0]}`;
+  txt(`Movimientos tomados ${src} del reporte original (\\\\SERVER-ERP\\ERP\\reportes\\ERPNORPNOM2.rpt)` + (pg.length > 1 ? ', unidos en una sola hoja.' : '.'), L, y, R, 7);
+  doc.setTitle(`Desglose de nómina semana ${I.periodo} - ${D.id}`);
+  return doc.save();
+}
+
 /* ---------- Desglose de nómina (solo si el trabajador lo pide) ---------- */
 function entregaPDF(bytes, fname, titulo, intro) {
   const box = el('div'); box.style.display = 'grid'; box.style.gap = '10px';
@@ -345,10 +409,11 @@ async function pedirDesglose(q) {
     const r = await fetch(`d/${sem}/${session.id}.bin?v=${(DATA.meta && DATA.meta.version) || ''}`, { cache: 'no-store' });
     if (!r.ok) throw new Error('http ' + r.status);
     const buf = new Uint8Array(await r.arrayBuffer());
-    const pdf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(0, 12) }, session.key, buf.slice(12));
+    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(0, 12) }, session.key, buf.slice(12));
+    const pdf = await buildDesglose(JSON.parse(td.decode(plain)));
     t.remove();
     const per = (DATA.meta && DATA.meta.periodos && DATA.meta.periodos[sem]) ? ` (${DATA.meta.periodos[sem]})` : '';
-    entregaPDF(new Uint8Array(pdf), `Desglose_nomina_s${sem}_${corto(d.socio)}.pdf`, `Desglose de nómina semana ${sem}`,
+    entregaPDF(pdf, `Desglose_nomina_s${sem}_${corto(d.socio)}.pdf`, `Desglose de nómina semana ${sem}`,
       `Aquí está tu desglose de nómina de la semana ${sem}${per}.`);
   } catch (e) { t.remove(); bot('No pude abrir tu desglose. Revisa tu conexión e inténtalo de nuevo.'); }
 }
@@ -528,15 +593,19 @@ async function submit(raw) {
       fails = 0; t.remove();
       const first = data.orden === 'nomina' ? '' : titulo((data.nombre || '').split(' ')[0]);
       const hola = `¡Hola${first ? ', ' + first : ''}! Entraste correctamente.`;
+      const sems = (data.desgloses || []).slice().sort((a, b) => a - b), ult = sems[sems.length - 1];
+      const perU = ult && DATA.meta && DATA.meta.periodos ? DATA.meta.periodos[ult] : '';
+      const inv = ult ? `Ya está disponible tu desglose de nómina más reciente: semana ${ult}${perU ? ' (' + perU + ')' : ''}. Pídemelo y te lo preparo.` : '';
+      const chipD = ult ? [`Desglose semana ${ult}`] : [];
+      bot(hola);
       if (data.fondo === false) {
-        bot(hola);
-        bot('Puedo entregarte tu desglose de nómina. Por ahora no tienes saldo registrado en el fondo de ahorro. Toca la opción o escríbeme.');
-        setMode('chat'); setChips(['Desglose de nómina', 'Cerrar sesión']);
+        bot((inv ? inv + ' ' : '') + 'Por ahora no tienes saldo registrado en el fondo de ahorro.');
+        setMode('chat'); setChips([...chipD, 'Cerrar sesión']);
       } else {
-        bot(hola);
-        bot('Puedo entregarte tu desglose de nómina o mostrarte tu saldo actual del fondo de ahorro. ¿Qué necesitas?');
-        setMode('chat'); setChips(MENU);
+        bot((inv ? inv + ' ' : '') + 'También puedo mostrarte tu saldo actual del fondo de ahorro.');
+        setMode('chat'); setChips([...chipD, ...MENU.filter(m => m !== 'Desglose de nómina')]);
       }
+      if (sems.length > 1) bot(`Si necesitas una semana anterior, escribe por ejemplo "desglose semana ${sems[sems.length - 2]}".`);
     } catch (e) {
       t.remove();
       fails++;
