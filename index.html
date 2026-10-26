@@ -153,6 +153,7 @@ button.btn.wa,a.btn.wa{display:inline-flex;align-items:center;justify-content:ce
    - meta/fondo         {nombre, actualizado}
 */
 const ITER = 210000;
+const normPin = s => String(s || '').replace(/\D/g, '').replace(/^0+(?=\d)/, '');
 const $ = s => document.querySelector(s);
 const log = $('#log'), chips = $('#chips'), msg = $('#msg'), form = $('#form');
 const te = new TextEncoder(), td = new TextDecoder();
@@ -208,7 +209,7 @@ function setChips(list) {
 }
 function setMode(m) {
   stage = m;
-  if (m === 'pin') { msg.type = 'password'; msg.inputMode = 'numeric'; msg.placeholder = 'PIN de 6 dígitos'; msg.maxLength = 6; }
+  if (m === 'pin') { msg.type = 'password'; msg.inputMode = 'numeric'; msg.placeholder = 'Tu PIN'; msg.maxLength = 6; }
   else { msg.type = 'text'; msg.removeAttribute('maxlength'); msg.inputMode = m === 'socio' ? 'numeric' : m === 'loan' ? 'decimal' : 'text'; msg.placeholder = m === 'socio' ? 'Número de empleado' : m === 'loan' ? 'Cantidad, por ejemplo 5000' : 'Escribe un mensaje'; }
   msg.value = '';
 }
@@ -462,14 +463,14 @@ async function submit(raw) {
 
   if (stage === 'socio') {
     pendSocio = normSocio(text);
-    bot('Gracias. Ahora escribe tu PIN de 6 dígitos.');
+    bot('Gracias. Ahora escribe tu PIN.');
     setMode('pin');
     return;
   }
 
   if (stage === 'pin') {
     if (Date.now() < lockUntil) { bot(`Demasiados intentos. Espera ${Math.ceil((lockUntil - Date.now()) / 1000)} segundos y escribe de nuevo tu número de empleado.`); setMode('socio'); return; }
-    const pin = text.replace(/\D/g, '');
+    const pin = normPin(text);
     const t = typing();
     try {
       const id = await cuentaId(pendSocio);
