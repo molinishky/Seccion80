@@ -209,7 +209,7 @@ function setChips(list) {
 }
 function setMode(m) {
   stage = m;
-  if (m === 'pin') { msg.type = 'password'; msg.inputMode = 'numeric'; msg.placeholder = 'Tu PIN'; msg.maxLength = 6; }
+  if (m === 'pin') { msg.type = 'password'; msg.inputMode = 'numeric'; msg.placeholder = 'PIN de 4 dígitos'; msg.maxLength = 4; }
   else { msg.type = 'text'; msg.removeAttribute('maxlength'); msg.inputMode = m === 'socio' ? 'numeric' : m === 'loan' ? 'decimal' : 'text'; msg.placeholder = m === 'socio' ? 'Número de empleado' : m === 'loan' ? 'Cantidad, por ejemplo 5000' : 'Escribe un mensaje'; }
   msg.value = '';
 }
@@ -463,7 +463,7 @@ async function submit(raw) {
 
   if (stage === 'socio') {
     pendSocio = normSocio(text);
-    bot('Gracias. Ahora escribe tu PIN.');
+    bot('Gracias. Ahora escribe tu PIN de 4 dígitos.');
     setMode('pin');
     return;
   }
