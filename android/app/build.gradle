@@ -1,0 +1,25 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'mx.seccion80.app'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'mx.seccion80.app'
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+    }
+    signingConfigs {
+        release {
+            storeFile file('../seccion80.keystore')
+            storePassword 'seccion80app'
+            keyAlias 'seccion80'
+            keyPassword 'seccion80app'
+        }
+    }
+    buildTypes {
+        release { minifyEnabled false; signingConfig signingConfigs.release }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+dependencies { implementation 'androidx.core:core:1.13.1' }
