@@ -170,14 +170,18 @@ button,input,select{font:inherit;color:inherit}
 .pre{background:#fff;border:1px solid var(--ln2);border-radius:18px;overflow:hidden;margin-bottom:14px}
 .pre-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--ln3)}
 .pre-h b{font-size:16px;flex:1}
-.pre-tag{font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;background:#FDECEC;color:var(--neg)}
-.pre-tag.ok{background:#E9F5EC;color:var(--verde)}
+.pre-tag{font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;background:#fff;color:var(--ac);border:1px solid var(--ac)}
+.pre{--ac:var(--azul);--ac-cl:var(--azul-cl);border-top:4px solid var(--ac)}
+.pre.v{--ac:var(--verde);--ac-cl:#E9F5EC}
+.pre .pre-h{background:var(--ac-cl)}
+.pre .pre-h b{color:var(--ac)}
+.pre-amt{color:var(--ac)}
 .pre-m{padding:18px 16px 14px}
 .pre-lbl{font-size:13.5px;color:var(--mu);font-weight:600}
 .pre-amt{font-size:34px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:2px}
-.pre-amt.cero{color:var(--verde)}
+.pre-amt.cero{color:var(--ac)}
 .pre-meta{font-size:13.5px;color:var(--mu);margin-top:4px}
-.pre-ok{display:flex;gap:10px;align-items:center;margin-top:10px;padding:12px;border-radius:12px;background:#E9F5EC;color:#14632A;font-size:14.5px;font-weight:600}
+.pre-ok{display:flex;gap:10px;align-items:center;margin-top:10px;padding:12px;border-radius:12px;background:var(--ac-cl);color:var(--ac);font-size:14.5px;font-weight:600}
 .pre-desc{display:flex;justify-content:space-between;margin-top:12px;padding:12px;border-radius:12px;background:var(--azul-cl);font-size:14.5px}
 .pre-desc b{font-variant-numeric:tabular-nums}
 .pre-l{padding:4px 16px 10px;border-top:1px solid var(--ln3)}
@@ -261,7 +265,7 @@ button,input,select{font:inherit;color:inherit}
     <div class="tarjetas">
       <button class="tarjeta" data-go="desglose"><span class="ic az" id="ic-desg"></span><span class="tx"><b>Desglose de nóminas</b><span id="card-desg-sub"></span></span><span class="ch" id="ch1"></span></button>
       <button class="tarjeta" data-go="fondo"><span class="ic ve" id="ic-fondo"></span><span class="tx"><b>Fondo de ahorro</b><span id="card-fondo-sub"></span></span><span class="ch" id="ch2"></span></button>
-      <button class="tarjeta" data-go="prestamos"><span class="ic ro" id="ic-prest"></span><span class="tx"><b>Préstamos</b><span id="card-prest-sub"></span></span><span class="ch" id="ch3"></span></button>
+      <button class="tarjeta" data-go="prestamos"><span class="ic az" id="ic-prest"></span><span class="tx"><b>Préstamos</b><span id="card-prest-sub"></span></span><span class="ch" id="ch3"></span></button>
     </div>
     <button class="ayuda" data-go="chat"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0068B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg><span>¿Tienes una duda? <b>Escríbenos en el chat</b></span></button>
   </div>
@@ -919,15 +923,15 @@ async function renderFondo() {
 }
 
 /* ================= Préstamos ================= */
-function cajaPrestamo(x, pn) {
-  const c = el('section', 'pre');
+function cajaPrestamo(x, pn, i) {
+  const c = el('section', 'pre' + (i % 2 ? ' v' : ''));
   const h = el('div', 'pre-h'); h.append(el('b', null, String(x.t).replace(/-/g, '\u2011')));
   const debe = x.saldo > 0.005;
   h.append(el('span', 'pre-tag' + (debe ? '' : ' ok'), debe ? 'Saldo pendiente' : 'Sin adeudo'));
   const m = el('div', 'pre-m');
   m.append(el('div', 'pre-lbl', pn ? `Saldo restante de ${pn}` : 'Saldo restante'));
   m.append(el('div', 'pre-amt' + (debe ? '' : ' cero'), money(debe ? x.saldo : 0)));
-  m.append(el('div', 'pre-meta', x.sem ? `Al cierre de la semana ${x.sem}${x.anio ? ' de ' + x.anio : ''}${periodo(x.sem) ? ' (' + periodo(x.sem) + ')' : ''}` : 'Saldo al corte'));
+  m.append(el('div', 'pre-meta', x.sem ? `Al cierre de la semana ${x.sem}${x.anio ? ' de ' + x.anio : ''}${periodo(x.sem) ? ' (' + periodo(x.sem) + ')' : ''}` : 'Préstamo por acuerdo de asamblea'));
   if (!debe) {
     const ok = el('div', 'pre-ok'); ok.append(el('span', null, '✓'), el('span', null, 'No tienes saldo pendiente en este préstamo.')); m.append(ok);
   }
@@ -941,7 +945,7 @@ async function renderPrestamos() {
   const pn = primerNombre(d);
   const lista = (d.prestamos && d.prestamos.length) ? d.prestamos : ((DATA.meta && DATA.meta.prestamos) || []).map(p => ({ t: p.t, sem: p.sem, anio: p.anio, saldo: 0, desc: 0, pagos: [] }));
   if (!lista.length) { box.replaceChildren(el('div', 'aviso', 'Aún no hay información de préstamos.')); return; }
-  box.replaceChildren(...lista.map(x => cajaPrestamo(x, pn)));
+  box.replaceChildren(...lista.map((x, i) => cajaPrestamo(x, pn, i)));
 }
 
 /* ================= Desglose ================= */
@@ -1064,7 +1068,7 @@ async function enviarChat(raw) {
     t.remove();
     const ps = d.prestamos || [];
     if (!ps.length) { bot('Aún no hay información de préstamos.'); return; }
-    ps.forEach(x => bot(x.saldo > 0.005 ? `${x.t}: tu saldo pendiente es ${money(x.saldo)} ${x.sem ? 'al cierre de la semana ' + x.sem : 'al corte'}.` : `${x.t}: no tienes saldo pendiente.`));
+    ps.forEach(x => bot(x.saldo > 0.005 ? `${x.t}: tu saldo pendiente es ${money(x.saldo)} ${x.sem ? 'al cierre de la semana ' + x.sem : '(préstamo por acuerdo de asamblea)'}.` : `${x.t}: no tienes saldo pendiente.`));
     const b = el('button', 'btn-sec', 'Ver mis préstamos'); b.type = 'button'; b.dataset.go = 'prestamos'; bot(b);
     return;
   }
