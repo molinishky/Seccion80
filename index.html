@@ -926,14 +926,14 @@ async function renderFondo() {
 function cajaPrestamo(x, pn, i) {
   const c = el('section', 'pre' + (i % 2 ? ' v' : ''));
   const h = el('div', 'pre-h'); h.append(el('b', null, String(x.t).replace(/-/g, '\u2011')));
-  const debe = x.saldo > 0.005;
-  h.append(el('span', 'pre-tag' + (debe ? '' : ' ok'), debe ? 'Saldo pendiente' : 'Sin adeudo'));
+  const debe = x.saldo > 0.005, favor = x.saldo < -0.005;
+  h.append(el('span', 'pre-tag', debe ? 'Saldo pendiente' : favor ? 'Saldo a favor' : 'Sin adeudo'));
   const m = el('div', 'pre-m');
-  m.append(el('div', 'pre-lbl', pn ? `Saldo restante de ${pn}` : 'Saldo restante'));
-  m.append(el('div', 'pre-amt' + (debe ? '' : ' cero'), money(debe ? x.saldo : 0)));
+  m.append(el('div', 'pre-lbl', favor ? (pn ? `Saldo a favor de ${pn}` : 'Saldo a favor') : (pn ? `Saldo restante de ${pn}` : 'Saldo restante')));
+  m.append(el('div', 'pre-amt' + (debe ? '' : ' cero'), money(debe ? x.saldo : favor ? -x.saldo : 0)));
   m.append(el('div', 'pre-meta', x.sem ? `Al cierre de la semana ${x.sem}${x.anio ? ' de ' + x.anio : ''}${periodo(x.sem) ? ' (' + periodo(x.sem) + ')' : ''}` : 'Préstamo por acuerdo de asamblea'));
   if (!debe) {
-    const ok = el('div', 'pre-ok'); ok.append(el('span', null, '✓'), el('span', null, 'No tienes saldo pendiente en este préstamo.')); m.append(ok);
+    const ok = el('div', 'pre-ok'); ok.append(el('span', null, '✓'), el('span', null, favor ? `No tienes saldo pendiente. Abonaste ${money(-x.saldo)} de más, que quedan como saldo a favor.` : 'No tienes saldo pendiente en este préstamo.')); m.append(ok);
   }
   c.append(h, m);
   return c;
@@ -1068,7 +1068,7 @@ async function enviarChat(raw) {
     t.remove();
     const ps = d.prestamos || [];
     if (!ps.length) { bot('Aún no hay información de préstamos.'); return; }
-    ps.forEach(x => bot(x.saldo > 0.005 ? `${x.t}: tu saldo pendiente es ${money(x.saldo)} ${x.sem ? 'al cierre de la semana ' + x.sem : '(préstamo por acuerdo de asamblea)'}.` : `${x.t}: no tienes saldo pendiente.`));
+    ps.forEach(x => bot(x.saldo > 0.005 ? `${x.t}: tu saldo pendiente es ${money(x.saldo)} ${x.sem ? 'al cierre de la semana ' + x.sem : '(préstamo por acuerdo de asamblea)'}.` : (x.saldo < -0.005 ? `${x.t}: no tienes saldo pendiente y tienes un saldo a favor de ${money(-x.saldo)}.` : `${x.t}: no tienes saldo pendiente.`)));
     const b = el('button', 'btn-sec', 'Ver mis préstamos'); b.type = 'button'; b.dataset.go = 'prestamos'; bot(b);
     return;
   }
