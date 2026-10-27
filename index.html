@@ -921,28 +921,17 @@ async function renderFondo() {
 /* ================= Préstamos ================= */
 function cajaPrestamo(x, pn) {
   const c = el('section', 'pre');
-  const h = el('div', 'pre-h'); h.append(el('b', null, x.t));
+  const h = el('div', 'pre-h'); h.append(el('b', null, String(x.t).replace(/-/g, '\u2011')));
   const debe = x.saldo > 0.005;
   h.append(el('span', 'pre-tag' + (debe ? '' : ' ok'), debe ? 'Saldo pendiente' : 'Sin adeudo'));
   const m = el('div', 'pre-m');
   m.append(el('div', 'pre-lbl', pn ? `Saldo restante de ${pn}` : 'Saldo restante'));
   m.append(el('div', 'pre-amt' + (debe ? '' : ' cero'), money(debe ? x.saldo : 0)));
-  m.append(el('div', 'pre-meta', x.sem ? `Al cierre de la semana ${x.sem}${x.anio ? ' de ' + x.anio : ''}${periodo(x.sem) ? ' (' + periodo(x.sem) + ')' : ''}` : `Saldo al corte${x.corte ? ' (último descuento registrado: ' + x.corte + ')' : ''}`));
+  m.append(el('div', 'pre-meta', x.sem ? `Al cierre de la semana ${x.sem}${x.anio ? ' de ' + x.anio : ''}${periodo(x.sem) ? ' (' + periodo(x.sem) + ')' : ''}` : 'Saldo al corte'));
   if (!debe) {
     const ok = el('div', 'pre-ok'); ok.append(el('span', null, '✓'), el('span', null, 'No tienes saldo pendiente en este préstamo.')); m.append(ok);
-  } else if (x.desc) {
-    const ds = el('div', 'pre-desc'); ds.append(el('span', null, `Descuento de la semana ${x.sem}`), el('b', null, money(x.desc))); m.append(ds);
   }
   c.append(h, m);
-  if (x.pagos && x.pagos.length) {
-    const l = el('div', 'pre-l'); l.append(el('h3', null, 'Últimos descuentos'));
-    x.pagos.slice().reverse().forEach(([s, v]) => {
-      const row = el('div', 'fila'); const mm = String(s).match(/SEM\s*(\d+)\s*(\d{4})?\s*(.*)$/i);
-      row.append(el('span', 'fila-t', mm ? `Semana ${mm[1]}${mm[2] ? ' · ' + mm[2] : ''}${mm[3] ? ' ' + mm[3].toLowerCase() : ''}` : s), el('span', 'fila-r', money(v)));
-      l.append(row);
-    });
-    c.append(l);
-  }
   return c;
 }
 async function renderPrestamos() {
@@ -1075,7 +1064,7 @@ async function enviarChat(raw) {
     t.remove();
     const ps = d.prestamos || [];
     if (!ps.length) { bot('Aún no hay información de préstamos.'); return; }
-    ps.forEach(x => bot(x.saldo > 0.005 ? `${x.t}: tu saldo pendiente es ${money(x.saldo)} ${x.sem ? 'al cierre de la semana ' + x.sem : 'al corte'}${x.desc ? ', con un descuento semanal de ' + money(x.desc) : ''}.` : `${x.t}: no tienes saldo pendiente.`));
+    ps.forEach(x => bot(x.saldo > 0.005 ? `${x.t}: tu saldo pendiente es ${money(x.saldo)} ${x.sem ? 'al cierre de la semana ' + x.sem : 'al corte'}.` : `${x.t}: no tienes saldo pendiente.`));
     const b = el('button', 'btn-sec', 'Ver mis préstamos'); b.type = 'button'; b.dataset.go = 'prestamos'; bot(b);
     return;
   }
