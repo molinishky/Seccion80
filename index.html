@@ -92,6 +92,7 @@ svg.spark{width:100%;height:auto;display:block}
 .chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
 .chips:empty{display:none}
 .chip{flex:none;border:1px solid var(--chip);color:var(--chip);background:transparent;border-radius:999px;padding:7px 13px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.chip.rec.on{background:var(--chip);color:#fff}
 .chip:active{background:var(--brand-soft)}
 form.send{display:flex;gap:8px}
 .inp{flex:1;min-width:0;font:inherit;font-size:16px;padding:11px 14px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
@@ -137,7 +138,7 @@ button.btn.wa,a.btn.wa{display:inline-flex;align-items:center;justify-content:ce
   <footer id="composer" class="composer">
     <div id="chips" class="chips"></div>
     <form id="form" class="send">
-      <input id="msg" class="inp" autocomplete="off" placeholder="Número de empleado">
+      <input id="msg" class="inp" autocomplete="off" placeholder="Número de IBM">
       <button id="sendBtn" class="btn" type="submit">Enviar</button>
     </form>
   </footer>
@@ -211,7 +212,7 @@ function setChips(list) {
 function setMode(m) {
   stage = m;
   if (m === 'pin') { msg.type = 'password'; msg.inputMode = 'numeric'; msg.placeholder = 'PIN de 4 dígitos'; msg.maxLength = 4; }
-  else { msg.type = 'text'; msg.removeAttribute('maxlength'); msg.inputMode = m === 'socio' ? 'numeric' : m === 'loan' ? 'decimal' : 'text'; msg.placeholder = m === 'socio' ? 'Número de empleado' : m === 'loan' ? 'Cantidad, por ejemplo 5000' : 'Escribe un mensaje'; }
+  else { msg.type = 'text'; msg.removeAttribute('maxlength'); msg.inputMode = m === 'socio' ? 'numeric' : m === 'loan' ? 'decimal' : 'text'; msg.placeholder = m === 'socio' ? 'Número de IBM' : m === 'loan' ? 'Cantidad, por ejemplo 5000' : 'Escribe un mensaje'; }
   msg.value = '';
 }
 
@@ -578,23 +579,36 @@ async function submit(raw) {
       catch (e) { t.remove(); olvidar(pendSocio); bot('No pude entrar automáticamente en este teléfono. Escribe tu PIN de 4 dígitos.'); setMode('pin'); }
       return;
     }
-    bot('Gracias. Ahora escribe tu PIN de 4 dígitos.');
+    const blobS = DATA.cuentas[await cuentaId(pendSocio)];
+    if (!blobS) { bot('No encontré ese número de IBM. Revísalo y escríbelo de nuevo.'); return; }
+    const nm = blobS.nm ? ', ' + blobS.nm : '';
+    const box = el('div'); box.style.display = 'grid'; box.style.gap = '10px';
+    box.append(el('div', null, `¡Hola${nm}! Por favor, escribe tu PIN de 4 dígitos.`));
+    quiereRecordar = false;
+    if (puedeRecordar()) {
+      const b = el('button', 'chip rec', '☐ Recordarme en este teléfono'); b.type = 'button';
+      b.setAttribute('aria-pressed', 'false'); b.style.justifySelf = 'start';
+      b.onclick = () => { quiereRecordar = !quiereRecordar; b.textContent = (quiereRecordar ? '☑' : '☐') + ' Recordarme en este teléfono'; b.setAttribute('aria-pressed', String(quiereRecordar)); b.classList.toggle('on', quiereRecordar); msg.focus(); };
+      box.append(b, el('div', 'sub', 'Si lo activas, la próxima vez solo escribes tu número de IBM, sin PIN.'));
+    }
+    bot(box);
     setMode('pin');
     return;
   }
 
   if (stage === 'pin') {
-    if (Date.now() < lockUntil) { bot(`Demasiados intentos. Espera ${Math.ceil((lockUntil - Date.now()) / 1000)} segundos y escribe de nuevo tu número de empleado.`); setMode('socio'); return; }
+    if (Date.now() < lockUntil) { bot(`Demasiados intentos. Espera ${Math.ceil((lockUntil - Date.now()) / 1000)} segundos y escribe de nuevo tu número de IBM.`); setMode('socio'); return; }
     const pin = normPin(text);
     const t = typing();
     try {
       await iniciar(pendSocio, pin, false);
       fails = 0; t.remove();
+      if (quiereRecordar) { recordar(pendSocio, pin); quiereRecordar = false; }
     } catch (e) {
       t.remove();
       fails++;
       if (fails >= 5) { lockUntil = Date.now() + 60000; fails = 0; }
-      bot('El número de empleado o el PIN no coinciden. Escribe de nuevo tu número de empleado.');
+      bot('El PIN no coincide. Escribe de nuevo tu número de IBM.');
       setMode('socio');
     }
     return;
@@ -602,7 +616,7 @@ async function submit(raw) {
 
   if (session && /^(si|sí),? recordar|recordar este telefono|recordar este teléfono/i.test(text)) {
     recordar(session.socio, session.pin);
-    bot('Listo. Este teléfono te recordará: la próxima vez solo escribe tu número de empleado. Si el teléfono no es tuyo o lo vas a prestar, escribe "Olvidar este teléfono".');
+    bot('Listo. Este teléfono te recordará: la próxima vez solo escribe tu número de IBM. Si el teléfono no es tuyo o lo vas a prestar, escribe "Olvidar este teléfono".');
     setChips(session.chips || MENU); return;
   }
   if (session && /^no,? gracias$/i.test(text.trim())) { bot('De acuerdo, te seguiré pidiendo el PIN.'); setChips(session.chips || MENU); return; }
@@ -635,6 +649,8 @@ function leerRec() { try { return JSON.parse(localStorage.getItem(RKEY) || '{}')
 function recordado(socio) { return leerRec()[socio] || null; }
 function recordar(socio, pin) { try { const r = leerRec(); r[socio] = pin; localStorage.setItem(RKEY, JSON.stringify(r)); } catch (e) {} }
 function olvidar(socio) { try { const r = leerRec(); delete r[socio]; localStorage.setItem(RKEY, JSON.stringify(r)); } catch (e) {} }
+let quiereRecordar = false;
+function puedeRecordar() { try { localStorage.setItem('s80_t', '1'); localStorage.removeItem('s80_t'); return true; } catch (e) { return false; } }
 function olvidarTodo() { try { localStorage.removeItem(RKEY); } catch (e) {} }
 
 async function iniciar(socio, pin, auto) {
@@ -645,12 +661,12 @@ async function iniciar(socio, pin, auto) {
   session = { socio, pin, id, data, key: unseal.key, salt: blob.s };
   let chipsActuales = MENU;
   const first = data.orden === 'nomina' ? '' : titulo((data.nombre || '').split(' ')[0]);
-  const hola = `¡Hola${first ? ', ' + first : ''}! ` + (auto ? 'Te reconocí en este teléfono.' : 'Entraste correctamente.');
+  const hola = auto ? `¡Hola${first ? ', ' + first : ''}! Te reconocí en este teléfono.` : `Gracias${first ? ', ' + first : ''}. Entraste correctamente.`;
   const sems = (data.desgloses || []).slice().sort((a, b) => a - b), ult = sems[sems.length - 1];
   const perU = ult && DATA.meta && DATA.meta.periodos ? DATA.meta.periodos[ult] : '';
   const inv = ult ? `Ya está disponible tu desglose de nómina más reciente: semana ${ult}${perU ? ' (' + perU + ')' : ''}. Pídemelo y te lo preparo.` : '';
   const chipD = ult ? [`Desglose semana ${ult}`] : [];
-  bot(hola);
+  bot(hola + (!auto && quiereRecordar ? ' Este teléfono te recordará la próxima vez.' : ''));
   if (data.fondo === false) {
     bot((inv ? inv + ' ' : '') + 'Por ahora no tienes saldo registrado en el fondo de ahorro.');
     setMode('chat'); chipsActuales = [...chipD, 'Cerrar sesión']; setChips(chipsActuales);
@@ -660,15 +676,11 @@ async function iniciar(socio, pin, auto) {
   }
   if (sems.length > 1) bot(`Si necesitas una semana anterior, escribe por ejemplo "desglose semana ${sems[sems.length - 2]}".`);
   session.chips = chipsActuales;
-  if (!auto) {
-    let ok = true; try { localStorage.setItem('s80_t', '1'); localStorage.removeItem('s80_t'); } catch (e) { ok = false; }
-    if (ok) { bot('¿Quieres que este teléfono te recuerde? Así la próxima vez solo escribes tu número de empleado, sin PIN.'); setChips(['Sí, recordar este teléfono', 'No, gracias', ...chipsActuales]); }
-  }
 }
 
 function logout() {
   loan = null; session = null; pendSocio = ''; setChips([]);
-  bot('Cerraste tu sesión. Para volver a consultar, escribe tu número de empleado.');
+  bot('Cerraste tu sesión. Para volver a consultar, escribe tu número de IBM.');
   setMode('socio');
   if (Object.keys(leerRec()).length) setChips(['Olvidar este teléfono']);
 }
@@ -677,7 +689,7 @@ form.addEventListener('submit', e => { e.preventDefault(); submit(msg.value); })
 
 /* ---------- Arranque ---------- */
 bot('Hola. Bienvenido a la Secretaría de Relaciones de la Sección 80.');
-bot('Para empezar, escribe tu número de empleado.');
+bot('Para empezar, escribe tu número de IBM.');
 setMode('socio');
 
 async function cargarDatos() {
