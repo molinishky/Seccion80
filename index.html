@@ -153,7 +153,7 @@ button,input,select{font:inherit;color:inherit}
 .dots i{width:7px;height:7px;border-radius:50%;background:#A0A8B4;animation:pt 1s infinite}
 .dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
 @keyframes pt{0%,80%,100%{opacity:.3}40%{opacity:1}}
-.chat-pie{background:#fff;border-top:1px solid var(--ln3);padding:8px 12px calc(76px + var(--sab))}
+.chat-pie{background:#fff;border-top:1px solid var(--ln3);padding:8px 12px calc(88px + var(--sab))}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;height:38px;padding:0 14px;border-radius:999px;border:1.5px solid #CFE0F1;background:var(--azul-cl);color:var(--azul);font-weight:600;font-size:14px;cursor:pointer}
@@ -166,6 +166,17 @@ button,input,select{font:inherit;color:inherit}
 .en-linea{display:inline-flex;align-items:center;gap:5px}
 .en-linea::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--verde)}
 
+/* Consultas de ley */
+.ley{border:1px solid var(--ln2);border-left:3px solid var(--azul);border-radius:10px;padding:10px 12px;background:#FAFBFD}
+.ley-t{font-weight:700;font-size:14px;color:var(--azul)}
+.ley-h{font-size:12px;color:var(--mu);margin-top:2px}
+.ley-x{font-size:14px;line-height:1.5;margin-top:6px;white-space:pre-wrap}
+.ley-mas{margin-top:6px;background:none;border:0;color:var(--azul);font-weight:600;font-size:13.5px;padding:6px 0;cursor:pointer;text-decoration:underline}
+.ley-sub{font-size:13px;color:var(--mu);font-weight:600}
+.ley-ops{display:flex;flex-wrap:wrap;gap:6px}
+.ley-ops .chip{height:auto;min-height:34px;padding:6px 12px;font-size:13px;text-align:left}
+.ley-nota{font-size:12.5px;color:var(--mu);font-style:italic}
+.msg:has(.ley){max-width:96%}
 /* Navegación */
 #nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:480px;z-index:10;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--ln3);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:6px 4px calc(6px + var(--sab))}
 .tab{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;padding:6px 2px;min-width:0;width:100%;border:0;background:none;color:#7C8696;font-size:11px;font-weight:600;cursor:pointer;border-radius:12px;min-height:56px;text-align:center;line-height:1.15}
@@ -491,6 +502,220 @@ async function cargarDatos() {
   return r.json();
 }
 
+/* ================= Consultas de leyes (carpeta Libros) ================= */
+const LEY = { data: null, p: null, idx: null };
+const STOP = new Set('a al ante bajo con contra de del desde durante en entre hacia hasta mediante para por segun sin so sobre tras el la los las lo un una unos unas y e o u ni que se su sus mi mis me te le les nos es son ser fue sera esta estan este esto esa ese eso como cual cuales cuando donde quien cuanto cuanta cuantos cuantas mas muy ya no si pero porque tambien hay tiene tengo tienen debe deben puede pueden hacer hace dice dicen sobre ley articulo articulos art contrato pregunta duda dudas saber quiero quisiera favor gracias hola buenas buenos dias tardes noches sat me toca tocan corresponde corresponden'.split(' '));
+const SINON = {
+  aguinaldo: ['aguinaldo'], vacacion: ['vacaciones', 'vacacional'], prima: ['prima'],
+  finiquito: ['terminacion', 'indemnizacion', 'antiguedad', 'separacion'], liquidacion: ['indemnizacion', 'terminacion', 'despido'],
+  despido: ['despido', 'rescision', 'separacion', 'indemnizacion'], corren: ['despido', 'rescision'], corrieron: ['despido', 'rescision'],
+  utilidad: ['participacion', 'utilidades'], ptu: ['participacion', 'utilidades'], reparto: ['participacion', 'utilidades'],
+  extra: ['extraordinario', 'extraordinarias', 'tiempo'], extras: ['extraordinario', 'extraordinarias', 'tiempo'],
+  incapacidad: ['incapacidad', 'enfermedad', 'riesgo'], accidente: ['riesgo', 'accidente', 'trabajo'],
+  embarazo: ['maternidad', 'embarazo', 'parto'], maternidad: ['maternidad', 'embarazo', 'parto'], paternidad: ['paternidad', 'nacimiento'],
+  jubilacion: ['jubilacion', 'jubilados', 'pension'], pension: ['pension', 'jubilacion'], retiro: ['retiro', 'jubilacion'],
+  isr: ['impuesto', 'renta'], impuesto: ['impuesto'], retencion: ['retencion', 'retener'], exento: ['exento', 'exentos', 'pagara'],
+  devolucion: ['devolucion', 'saldo', 'favor'], declaracion: ['declaracion', 'anual'], deducible: ['deducciones', 'personales'],
+  descanso: ['descanso', 'semanal'], domingo: ['dominical', 'domingo'], dominical: ['dominical', 'domingo'], festivo: ['descanso', 'obligatorio'],
+  permiso: ['permiso', 'permisos', 'licencia'], falta: ['faltas', 'asistencia'], faltas: ['faltas', 'asistencia'],
+  escalafon: ['escalafon', 'ascenso', 'vacante'], ascenso: ['ascenso', 'escalafon', 'vacante'], beca: ['becas', 'beca'],
+  cuota: ['cuota', 'cuotas', 'sindical'], prestamo: ['prestamo', 'prestamos'], muerte: ['muerte', 'fallecimiento', 'defuncion'],
+  fallecimiento: ['fallecimiento', 'muerte', 'defuncion'], funeral: ['funerales', 'defuncion'], zafra: ['zafra', 'reparacion'],
+  jornada: ['jornada'], salario: ['salario'], sueldo: ['salario'], pago: ['pago', 'salario'], antiguedad: ['antiguedad'],
+  puntualidad: ['puntualidad', 'presencia'], despensa: ['despensa'], hostigamiento: ['hostigamiento', 'acoso'], acoso: ['acoso', 'hostigamiento']
+};
+const sinAcento = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+function raiz(w) {
+  if (w.length > 4 && w.endsWith('es') && !/[aeiou]es$/.test(w.slice(-3))) w = w.slice(0, -2);
+  else if (w.length > 3 && w.endsWith('s')) w = w.slice(0, -1);
+  return w.length > 6 ? w.slice(0, 6) : w;
+}
+function tokens(s, conStop = true) {
+  return sinAcento(s).split(/[^a-z0-9ñ]+/).filter(w => w && w.length > 1 && !(conStop && STOP.has(w)) && !/^\d+$/.test(w));
+}
+function cargarLeyes() {
+  if (LEY.p) return LEY.p;
+  LEY.p = fetch('libros.json?v=1', { cache: 'force-cache' }).then(r => { if (!r.ok) throw new Error('libros'); return r.json(); }).then(d => {
+    LEY.data = d;
+    const df = new Map(), docs = [];
+    let tot = 0;
+    d.a.forEach(([doc, n, h, t], ai) => {
+      const ps = t.split('\n'), wins = [];
+      let cur = [], len = 0;
+      ps.forEach((p, pi) => { cur.push(pi); len += p.length; if (len > 1100) { wins.push(cur); cur = []; len = 0; } });
+      if (cur.length) wins.push(cur);
+      if (wins.length > 1 && ps.slice(wins[wins.length - 1][0]).join(' ').length < 300) { const last = wins.pop(); wins[wins.length - 1].push(...last); }
+      wins.forEach(w => {
+        const tf = new Map();
+        const txt = (w[0] === 0 ? '' : ps[0].slice(0, 200) + ' ') + w.map(i => ps[i]).join(' ');
+        tokens(txt).forEach(x => { const r = raiz(x); tf.set(r, (tf.get(r) || 0) + 1); });
+        tokens(h).forEach(x => { const r = raiz(x); tf.set(r, (tf.get(r) || 0) + 2); });
+        let l = 0; tf.forEach((v, k) => { l += v; df.set(k, (df.get(k) || 0) + 1); });
+        docs.push({ tf, len: l, a: ai, p0: w[0] }); tot += l;
+      });
+    });
+    LEY.idx = { df, docs, avg: tot / docs.length, N: docs.length };
+    return d;
+  }).catch(e => { LEY.p = null; throw e; });
+  return LEY.p;
+}
+function docPista(q) {
+  if (/(contrato ley|contrato|clausula|ingenio|zafra|stiasrm|fondo de ahorro|jubilac|escalafon|tabulador)/.test(q)) return 'CL';
+  if (/(reglamento del isr|reglamento de la ley del isr|risr)/.test(q)) return 'RISR';
+  if (/(isr|impuesto|sat\b|renta|retencion|exent|declaracion|deduccion personal|deducciones personales|devolucion|subsidio)/.test(q)) return 'LISR';
+  if (/(ley federal|lft|ley del trabajo)/.test(q)) return 'LFT';
+  return null;
+}
+function buscarLey(texto) {
+  const d = LEY.data, I = LEY.idx, q = sinAcento(texto), pista = docPista(q);
+  const qs = new Map();
+  tokens(texto).forEach(w => {
+    [w, ...(SINON[w] || SINON[raiz(w)] || [])].forEach((x, i) => { const r = raiz(x); qs.set(r, Math.max(qs.get(r) || 0, i ? 0.6 : 1)); });
+  });
+  if (/(isr|impuesto)/.test(q) && /(paga|pagan|cobra|cobran|descuent|quitan|retien|grava)/.test(q)) ['exento', 'pagara', 'ingresos', 'trabajadores'].forEach(x => qs.set(raiz(x), Math.max(qs.get(raiz(x)) || 0, 0.8)));
+  if (/(corren|corrieron|despid|liquidacion|finiquito)/.test(q)) ['indemnizacion', 'despido', 'injustificado', 'meses', 'salario'].forEach(x => qs.set(raiz(x), Math.max(qs.get(raiz(x)) || 0, 0.7)));
+  if (!qs.size) return [];
+  const k1 = 1.2, b = 0.75, best = new Map();
+  I.docs.forEach((D, i) => {
+    let s = 0, hit = 0;
+    qs.forEach((wq, t) => {
+      const f = D.tf.get(t); if (!f) return;
+      const n = I.df.get(t) || 0, idf = Math.log(1 + (I.N - n + 0.5) / (n + 0.5));
+      s += wq * idf * (f * (k1 + 1)) / (f + k1 * (1 - b + b * D.len / I.avg)); hit++;
+    });
+    if (!s) return;
+    s *= 1 + 0.35 * (hit - 1);
+    const doc = d.a[D.a][0];
+    if (pista) s *= (doc === pista || (pista === 'LISR' && doc === 'RISR')) ? 1.8 : 0.55;
+    else s *= doc === 'CL' ? 1.25 : doc === 'LFT' ? 1.15 : 0.8;
+    const prev = best.get(D.a);
+    if (!prev || prev[0] < s) best.set(D.a, [s, D.a, hit, D.p0]);
+  });
+  const res = [...best.values()].sort((x, y) => y[0] - x[0]);
+  return res.slice(0, 6).map(([s, i, hit, p0]) => ({ s, i, hit, q: qs, p0 }));
+}
+function buscarArticulo(texto) {
+  const q = sinAcento(texto);
+  const m = q.match(/\b(?:articulo|art\.?|clausula)\s*(\d{1,4})\s*(?:o\b|º|°)?\s*[-\s]?(bis|ter|quater|[a-h]\b)?/);
+  if (!m) return null;
+  let num = m[1] + (m[2] ? (m[2].length === 1 ? '-' + m[2].toUpperCase() : ' ' + m[2][0].toUpperCase() + m[2].slice(1)) : '');
+  const pista = docPista(q);
+  const list = [];
+  LEY.data.a.forEach((a, i) => { if (a[1] === num || a[1] === num.replace(' ', '-')) list.push(i); });
+  if (!list.length) return { num, list };
+  if (pista) { const f = list.filter(i => LEY.data.a[i][0] === pista); if (f.length) return { num, list: f, exact: true }; }
+  return { num, list, exact: list.length === 1 };
+}
+function buscarTabulador(texto) {
+  const q = tokens(texto).filter(w => !/^(gana|ganan|cuanto|salario|sueldo|paga|pagan|tabulador|tarifa|puesto|categoria)$/.test(w)).map(raiz);
+  if (!q.length) return [];
+  return LEY.data.tab.map(r => {
+    const t = tokens(r[1], false).map(raiz); let s = 0;
+    q.forEach(w => { if (t.includes(w)) s += 1; });
+    return [s / Math.max(1, t.length * 0.25 + q.length), r, s];
+  }).filter(x => x[2] === q.length || (x[2] >= 2)).sort((a, b) => b[0] - a[0]).slice(0, 4).map(x => x[1]);
+}
+const NOMBRE_DOC = c => (LEY.data && LEY.data.docs[c]) || c;
+function tituloArt(a) {
+  const n = a[1];
+  if (/^Transitorios/.test(n)) return `${NOMBRE_DOC(a[0])} · ${n}`;
+  if (/Reglamento/.test(n)) { const [p, , x] = n.split(', '); return `${NOMBRE_DOC(a[0])} · Art. ${p}, reglamento, ${x.replace('Art. ', 'artículo ')}`; }
+  return `${NOMBRE_DOC(a[0])} · Artículo ${n}`;
+}
+function extracto(t, qs, max = 520) {
+  const ps = t.split('\n');
+  if (t.length <= max + 80) return { txt: t, corto: false };
+  let best = 0, bs = -1;
+  ps.forEach((p, i) => { let s = 0; tokens(p).forEach(w => { if (qs && qs.has(raiz(w))) s++; }); if (s > bs) { bs = s; best = i; } });
+  let out = [], len = 0, i = qs ? best : 0;
+  if (i > 0 && ps[0].length < 260) { out.push(ps[0]); len += ps[0].length; if (i > 1) out.push('…'); }
+  for (; i < ps.length && len < max; i++) { out.push(ps[i]); len += ps[i].length; }
+  let txt = out.join('\n');
+  if (txt.length > max + 200) txt = txt.slice(0, max + 150).replace(/\s+\S*$/, '') + '…';
+  return { txt, corto: true };
+}
+function tarjetaArt(i, qs) {
+  const a = LEY.data.a[i];
+  const c = el('div', 'ley');
+  c.append(el('div', 'ley-t', tituloArt(a)));
+  if (a[2]) c.append(el('div', 'ley-h', a[2]));
+  const e = extracto(a[3], qs);
+  const body = el('div', 'ley-x', e.txt);
+  c.append(body);
+  if (e.corto) {
+    const b = el('button', 'ley-mas', 'Ver artículo completo'); b.type = 'button';
+    b.onclick = () => { const full = body.dataset.full !== '1'; body.textContent = full ? a[3] : e.txt; body.dataset.full = full ? '1' : ''; b.textContent = full ? 'Ver menos' : 'Ver artículo completo'; };
+    c.append(b);
+  }
+  return c;
+}
+const NOTA_LEY = 'Es el texto tal cual de la ley. Para revisar tu caso en particular, acércate a la Secretaría de Relaciones.';
+function esConsultaLey(q) {
+  return /(articulo|art\.|clausula|\bley\b|contrato|lft|isr|\bsat\b|impuesto|renta|retenc|exent|declaracion|aguinaldo|vacacion|prima|finiquito|liquidacion|indemniz|despid|corrieron|utilidades|ptu|reparto|horas? extra|tiempo extra|incapacidad|enfermedad|accidente|riesgo|maternidad|embaraz|paternidad|jubila|pension|retiro|antiguedad|descanso|dominical|festiv|permiso|falta|escalafon|ascenso|vacante|beca|cuota|sindica|derecho|obligacion|jornada|zafra|reparacion|tabulador|cuanto gana|salario de|sueldo de|hostigamiento|acoso|renuncia|contratacion|planta|eventual|temporal|defuncion|fallec|funeral|puntualidad|despensa|subsidio|deduccion personal|devolucion)/.test(q);
+}
+async function responderLey(text) {
+  const t = escribiendo();
+  try { await cargarLeyes(); } catch (e) { t.remove(); bot('No pude abrir los libros de consulta. Revisa tu conexión a internet e inténtalo de nuevo.'); return true; }
+  t.remove();
+  const q = sinAcento(text);
+  // Tabulador de salarios
+  if (/(cuanto gana|cuanto ganan|salario de|sueldo de|tabulador|tarifa de|cuanto pagan)/.test(q)) {
+    const rows = buscarTabulador(text);
+    if (rows.length) {
+      const box = el('div', 'msg-acc');
+      box.append(el('div', null, 'Esto marca el tabulador de salarios diarios del Contrato Ley:'));
+      rows.forEach(r => {
+        const c = el('div', 'ley');
+        c.append(el('div', 'ley-t', `${r[0]} · ${titulo(r[1])}`));
+        c.append(el('div', 'ley-x', `Ingenios de más de 40 mil tons.: ${r[2]}\nDe 20 a 40 mil tons.: ${r[3]}\nMenos de 20 mil tons.: ${r[4]}`));
+        box.append(c);
+      });
+      box.append(el('div', 'ley-nota', 'Tabulador vigente del 16 de octubre de 2024 al 15 de octubre de 2025, antes de los aumentos posteriores. Confirma la cifra actual con la Secretaría de Relaciones.'));
+      bot(box); return true;
+    }
+  }
+  // Artículo específico
+  const art = buscarArticulo(text);
+  if (art) {
+    if (!art.list.length) { bot(`No encontré el artículo ${art.num} en los libros que tengo (Ley Federal del Trabajo, Contrato Ley, Ley del ISR y su Reglamento).`); return true; }
+    if (art.exact || art.list.length === 1) {
+      const box = el('div', 'msg-acc'); box.append(tarjetaArt(art.list[0], null), el('div', 'ley-nota', NOTA_LEY)); bot(box); return true;
+    }
+    const box = el('div', 'msg-acc');
+    box.append(el('div', null, `El artículo ${art.num} aparece en varios libros. ¿Cuál quieres ver?`));
+    const row = el('div', 'ley-ops');
+    art.list.forEach(i => {
+      const b = el('button', 'chip', NOMBRE_DOC(LEY.data.a[i][0])); b.type = 'button';
+      b.onclick = () => { yo(`Artículo ${art.num} · ${NOMBRE_DOC(LEY.data.a[i][0])}`); const bx = el('div', 'msg-acc'); bx.append(tarjetaArt(i, null), el('div', 'ley-nota', NOTA_LEY)); bot(bx); };
+      row.append(b);
+    });
+    box.append(row); bot(box); return true;
+  }
+  // Búsqueda por tema
+  const r = buscarLey(text);
+  if (!r.length || r[0].s < 3.2) return false;
+  const box = el('div', 'msg-acc');
+  const doc = LEY.data.a[r[0].i][0];
+  box.append(el('div', null, `Esto es lo que dice ${doc === 'CL' || doc === 'RISR' ? 'el' : 'la'} ${NOMBRE_DOC(doc)} sobre tu pregunta:`));
+  box.append(tarjetaArt(r[0].i, r[0].q));
+  const otros = r.slice(1).filter(x => x.s > r[0].s * 0.55).slice(0, 3);
+  if (otros.length) {
+    box.append(el('div', 'ley-sub', 'También puede servirte:'));
+    const row = el('div', 'ley-ops');
+    otros.forEach(x => {
+      const a = LEY.data.a[x.i];
+      const b = el('button', 'chip', `${a[0] === 'CL' ? 'Contrato Ley' : a[0] === 'LFT' ? 'LFT' : a[0] === 'LISR' ? 'Ley ISR' : 'Reglamento ISR'} · Art. ${a[1].split(',')[0]}`); b.type = 'button';
+      b.onclick = () => { const bx = el('div', 'msg-acc'); bx.append(tarjetaArt(x.i, x.q)); bot(bx); };
+      row.append(b);
+    });
+    box.append(row);
+  }
+  box.append(el('div', 'ley-nota', NOTA_LEY));
+  bot(box);
+  return true;
+}
+
+
 /* ================= Estado ================= */
 let DATA = null, session = null, dCache = {}, semanaSel = null, fails = 0, lockUntil = 0;
 const ULT = 's80_ultimo';
@@ -608,14 +833,18 @@ $('#olvidar').addEventListener('click', () => { olvidarTodo(); ibmIn.value = '';
 
 /* ================= Nombres ================= */
 function nombreCompleto(d) { return d.orden === 'nomina' ? titulo(d.nombreNomina || d.nombre) : titulo(d.nombre || ''); }
-function primerNombre(d) { return d.orden === 'nomina' ? '' : titulo((d.nombre || '').split(' ')[0]); }
+function primerNombre(d) {
+  const b = DATA && session && DATA.cuentas[session.id];
+  if (b && b.nm) return titulo(b.nm);
+  return d.orden === 'nomina' ? '' : titulo((d.nombre || '').split(' ')[0]);
+}
 const semanas = d => (d.desgloses || []).slice().sort((a, b) => b - a);
 const periodo = w => (DATA && DATA.meta && DATA.meta.periodos && DATA.meta.periodos[w]) || '';
 
 /* ================= Inicio ================= */
 function renderHome() {
   const d = session.data, pn = primerNombre(d);
-  $('#home-nombre').textContent = nombreCompleto(d) || 'Compañero';
+  $('#home-nombre').textContent = pn || 'Compañero';
   $('#home-ibm').textContent = `IBM ${corto(d.socio)} · Bienvenido a tu portal de la Sección 80`;
   const sem = semanas(d);
   $('#card-desg-sub').textContent = sem.length ? `${pn ? pn + ', tu' : 'Tu'} recibo más reciente: semana ${sem[0]}` : 'Aún no hay recibos disponibles';
@@ -762,30 +991,34 @@ function abrirChat() {
   if (chatIniciado) return;
   chatIniciado = true; chatStage = 'chat';
   const d = session.data, pn = primerNombre(d), sem = semanas(d);
-  bot(`Hola${pn ? ', ' + pn : ''}. Soy el asistente de la Secretaría de Relaciones. Puedo darte tu saldo del fondo de ahorro o tu desglose de nómina.`);
+  bot(`Hola${pn ? ', ' + pn : ''}. Soy el asistente de la Secretaría de Relaciones. Puedo darte tu saldo del fondo de ahorro, tu desglose de nómina o resolver tus dudas sobre la Ley Federal del Trabajo, el Contrato Ley y el ISR.`);
   chips(baseChips());
 }
-function baseChips() { const sem = semanas(session.data); return [...(sem.length ? [`Desglose semana ${sem[0]}`] : []), 'Mi saldo']; }
+function baseChips() { const sem = semanas(session.data); return [...(sem.length ? [`Desglose semana ${sem[0]}`] : []), 'Mi saldo', '¿Cuántos días de vacaciones me tocan?', '¿Cuándo pagan el aguinaldo?']; }
 $('#chat-form').addEventListener('submit', e => { e.preventDefault(); const v = $('#mensaje').value; $('#mensaje').value = ''; enviarChat(v); });
 async function enviarChat(raw) {
   const text = String(raw || '').trim(); if (!text) return;
   yo(text);
   const q = text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   if (chatStage === 'loan' || chatStage === 'loanConfirm') return pasoPrestamo(text, q);
-  if (/(prestamo|credito|adelanto)/.test(q)) return iniciarPrestamo();
-  const t = escribiendo();
-  let d; try { d = await refresh(); } catch (e) { t.remove(); bot('No pude cargar tu información. Revisa tu conexión a internet.'); return; }
-  await new Promise(r => setTimeout(r, 250)); t.remove();
-  if (/(desglose|nomina|recibo|percepcion|deduccion)/.test(q)) return chatDesglose(q, d);
-  if (/(saldo|fondo|ahorro|cuanto|tengo|dinero|aport)/.test(q)) {
+  const legal = /(articulo|art\.|clausula|\bley\b|contrato|reglamento|que dice|lft|isr|\bsat\b|impuesto)/.test(q);
+  if (!legal && /(prestamo|credito|adelanto)/.test(q)) return iniciarPrestamo();
+  const pideDesg = !legal && /(desglose|recibo|nomina|percepcion|deduccion)/.test(q);
+  const pideSaldo = !legal && /(saldo|fondo|ahorro|cuanto tengo|dinero|aportacion)/.test(q) && !/(cuando|como|reparte|porcentaje|que es|quien|intereses|rendimiento|funciona|reglas|regla|derecho)/.test(q);
+  if (pideDesg || pideSaldo) {
+    const t = escribiendo();
+    let d; try { d = await refresh(); } catch (e) { t.remove(); bot('No pude cargar tu información. Revisa tu conexión a internet.'); return; }
+    await new Promise(r => setTimeout(r, 250)); t.remove();
+    if (pideDesg) return chatDesglose(q, d);
     if (d.fondo === false) { bot('Aún no tienes saldo registrado en el fondo de ahorro.'); return; }
     const h = d.historial || [], last = h[h.length - 1];
     bot(`Tu saldo actual del fondo de ahorro es ${money(d.saldo)}, al ${fdate(d.actualizado)}${last && last.p ? ' (semana ' + last.p + ')' : ''}.`);
     const b = el('button', 'btn-sec', 'Ver mi fondo de ahorro'); b.type = 'button'; b.dataset.go = 'fondo'; bot(b);
     return;
   }
-  if (/^(hola|buen|que tal|hey)/.test(q)) { bot('¡Hola! ¿Quieres tu saldo del fondo de ahorro o tu desglose de nómina?'); chips(baseChips()); return; }
-  bot('Puedo darte tu saldo del fondo de ahorro o tu desglose de nómina de cualquier semana. Por ejemplo, escribe "desglose semana 41".');
+  if (/^(hola|buen|que tal|hey|gracias)\b/.test(q) && q.split(/\s+/).length <= 4) { bot(/^gracias/.test(q) ? '¡Con gusto! Aquí estoy para lo que necesites.' : '¡Hola! ¿Quieres tu saldo, tu desglose de nómina o tienes alguna duda sobre la ley o el Contrato Ley?'); chips(baseChips()); return; }
+  if (legal || esConsultaLey(q) || tokens(text).length >= 2) { if (await responderLey(text)) return; }
+  bot('No encontré algo claro sobre eso. Puedo darte tu saldo del fondo de ahorro, tu desglose de nómina de cualquier semana o buscar en la Ley Federal del Trabajo, el Contrato Ley y la Ley del ISR. Prueba, por ejemplo: "¿qué dice la ley sobre la prima vacacional?" o "artículo 87".');
   chips(baseChips());
 }
 async function chatDesglose(q, d) {
