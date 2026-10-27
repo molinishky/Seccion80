@@ -563,8 +563,21 @@ async function submit(raw) {
   if (!ready) { bot('Un momento, estoy conectando…'); return; }
   if (!DATA) { bot('No pude cargar la información. Revisa tu conexión a internet y vuelve a abrir la página.'); return; }
 
+  if (/olvidar este telefono|olvidar este teléfono/i.test(text)) {
+    olvidarTodo(); bot('Listo, este teléfono ya no recuerda a nadie. La próxima vez se pedirá el PIN.');
+    if (!session) setMode('socio');
+    return;
+  }
+
   if (stage === 'socio') {
     pendSocio = normSocio(text);
+    const rp = recordado(pendSocio);
+    if (rp) {
+      const t = typing();
+      try { await iniciar(pendSocio, rp, true); t.remove(); }
+      catch (e) { t.remove(); olvidar(pendSocio); bot('No pude entrar automáticamente en este teléfono. Escribe tu PIN de 4 dígitos.'); setMode('pin'); }
+      return;
+    }
     bot('Gracias. Ahora escribe tu PIN de 4 dígitos.');
     setMode('pin');
     return;
@@ -575,27 +588,8 @@ async function submit(raw) {
     const pin = normPin(text);
     const t = typing();
     try {
-      const id = await cuentaId(pendSocio);
-      const blob = DATA.cuentas[id];
-      if (!blob) throw new Error('no');
-      const data = await unseal(pendSocio, pin, blob);
-      session = { socio: pendSocio, pin, id, data, key: unseal.key, salt: blob.s };
+      await iniciar(pendSocio, pin, false);
       fails = 0; t.remove();
-      const first = data.orden === 'nomina' ? '' : titulo((data.nombre || '').split(' ')[0]);
-      const hola = `¡Hola${first ? ', ' + first : ''}! Entraste correctamente.`;
-      const sems = (data.desgloses || []).slice().sort((a, b) => a - b), ult = sems[sems.length - 1];
-      const perU = ult && DATA.meta && DATA.meta.periodos ? DATA.meta.periodos[ult] : '';
-      const inv = ult ? `Ya está disponible tu desglose de nómina más reciente: semana ${ult}${perU ? ' (' + perU + ')' : ''}. Pídemelo y te lo preparo.` : '';
-      const chipD = ult ? [`Desglose semana ${ult}`] : [];
-      bot(hola);
-      if (data.fondo === false) {
-        bot((inv ? inv + ' ' : '') + 'Por ahora no tienes saldo registrado en el fondo de ahorro.');
-        setMode('chat'); setChips([...chipD, 'Cerrar sesión']);
-      } else {
-        bot((inv ? inv + ' ' : '') + 'También puedo mostrarte tu saldo actual del fondo de ahorro.');
-        setMode('chat'); setChips([...chipD, ...MENU.filter(m => m !== 'Desglose de nómina')]);
-      }
-      if (sems.length > 1) bot(`Si necesitas una semana anterior, escribe por ejemplo "desglose semana ${sems[sems.length - 2]}".`);
     } catch (e) {
       t.remove();
       fails++;
@@ -605,6 +599,13 @@ async function submit(raw) {
     }
     return;
   }
+
+  if (session && /^(si|sí),? recordar|recordar este telefono|recordar este teléfono/i.test(text)) {
+    recordar(session.socio, session.pin);
+    bot('Listo. Este teléfono te recordará: la próxima vez solo escribe tu número de empleado. Si el teléfono no es tuyo o lo vas a prestar, escribe "Olvidar este teléfono".');
+    setChips(session.chips || MENU); return;
+  }
+  if (session && /^no,? gracias$/i.test(text.trim())) { bot('De acuerdo, te seguiré pidiendo el PIN.'); setChips(session.chips || MENU); return; }
 
   if (stage === 'loan' || stage === 'loanConfirm') { await loanStep(text); return; }
 
@@ -627,10 +628,49 @@ async function submit(raw) {
   else bot('Puedo entregarte tu desglose de nómina o mostrarte tu saldo actual del fondo de ahorro, tu historial semanal y tus aportaciones. Toca una opción de abajo.');
 }
 
+
+/* ---------- Recordar este teléfono (se guarda solo en este celular) ---------- */
+const RKEY = 's80_recordar';
+function leerRec() { try { return JSON.parse(localStorage.getItem(RKEY) || '{}') || {}; } catch (e) { return {}; } }
+function recordado(socio) { return leerRec()[socio] || null; }
+function recordar(socio, pin) { try { const r = leerRec(); r[socio] = pin; localStorage.setItem(RKEY, JSON.stringify(r)); } catch (e) {} }
+function olvidar(socio) { try { const r = leerRec(); delete r[socio]; localStorage.setItem(RKEY, JSON.stringify(r)); } catch (e) {} }
+function olvidarTodo() { try { localStorage.removeItem(RKEY); } catch (e) {} }
+
+async function iniciar(socio, pin, auto) {
+  const id = await cuentaId(socio);
+  const blob = DATA.cuentas[id];
+  if (!blob) throw new Error('no');
+  const data = await unseal(socio, pin, blob);
+  session = { socio, pin, id, data, key: unseal.key, salt: blob.s };
+  let chipsActuales = MENU;
+  const first = data.orden === 'nomina' ? '' : titulo((data.nombre || '').split(' ')[0]);
+  const hola = `¡Hola${first ? ', ' + first : ''}! ` + (auto ? 'Te reconocí en este teléfono.' : 'Entraste correctamente.');
+  const sems = (data.desgloses || []).slice().sort((a, b) => a - b), ult = sems[sems.length - 1];
+  const perU = ult && DATA.meta && DATA.meta.periodos ? DATA.meta.periodos[ult] : '';
+  const inv = ult ? `Ya está disponible tu desglose de nómina más reciente: semana ${ult}${perU ? ' (' + perU + ')' : ''}. Pídemelo y te lo preparo.` : '';
+  const chipD = ult ? [`Desglose semana ${ult}`] : [];
+  bot(hola);
+  if (data.fondo === false) {
+    bot((inv ? inv + ' ' : '') + 'Por ahora no tienes saldo registrado en el fondo de ahorro.');
+    setMode('chat'); chipsActuales = [...chipD, 'Cerrar sesión']; setChips(chipsActuales);
+  } else {
+    bot((inv ? inv + ' ' : '') + 'También puedo mostrarte tu saldo actual del fondo de ahorro.');
+    setMode('chat'); chipsActuales = [...chipD, ...MENU.filter(m => m !== 'Desglose de nómina')]; setChips(chipsActuales);
+  }
+  if (sems.length > 1) bot(`Si necesitas una semana anterior, escribe por ejemplo "desglose semana ${sems[sems.length - 2]}".`);
+  session.chips = chipsActuales;
+  if (!auto) {
+    let ok = true; try { localStorage.setItem('s80_t', '1'); localStorage.removeItem('s80_t'); } catch (e) { ok = false; }
+    if (ok) { bot('¿Quieres que este teléfono te recuerde? Así la próxima vez solo escribes tu número de empleado, sin PIN.'); setChips(['Sí, recordar este teléfono', 'No, gracias', ...chipsActuales]); }
+  }
+}
+
 function logout() {
   loan = null; session = null; pendSocio = ''; setChips([]);
   bot('Cerraste tu sesión. Para volver a consultar, escribe tu número de empleado.');
   setMode('socio');
+  if (Object.keys(leerRec()).length) setChips(['Olvidar este teléfono']);
 }
 
 form.addEventListener('submit', e => { e.preventDefault(); submit(msg.value); });
