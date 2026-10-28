@@ -16,90 +16,114 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --azul:#0068B8;--azul-h:#00579A;--azul-cl:#EEF5FC;--tx:#1F2430;--mu:#5B6575;--ln:#D3DAE3;--ln2:#E1E6ED;--ln3:#E6E9EE;
-  --rojo:#E3202B;--amar:#FFE600;--verde:#1E8A3C;--neg:#B4232C;--bg:#F6F8FB;--card:#FFFFFF;
+  --azul:#0068B8;--azul-h:#00579A;--azul-os:#003E6E;--azul-cl:#EEF5FC;--tx:#1F2430;--mu:#5B6575;--mu2:#8A94A3;
+  --ln:#D3DAE3;--ln2:#E1E6ED;--ln3:#E6E9EE;--rojo:#E3202B;--amar:#FFE600;--verde:#1E8A3C;--verde-cl:#E9F5EC;--neg:#B4232C;
   --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
+  --flota:0 10px 28px rgba(0,58,110,.10),0 0 0 .5px rgba(0,58,110,.06);
+  --vidrio-bg:rgba(255,255,255,.55);
+  --navh:96px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg);color:var(--tx);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+html,body{background:#FFFFFF;color:var(--tx);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 body{min-height:100dvh}
 button,input,select{font:inherit;color:inherit}
 [hidden]{display:none!important}
-:focus-visible{outline:3px solid rgba(255,214,0,.75);outline-offset:2px;border-radius:10px}
-.app{max-width:480px;margin:0 auto;min-height:100dvh;background:var(--bg);position:relative}
+:focus-visible{outline:3px solid rgba(255,214,0,.8);outline-offset:2px;border-radius:12px}
+.app{max-width:480px;margin:0 auto;min-height:100dvh;position:relative;isolation:isolate}
 @media (min-width:520px){.app{box-shadow:0 0 0 1px var(--ln3)}}
-.franja{display:flex;height:4px}.franja i{flex:1}.franja i:nth-child(1){background:var(--rojo)}.franja i:nth-child(2){background:var(--amar)}.franja i:nth-child(3){background:var(--azul)}.franja i:nth-child(4){background:var(--verde)}
-.scr{padding:calc(var(--sat) + 0px) 0 calc(88px + var(--sab))}
+
+/* Fondo decorativo: caña y retrato */
+.deco{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:380px;z-index:-1;pointer-events:none;overflow:hidden}
+.deco svg,.deco img{position:absolute;bottom:0;display:block}
+.deco .c1{left:-6px;opacity:.22}.deco .c2{left:78px;opacity:.16}
+.deco img{right:-24px;height:340px;width:auto;opacity:.22}
+body.en-chat .deco img{opacity:.12}
+
+/* Franjas */
+.franjas{display:flex;gap:5px}
+.franjas i{display:block;width:22px;height:5px;border-radius:3px}
+.franjas i:nth-child(1){background:var(--rojo)}.franjas i:nth-child(2){background:var(--amar)}.franjas i:nth-child(3){background:var(--azul)}.franjas i:nth-child(4){background:var(--verde)}
+.franjas.g i{width:28px;height:6px}.franjas.g{gap:6px}
+
+.scr{padding-top:var(--sat);padding-bottom:calc(var(--navh) + var(--sab) + 12px);min-height:100dvh}
 #s-login{padding-bottom:calc(24px + var(--sab))}
 
-/* Encabezado */
-.top{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.94);backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid var(--ln3);padding-top:var(--sat)}
-.top-in{display:flex;align-items:center;gap:12px;padding:10px 16px;min-height:60px}
-.top img{height:38px;width:auto}
-.top-t{flex:1;min-width:0}
-.top-t b{display:block;font-size:17px;font-weight:700;letter-spacing:-.01em}
-.top-t span{display:block;font-size:12.5px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ico-btn{width:44px;height:44px;border-radius:12px;border:0;background:transparent;display:grid;place-items:center;color:var(--mu);cursor:pointer}
-.ico-btn:hover{background:var(--azul-cl);color:var(--azul)}
-.pad{padding:16px}
+/* Encabezados */
+.top{display:flex;align-items:center;gap:8px;padding:14px 12px 0;min-height:68px}
+.top h1{margin:0;flex:1;font-size:20px;font-weight:700;min-width:0}
+.top .tt{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.top .tt h1{flex:none}
+.top .tt span{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mu)}
+.top .tt span::before{content:"";display:block;width:8px;height:8px;border-radius:50%;background:var(--verde)}
+.top img{height:44px;width:auto;display:block;margin-right:8px}
+.volver,.ico-btn{width:44px;height:44px;border-radius:12px;border:0;background:transparent;display:grid;place-items:center;flex:none;color:var(--azul);cursor:pointer}
+.volver:hover,.ico-btn:hover{background:#EEF4FB}
+.top+.franjas{padding:10px 20px 0}
+.pad{padding:20px 20px 0}
 
 /* Login */
-.login{display:flex;flex-direction:column;align-items:center;padding:calc(36px + var(--sat)) 24px 0;min-height:100dvh}
-.login-escudo{height:132px;width:auto;margin-bottom:14px}
-.login h1{font-size:28px;font-weight:800;letter-spacing:.01em}
-.login .sub{color:var(--mu);font-size:15px;margin-top:4px;text-align:center}
-.login .franja{width:120px;margin:18px 0 26px;border-radius:2px;overflow:hidden}
-.form{width:100%;display:flex;flex-direction:column;gap:16px}
-.campo label{display:block;font-size:14px;font-weight:600;margin-bottom:7px}
-.inp{position:relative}
-.inp input{width:100%;height:54px;border:1.5px solid var(--ln);border-radius:14px;background:#fff;padding:0 16px;font-size:18px;letter-spacing:.02em;transition:border-color .15s}
-.inp input:focus{outline:none;border-color:var(--azul);box-shadow:0 0 0 4px rgba(255,214,0,.45)}
-.inp input::placeholder{color:#A0A8B4;letter-spacing:0;font-size:16px}
-#pin{padding-right:56px;letter-spacing:.3em}
-#ojo{position:absolute;right:5px;top:5px}
+.login{display:flex;flex-direction:column;align-items:center;padding:calc(64px + var(--sat)) 28px 0;min-height:100dvh}
+.login-escudo{width:168px;height:auto;display:block}
+.login .franjas{margin-top:28px}
+.form{width:100%;display:flex;flex-direction:column;gap:18px;margin-top:40px}
+.campo label{display:block;font-size:14px;font-weight:600;margin-bottom:8px}
+.caja{display:flex;align-items:center;gap:12px;height:56px;padding:0 6px 0 16px;border:1.5px solid var(--ln);border-radius:14px;background:#fff;transition:border-color .15s,box-shadow .15s}
+.caja:focus-within{border-color:var(--azul);box-shadow:0 0 0 3px rgba(255,214,0,.55)}
+.caja svg.ic{flex:none;color:var(--azul)}
+.caja input{flex:1;min-width:0;height:100%;border:0;background:transparent;font-size:17px;outline:none}
+.caja input::placeholder{color:var(--mu2)}
+#pin{letter-spacing:.2em}
 #ojo .c{display:none}#ojo.on .c{display:block}#ojo.on .o{display:none}
+#ojo{color:var(--mu)}
 .hola{min-height:20px;font-size:14.5px;color:var(--azul);font-weight:600;margin-top:-6px}
-.chk{display:flex;align-items:center;gap:10px;font-size:15px;cursor:pointer;user-select:none;min-height:44px}
-.chk input{width:22px;height:22px;accent-color:var(--azul)}
+.chk{display:flex;align-items:center;gap:12px;min-height:44px;margin-top:-4px;font-size:15px;cursor:pointer;user-select:none}
+.chk input{width:22px;height:22px;margin:0;accent-color:var(--azul);cursor:pointer}
 .msg-err{min-height:20px;font-size:14px;color:var(--neg);text-align:center}
-.btn-pri,.btn-sec,.btn-wa{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:54px;border-radius:14px;border:0;font-weight:700;font-size:16.5px;cursor:pointer;text-decoration:none;width:100%;transition:background .15s,transform .05s}
-.btn-pri{background:var(--azul);color:#fff}.btn-pri:hover{background:var(--azul-h)}
-.btn-pri:active,.btn-sec:active,.btn-wa:active{transform:scale(.985)}
+.btn-pri,.btn-sec,.btn-wa{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:14px;border:0;font-weight:700;font-size:17px;cursor:pointer;text-decoration:none;width:100%;transition:background .15s,transform .05s}
+.btn-pri{background:var(--azul);color:#fff;box-shadow:0 6px 16px rgba(0,104,184,.22)}.btn-pri:hover{background:var(--azul-h)}
+#entrar{height:58px;font-size:18px}
+.btn-pri:active,.btn-sec:active,.btn-wa:active{transform:translateY(1px)}
 .btn-pri:disabled{opacity:.6;cursor:default}
 .btn-sec{background:#fff;color:var(--azul);border:1.5px solid var(--azul)}.btn-sec:hover{background:var(--azul-cl)}
-.btn-wa{background:#1E8A3C;color:#fff}.btn-wa:hover{background:#18742F}
+.btn-wa{background:var(--verde);color:#fff;box-shadow:0 6px 16px rgba(30,138,60,.2)}.btn-wa:hover{background:#18742F}
 .sm{height:46px;font-size:15px;border-radius:12px}
 .link{background:none;border:0;color:var(--mu);font-size:14px;text-decoration:underline;cursor:pointer;padding:12px;margin-top:4px}
-.pie{margin-top:auto;padding:28px 0 8px;font-size:12.5px;color:var(--mu);text-align:center}
+.tri{display:flex;width:120px;height:4px;border-radius:2px;overflow:hidden;margin:auto 0 8px}
+.tri i{flex:1}.tri i:nth-child(1){background:var(--verde)}.tri i:nth-child(2){background:var(--ln3)}.tri i:nth-child(3){background:var(--rojo)}
+.pie{padding:18px 0 14px;font-size:12.5px;color:var(--mu);text-align:center}
 
 /* Inicio */
-.saludo{background:var(--azul-cl);border:1px solid #D6E6F5;border-radius:18px;padding:18px 18px 16px}
-.saludo small{font-size:13.5px;color:var(--azul);font-weight:600}
-.saludo h2{font-size:22px;font-weight:800;letter-spacing:-.01em;margin-top:2px;line-height:1.2}
-.saludo p{font-size:14px;color:var(--mu);margin-top:6px}
-.tarjetas{display:grid;gap:12px;margin-top:14px}
-.tarjeta{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--ln2);border-radius:18px;padding:16px;text-align:left;cursor:pointer;width:100%;transition:border-color .15s,box-shadow .15s}
-.tarjeta:hover{border-color:var(--azul);box-shadow:0 2px 10px rgba(0,104,184,.08)}
-.tarjeta .ic{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;flex:none}
-.ic.az{background:var(--azul-cl);color:var(--azul)}.ic.ve{background:#E9F5EC;color:var(--verde)}.ic.ro{background:#FDECEC;color:var(--rojo)}
-.tarjeta .tx{flex:1;min-width:0}
-.tarjeta b{display:block;font-size:16.5px;font-weight:700}
-.tarjeta span{display:block;font-size:14px;color:var(--mu);margin-top:3px}
-.tarjeta .ch{color:#A0A8B4}
-.ayuda{margin-top:14px;display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:16px;background:#fff;border:1px dashed var(--ln);font-size:14px;color:var(--mu);cursor:pointer;width:100%;text-align:left}
-.ayuda b{color:var(--azul)}
+.home-top{position:relative;display:flex;align-items:center;justify-content:center;padding:28px 20px 0}
+.home-top img{height:76px;width:auto;display:block}
+.home-top #salir{position:absolute;right:12px;top:22px;color:var(--mu)}
+.home-top+.franjas{justify-content:center;margin-top:12px}
+.saludo{display:flex;align-items:center;gap:16px;padding:18px;border-radius:18px;background:var(--azul-cl);box-shadow:var(--flota)}
+.avatar{flex:none;width:60px;height:60px;border-radius:50%;background:var(--azul);display:grid;place-items:center}
+.saludo .tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.saludo small{font-size:15px}
+.saludo h2{font-size:22px;font-weight:700;line-height:1.2;overflow-wrap:anywhere}
+.saludo p{font-size:13px;color:var(--mu);margin-top:2px}
+.tarjetas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
+.tarjeta{display:flex;flex-direction:column;gap:12px;padding:16px;border:1.5px solid var(--ln2);border-radius:18px;background:#fff;text-align:left;cursor:pointer;min-height:168px;box-shadow:var(--flota);transition:border-color .15s,box-shadow .15s,transform .15s}
+.tarjeta:hover{border-color:var(--azul);box-shadow:0 12px 28px rgba(0,104,184,.16)}
+.tarjeta:active{transform:translateY(1px)}
+.tarjeta .fila1{display:flex;align-items:flex-start;justify-content:space-between}
+.circ{width:56px;height:56px;border-radius:50%;background:var(--azul);display:grid;place-items:center;color:#fff}
+.circ.v{background:var(--verde)}
+.tarjeta .ch{color:var(--mu2);margin-top:4px}
+.tarjeta b{font-size:17px;font-weight:700;line-height:1.25}
+.tarjeta span.sub{font-size:13px;color:var(--mu);line-height:1.4}
 
-/* Fondo */
-.saldo{display:flex;flex-direction:column;gap:6px;background:linear-gradient(150deg,#0B78CC,#00579A);color:#fff;border-radius:20px;padding:22px 20px;position:relative;overflow:hidden}
-.saldo::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.07)}
-.saldo-lbl{font-size:14px;opacity:.9;font-weight:600}
-.saldo-amt{font-size:38px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.saldo-meta{font-size:13.5px;opacity:.88}
-.saldo-pill{align-self:flex-start;margin-top:6px;background:rgba(255,255,255,.16);padding:5px 10px;border-radius:999px;font-size:13px;font-weight:600}
-.saldo.vacio{background:#fff;color:var(--tx);border:1px solid var(--ln2)}
-.saldo.vacio::after{display:none}
+/* Fondo de ahorro */
+.saldo{display:flex;flex-direction:column;gap:10px;background:var(--azul);color:#fff;border-radius:20px;padding:22px 20px;box-shadow:0 10px 24px rgba(0,104,184,.22)}
+.saldo-lbl{font-size:13px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#DCEAF8}
+.saldo-amt{font-size:40px;font-weight:800;line-height:1.05;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.saldo-meta{font-size:15px;color:#E8F1FB;line-height:1.4}
+.saldo-pill{align-self:flex-start;margin-top:4px;padding:8px 14px;border-radius:999px;background:var(--azul-os);font-size:14px;font-weight:600}
+.saldo.vacio{background:#fff;color:var(--tx);border:1.5px solid var(--ln2);box-shadow:var(--flota)}
+.saldo.vacio .saldo-lbl{color:var(--mu)}.saldo.vacio .saldo-meta{color:var(--mu)}
 .saldo-sin{font-size:20px;font-weight:700}
-.panel{margin-top:14px;background:#fff;border:1px solid var(--ln2);border-radius:18px;padding:16px}
+.panel{margin-top:16px;background:#fff;border:1.5px solid var(--ln2);border-radius:18px;padding:16px;box-shadow:var(--flota)}
 .panel h2{font-size:15px;font-weight:700;margin-bottom:6px}
 .fila{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--ln3)}
 .fila:first-child{border-top:0}
@@ -107,22 +131,26 @@ button,input,select{font:inherit;color:inherit}
 .fila-t{font-size:14.5px;font-weight:600}
 .fila-s{font-size:13px}.pos{color:var(--verde)}.neg{color:var(--neg)}
 .fila-r{font-weight:700;font-variant-numeric:tabular-nums}
-.cargando,.aviso{padding:28px 16px;text-align:center;color:var(--mu);font-size:15px;background:#fff;border:1px solid var(--ln2);border-radius:18px}
+.cargando,.aviso{padding:28px 16px;text-align:center;color:var(--mu);font-size:15px;background:#fff;border:1.5px solid var(--ln2);border-radius:18px;box-shadow:var(--flota)}
 .cargando::before{content:"";display:block;width:26px;height:26px;margin:0 auto 10px;border:3px solid var(--ln2);border-top-color:var(--azul);border-radius:50%;animation:gira .8s linear infinite}
 @keyframes gira{to{transform:rotate(360deg)}}
 
+/* Vidrio */
+.vidrio{border:1px solid rgba(255,255,255,.8);background:linear-gradient(180deg,rgba(238,245,252,.65),rgba(255,255,255,.4));backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 0 0 .5px rgba(0,58,110,.14),0 6px 20px rgba(0,58,110,.10)}
+
 /* Desglose */
-.sel-lbl{display:block;font-size:14px;font-weight:600;margin-bottom:7px}
-.sel{position:relative}
-.sel select{appearance:none;-webkit-appearance:none;width:100%;height:54px;border:1.5px solid var(--ln);border-radius:14px;background:#fff;padding:0 44px 0 16px;font-size:16px;font-weight:600;cursor:pointer}
-.sel select:focus{outline:none;border-color:var(--azul);box-shadow:0 0 0 4px rgba(255,214,0,.45)}
-.sel::after{content:"";position:absolute;right:18px;top:22px;width:9px;height:9px;border-right:2px solid var(--mu);border-bottom:2px solid var(--mu);transform:rotate(45deg);pointer-events:none}
-.recibo{margin-top:14px;background:#fff;border:1px solid var(--ln2);border-radius:18px;overflow:hidden}
-.recibo-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--ln3)}
-.recibo-h b{font-size:15.5px}
-.recibo-h span{font-size:12.5px;color:var(--mu)}
-#recibo .cargando,#recibo .aviso{border:0;border-radius:0}
-.rec-per{padding:10px 16px;font-size:13px;color:var(--mu);background:#FAFBFD;border-bottom:1px solid var(--ln3)}
+.sel-lbl{display:block;font-size:14px;font-weight:600;margin-bottom:8px}
+.sel{position:relative;display:flex;align-items:center;gap:12px;height:56px;padding:0 14px 0 16px;border-radius:18px;transition:box-shadow .15s}
+.sel:focus-within{box-shadow:0 0 0 3px rgba(255,214,0,.55),0 6px 20px rgba(0,58,110,.10)}
+.sel svg{flex:none}
+.sel select{flex:1;min-width:0;height:100%;border:0;background:transparent;font-size:16px;font-weight:600;appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:28px;outline:none}
+.sel .flecha{position:absolute;right:14px;pointer-events:none}
+.recibo{margin-top:16px;background:#fff;border:1.5px solid var(--ln2);border-radius:18px;overflow:hidden;box-shadow:var(--flota)}
+.recibo-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 16px;background:linear-gradient(180deg,rgba(238,245,252,.85),rgba(238,245,252,.55));box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -.5px 0 rgba(0,58,110,.10)}
+.recibo-h b{font-size:15px}
+.recibo-h span{font-size:12px;color:var(--mu)}
+#recibo .cargando,#recibo .aviso{border:0;border-radius:0;box-shadow:none}
+.rec-per{padding:10px 16px;font-size:13px;color:var(--mu);border-bottom:1px solid var(--ln3)}
 .rec-lista{padding:0 16px}
 .rec-fila{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--ln3)}
 .rec-fila:first-child{border-top:0}
@@ -133,61 +161,55 @@ button,input,select{font:inherit;color:inherit}
 .rec-tot{border-top:1px solid var(--ln2);padding:12px 16px;background:#FAFBFD}
 .rec-tl{display:flex;justify-content:space-between;font-size:14.5px;padding:4px 0;font-variant-numeric:tabular-nums}
 .rec-tl.neto{font-size:17px;font-weight:800;color:var(--azul);border-top:1px solid var(--ln2);margin-top:6px;padding-top:10px}
-#descargar{margin-top:14px}
+#descargar{margin-top:16px}
+
+/* Préstamos */
+.pre{--ac:var(--azul);--ac-cl:var(--azul-cl);background:#fff;border:1.5px solid var(--ln2);border-radius:18px;overflow:hidden;margin-bottom:16px;box-shadow:var(--flota)}
+.pre.v{--ac:var(--verde);--ac-cl:var(--verde-cl)}
+.pre-h{display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--ac-cl)}
+.pre-h b{font-size:16px;flex:1;color:var(--ac)}
+.pre-tag{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:#fff;color:var(--ac);border:1px solid var(--ac);white-space:nowrap}
+.pre-m{padding:18px 16px 16px}
+.pre-lbl{font-size:13px;color:var(--mu);font-weight:600}
+.pre-amt{font-size:34px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:2px;color:var(--ac)}
+.pre-meta{font-size:13.5px;color:var(--mu);margin-top:4px}
+.pre-ok{display:flex;gap:10px;align-items:center;margin-top:12px;padding:12px;border-radius:12px;background:var(--ac-cl);color:var(--ac);font-size:14.5px;font-weight:600}
 
 /* Chat */
 #s-chat{display:flex;flex-direction:column;height:100dvh;padding-bottom:0}
 #s-chat[hidden]{display:none!important}
-.chat-log{flex:1;overflow-y:auto;padding:16px 14px 8px;display:flex;flex-direction:column;gap:12px}
-.msg{display:flex;gap:8px;max-width:88%}
-.msg.yo{align-self:flex-end;flex-direction:row-reverse}
-.msg-av{width:32px;height:32px;border-radius:50%;background:#fff;border:1px solid var(--ln2);display:grid;place-items:center;flex:none;overflow:hidden}
-.msg-av img{height:24px}
-.msg-col{display:flex;flex-direction:column;gap:3px;min-width:0}
-.msg-b{background:#fff;border:1px solid var(--ln2);border-radius:4px 16px 16px 16px;padding:11px 14px;font-size:15px;line-height:1.45;white-space:pre-wrap;word-wrap:break-word}
-.yo .msg-b{background:var(--azul);color:#fff;border-color:var(--azul);border-radius:16px 4px 16px 16px}
-.msg-h{font-size:11.5px;color:#9AA3AF;padding:0 4px}
+.chat-log{flex:1;min-height:0;overflow-y:auto;padding:18px 16px 8px;display:flex;flex-direction:column;gap:12px}
+.hoy{align-self:center;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.45);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 0 0 .5px rgba(0,58,110,.12),0 4px 12px rgba(0,58,110,.08);font-size:12px;font-weight:600;color:var(--mu)}
+.msg{display:flex;align-items:flex-end;gap:8px;max-width:86%}
+.msg.yo{align-self:flex-end;flex-direction:row-reverse;max-width:80%}
+.msg-av{width:32px;height:32px;border-radius:50%;background:var(--azul-cl);display:grid;place-items:center;flex:none}
+.msg-av img{height:22px;width:auto}
+.msg-col{display:flex;flex-direction:column;gap:4px;min-width:0}
+.msg-b{background:var(--azul-cl);border-radius:18px 18px 18px 6px;padding:11px 14px;font-size:15px;line-height:1.4;white-space:pre-wrap;word-wrap:break-word}
+.yo .msg-b{background:var(--azul);color:#fff;border-radius:18px 18px 6px 18px}
+.msg-h{font-size:11px;color:var(--mu);padding:0 4px}
 .yo .msg-h{text-align:right}
 .msg-acc{display:flex;flex-direction:column;gap:10px;white-space:normal}
+.msg:has(.ley){max-width:96%}
 .dots{display:inline-flex;gap:4px;padding:4px 0}
 .dots i{width:7px;height:7px;border-radius:50%;background:#A0A8B4;animation:pt 1s infinite}
 .dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
 @keyframes pt{0%,80%,100%{opacity:.3}40%{opacity:1}}
-.chat-pie{background:#fff;border-top:1px solid var(--ln3);padding:8px 12px calc(88px + var(--sab))}
+.chat-pie{padding:6px 16px calc(var(--navh) + var(--sab) + 6px)}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex:none;height:38px;padding:0 14px;border-radius:999px;border:1.5px solid #CFE0F1;background:var(--azul-cl);color:var(--azul);font-weight:600;font-size:14px;cursor:pointer}
-.chip:hover{border-color:var(--azul)}
-.chat-form{display:flex;gap:8px}
-.chat-form input{flex:1;height:48px;border:1.5px solid var(--ln);border-radius:999px;padding:0 18px;font-size:16px;background:#fff;min-width:0}
-.chat-form input:focus{outline:none;border-color:var(--azul)}
+.chip{flex:none;height:38px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.8);background:linear-gradient(180deg,rgba(238,245,252,.9),rgba(238,245,252,.6));box-shadow:0 0 0 .5px rgba(0,58,110,.16),0 4px 12px rgba(0,58,110,.08);color:var(--azul);font-weight:600;font-size:14px;cursor:pointer}
+.chip:hover{box-shadow:0 0 0 1px var(--azul),0 4px 12px rgba(0,58,110,.10)}
+.chat-form{display:flex;align-items:center;gap:10px}
+.chat-form .entrada{flex:1;display:flex;align-items:center;height:48px;padding:0 16px;border-radius:24px}
+.chat-form .entrada:focus-within{box-shadow:0 0 0 3px rgba(255,214,0,.55),0 6px 20px rgba(0,58,110,.10)}
+.chat-form input{flex:1;min-width:0;height:100%;border:0;background:transparent;font-size:16px;outline:none}
+.chat-form input::placeholder{color:var(--mu2)}
 .enviar{width:48px;height:48px;border-radius:50%;border:0;background:var(--azul);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}
 .enviar:hover{background:var(--azul-h)}
-.en-linea{display:inline-flex;align-items:center;gap:5px}
-.en-linea::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--verde)}
 
-/* Préstamos */
-.pre{background:#fff;border:1px solid var(--ln2);border-radius:18px;overflow:hidden;margin-bottom:14px}
-.pre-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--ln3)}
-.pre-h b{font-size:16px;flex:1}
-.pre-tag{font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;background:#fff;color:var(--ac);border:1px solid var(--ac)}
-.pre{--ac:var(--azul);--ac-cl:var(--azul-cl);border-top:4px solid var(--ac)}
-.pre.v{--ac:var(--verde);--ac-cl:#E9F5EC}
-.pre .pre-h{background:var(--ac-cl)}
-.pre .pre-h b{color:var(--ac)}
-.pre-amt{color:var(--ac)}
-.pre-m{padding:18px 16px 14px}
-.pre-lbl{font-size:13.5px;color:var(--mu);font-weight:600}
-.pre-amt{font-size:34px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:2px}
-.pre-amt.cero{color:var(--ac)}
-.pre-meta{font-size:13.5px;color:var(--mu);margin-top:4px}
-.pre-ok{display:flex;gap:10px;align-items:center;margin-top:10px;padding:12px;border-radius:12px;background:var(--ac-cl);color:var(--ac);font-size:14.5px;font-weight:600}
-.pre-desc{display:flex;justify-content:space-between;margin-top:12px;padding:12px;border-radius:12px;background:var(--azul-cl);font-size:14.5px}
-.pre-desc b{font-variant-numeric:tabular-nums}
-.pre-l{padding:4px 16px 10px;border-top:1px solid var(--ln3)}
-.pre-l h3{font-size:13.5px;color:var(--mu);font-weight:700;padding:10px 0 2px}
 /* Consultas de ley */
-.ley{border:1px solid var(--ln2);border-left:3px solid var(--azul);border-radius:10px;padding:10px 12px;background:#FAFBFD}
+.ley{border:1px solid var(--ln2);border-radius:12px;padding:10px 12px;background:#fff}
 .ley-t{font-weight:700;font-size:14px;color:var(--azul)}
 .ley-h{font-size:12px;color:var(--mu);margin-top:2px}
 .ley-x{font-size:14px;line-height:1.5;margin-top:6px;white-space:pre-wrap}
@@ -196,138 +218,178 @@ button,input,select{font:inherit;color:inherit}
 .ley-ops{display:flex;flex-wrap:wrap;gap:6px}
 .ley-ops .chip{height:auto;min-height:34px;padding:6px 12px;font-size:13px;text-align:left}
 .ley-nota{font-size:12.5px;color:var(--mu);font-style:italic}
-.msg:has(.ley){max-width:96%}
-/* Navegación */
-#nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:480px;z-index:10;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--ln3);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:6px 4px calc(6px + var(--sab))}
-.tab{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;padding:6px 2px;min-width:0;width:100%;border:0;background:none;color:#7C8696;font-size:10.5px;font-weight:600;cursor:pointer;border-radius:12px;min-height:56px;text-align:center;line-height:1.15}
-.tab svg{width:24px;height:24px}
-.tab .tl{display:flex;align-items:flex-start;justify-content:center;height:26px;width:100%;overflow-wrap:anywhere}
-.tab.on{color:var(--azul)}
-.tab.on .tb{background:var(--azul-cl)}
-.tb{display:grid;place-items:center;width:48px;height:28px;border-radius:999px;transition:background .15s}
 
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + var(--sab));background:#1F2430;color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;z-index:20;max-width:90%;text-align:center}
+/* Barra flotante de vidrio */
+#nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + var(--sab));width:calc(100% - 28px);max-width:452px;z-index:10;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:6px;border-radius:30px;background:rgba(255,255,255,.55);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,.75);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 1px rgba(255,255,255,.35),0 0 0 .5px rgba(0,58,110,.10),0 12px 36px rgba(0,58,110,.18)}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:5px;padding:8px 2px 6px;border:0;background:none;border-radius:14px;min-height:58px;min-width:0;width:100%;cursor:pointer;color:var(--mu)}
+.tab:hover{background:rgba(243,247,252,.8)}
+.tab svg{width:24px;height:24px;flex:none}
+.tab .tl{display:flex;align-items:flex-start;justify-content:center;height:24px;width:100%;font-size:10.5px;font-weight:500;line-height:1.15;text-align:center;overflow-wrap:anywhere}
+.tab .bar{display:block;width:36px;height:3px;border-radius:2px;background:transparent}
+.tab.on{color:var(--azul)}
+.tab.on .tl{font-weight:700}
+.tab.on .bar{background:var(--azul)}
+
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--navh) + var(--sab) + 18px);background:var(--tx);color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;z-index:20;max-width:90%;text-align:center}
 #splash{position:fixed;inset:0;background:#fff;display:grid;place-items:center;z-index:30}
 #splash img{height:120px;animation:lat 1.4s ease-in-out infinite}
 @keyframes lat{50%{opacity:.6;transform:scale(.97)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:350px){.tarjeta{min-height:150px;padding:14px}.tarjeta b{font-size:15.5px}.circ{width:48px;height:48px}}
 </style>
 </head>
 <body>
 <div class="app">
 <div id="splash"><img src="escudo.png" alt="Sección 80"></div>
 
+<div class="deco" aria-hidden="true">
+  <svg class="c1" width="120" height="230" viewBox="0 0 100 200"><g fill="#1E8A3C"><rect x="44" y="62" width="12" height="140" rx="3"/><path d="M50 72 C 42 44, 28 24, 10 8 C 30 20, 46 40, 55 68 Z"/><path d="M51 70 C 56 40, 66 20, 86 4 C 72 24, 62 44, 56 72 Z"/><path d="M48 96 C 34 78, 18 72, 2 76 C 20 70, 38 74, 52 92 Z"/><path d="M53 112 C 66 88, 80 78, 98 74 C 82 84, 70 96, 57 118 Z"/></g><path d="M44 104h12M44 144h12M44 180h12" stroke="#FFFFFF" stroke-width="2.5"/></svg>
+  <svg class="c2" width="84" height="170" viewBox="0 0 100 200"><g fill="#1E8A3C"><rect x="44" y="62" width="12" height="140" rx="3"/><path d="M50 72 C 42 44, 28 24, 10 8 C 30 20, 46 40, 55 68 Z"/><path d="M51 70 C 56 40, 66 20, 86 4 C 72 24, 62 44, 56 72 Z"/><path d="M53 112 C 66 88, 80 78, 98 74 C 82 84, 70 96, 57 118 Z"/></g><path d="M44 110h12M44 150h12" stroke="#FFFFFF" stroke-width="2.5"/></svg>
+  <img src="retrato.png" alt="">
+</div>
+
 <!-- ============ LOGIN ============ -->
 <main id="s-login" class="scr">
   <div class="login">
-    <img class="login-escudo" src="escudo.png" alt="Escudo Sección 80">
-    <h1>SECCIÓN 80</h1>
-    <p class="sub">Secretaría de Relaciones · Ingenio Tamazula</p>
-    <div class="franja"><i></i><i></i><i></i><i></i></div>
+    <img class="login-escudo" src="escudo.png" alt="Escudo del sindicato">
+    <div class="franjas g" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
     <form id="login-form" class="form" novalidate>
       <div class="campo">
-        <label for="ibm">Número de IBM</label>
-        <div class="inp"><input id="ibm" inputmode="numeric" autocomplete="username" placeholder="Ej. 235" maxlength="8"></div>
+        <label for="ibm">IBM</label>
+        <div class="caja">
+          <svg class="ic" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4"/><path d="M14.5 10h3.5M14.5 13.5h3.5"/></svg>
+          <input id="ibm" inputmode="numeric" autocomplete="username" placeholder="Número IBM" maxlength="8">
+        </div>
       </div>
       <p id="hola" class="hola" aria-live="polite"></p>
       <div class="campo" id="pin-row">
         <label for="pin">PIN</label>
-        <div class="inp">
-          <input id="pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="4 dígitos" maxlength="6">
+        <div class="caja">
+          <svg class="ic" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M12 14.5v2"/></svg>
+          <input id="pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="••••" maxlength="6">
           <button type="button" id="ojo" class="ico-btn" aria-label="Mostrar PIN">
-            <svg class="o" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
-            <svg class="c" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+            <svg class="o" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="c" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.6c.5-.1.9-.1 1.4-.1 6.4 0 10 6.5 10 6.5a17 17 0 0 1-3 3.8"/><path d="M6.6 6.6C3.7 8.4 2 12 2 12s3.6 6.5 10 6.5c1.7 0 3.2-.5 4.5-1.1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
           </button>
         </div>
       </div>
-      <label class="chk" id="rec-row"><input type="checkbox" id="recordar" checked> Recordarme en este teléfono</label>
+      <label class="chk" id="rec-row"><input type="checkbox" id="recordar" checked> Recordar usuario</label>
       <p id="login-msg" class="msg-err" role="alert"></p>
       <button class="btn-pri" id="entrar" type="submit">Iniciar sesión</button>
     </form>
     <button class="link" id="olvidar" type="button" hidden>Olvidar este teléfono</button>
     <p class="pie">Tu información es privada: solo tú puedes verla con tu IBM y PIN.</p>
+    <div class="tri" aria-hidden="true"><i></i><i></i><i></i></div>
   </div>
 </main>
 
 <!-- ============ INICIO ============ -->
 <main id="s-home" class="scr" hidden>
-  <header class="top"><div class="top-in">
-    <img src="escudo.png" alt="">
-    <div class="top-t"><b>SECCIÓN 80</b><span>Secretaría de Relaciones</span></div>
-    <button class="ico-btn" id="salir" aria-label="Cerrar sesión"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4"/><path d="M6 12h10"/></svg></button>
-  </div><div class="franja"><i></i><i></i><i></i><i></i></div></header>
+  <header class="home-top">
+    <img src="escudo.png" alt="Escudo del sindicato">
+    <button class="ico-btn" id="salir" aria-label="Cerrar sesión"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4"/><path d="M6 12h10"/></svg></button>
+  </header>
+  <div class="franjas" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <div class="pad">
     <section class="saludo">
-      <small>Hola,</small>
-      <h2 id="home-nombre"></h2>
-      <p id="home-ibm"></p>
+      <div class="avatar" aria-hidden="true"><svg width="32" height="32" viewBox="0 0 24 24" fill="#FFFFFF"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20c.9-3.6 3.9-5.6 7.5-5.6s6.6 2 7.5 5.6z"/></svg></div>
+      <div class="tx">
+        <small>Hola,</small>
+        <h2 id="home-nombre"></h2>
+        <p id="home-ibm"></p>
+      </div>
     </section>
     <div class="tarjetas">
-      <button class="tarjeta" data-go="desglose"><span class="ic az" id="ic-desg"></span><span class="tx"><b>Desglose de nóminas</b><span id="card-desg-sub"></span></span><span class="ch" id="ch1"></span></button>
-      <button class="tarjeta" data-go="fondo"><span class="ic ve" id="ic-fondo"></span><span class="tx"><b>Fondo de ahorro</b><span id="card-fondo-sub"></span></span><span class="ch" id="ch2"></span></button>
-      <button class="tarjeta" data-go="prestamos"><span class="ic az" id="ic-prest"></span><span class="tx"><b>Préstamos</b><span id="card-prest-sub"></span></span><span class="ch" id="ch3"></span></button>
+      <button class="tarjeta" data-go="desglose">
+        <span class="fila1"><span class="circ" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/><path d="M14 3l5 5v2"/><path d="M14 3v5h5"/><path d="M8.5 11h5M8.5 14.5h3"/><circle cx="16.5" cy="16.5" r="3"/><path d="M18.7 18.7L21 21"/></svg></span><svg class="ch" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        <b>Desglose de nóminas</b><span class="sub" id="card-desg-sub"></span>
+      </button>
+      <button class="tarjeta" data-go="fondo">
+        <span class="fila1"><span class="circ v" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 10.5c0-3.6-3.4-6-7.5-6S4 6.9 4 10.5c0 2 1 3.6 2.5 4.7V19h3v-2h4v2h3v-3.6c1-.6 1.8-1.5 2.2-2.4H21v-3h-1.6c-.1-.5-.2-1-.4-1.5"/><path d="M9.5 8h4"/></svg></span><svg class="ch" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        <b>Fondo de ahorro</b><span class="sub" id="card-fondo-sub"></span>
+      </button>
+      <button class="tarjeta" data-go="prestamos">
+        <span class="fila1"><span class="circ v" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3l3.5 1.5h3a1.5 1.5 0 0 1 0 3H9"/><path d="M12.5 18.5l5.2-2.2a1.6 1.6 0 0 1 1.3 2.9L13 22H6l-3-1.5"/><circle cx="15" cy="7" r="4"/><path d="M15 5.3v3.4"/></svg></span><svg class="ch" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        <b>Préstamos</b><span class="sub" id="card-prest-sub"></span>
+      </button>
+      <button class="tarjeta" data-go="chat">
+        <span class="fila1"><span class="circ" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4H6.5A2.5 2.5 0 0 1 4 13.5z"/><path d="M8.5 8.5h7M8.5 11.5h4.5"/></svg></span><svg class="ch" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        <b>Chat</b><span class="sub">Resuelve tus dudas sobre la ley y el Contrato Ley</span>
+      </button>
     </div>
-    <button class="ayuda" data-go="chat"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0068B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg><span>¿Tienes una duda? <b>Escríbenos en el chat</b></span></button>
   </div>
 </main>
 
 <!-- ============ PRÉSTAMOS ============ -->
 <main id="s-prestamos" class="scr" hidden>
-  <header class="top"><div class="top-in">
-    <img src="escudo.png" alt="">
-    <div class="top-t"><b>Préstamos</b><span>Saldo actualizado al abrir</span></div>
-  </div></header>
+  <header class="top">
+    <button class="volver" data-go="home" aria-label="Volver al inicio"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+    <h1>Préstamos</h1>
+    <img src="escudo.png" alt="Escudo del sindicato">
+  </header>
+  <div class="franjas" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <div class="pad" id="prest-body"></div>
 </main>
 
 <!-- ============ FONDO ============ -->
 <main id="s-fondo" class="scr" hidden>
-  <header class="top"><div class="top-in">
-    <img src="escudo.png" alt="">
-    <div class="top-t"><b>Fondo de ahorro</b><span>Saldo actualizado al abrir</span></div>
-  </div></header>
+  <header class="top">
+    <button class="volver" data-go="home" aria-label="Volver al inicio"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+    <h1>Fondo de ahorro</h1>
+    <img src="escudo.png" alt="Escudo del sindicato">
+  </header>
+  <div class="franjas" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <div class="pad" id="fondo-body"></div>
 </main>
 
 <!-- ============ DESGLOSE ============ -->
 <main id="s-desglose" class="scr" hidden>
-  <header class="top"><div class="top-in">
-    <img src="escudo.png" alt="">
-    <div class="top-t"><b>Desglose de nóminas</b><span>Tu recibo semanal</span></div>
-  </div></header>
+  <header class="top">
+    <button class="volver" data-go="home" aria-label="Volver al inicio"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+    <h1>Desglose de nóminas</h1>
+    <img src="escudo.png" alt="Escudo del sindicato">
+  </header>
+  <div class="franjas" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <div class="pad">
     <label class="sel-lbl" for="semana">Semana</label>
-    <div class="sel"><select id="semana"></select></div>
-    <section class="recibo">
+    <div class="sel vidrio">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0068B8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
+      <select id="semana"></select>
+      <svg class="flecha" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5B6575" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <section class="recibo" aria-label="Recibo de nómina">
       <div class="recibo-h"><b id="recibo-tit">Recibo</b><span>Vista previa</span></div>
       <div id="recibo"></div>
     </section>
-    <button class="btn-pri" id="descargar" type="button"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10.5l5 5 5-5"/><path d="M5 19.5h14"/></svg><span>Descargar PDF</span></button>
+    <button class="btn-pri" id="descargar" type="button"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10.5l5 5 5-5"/><path d="M5 19.5h14"/></svg><span>Descargar PDF</span></button>
   </div>
 </main>
 
 <!-- ============ CHAT ============ -->
 <main id="s-chat" class="scr" hidden>
-  <header class="top"><div class="top-in">
-    <img src="escudo.png" alt="">
-    <div class="top-t"><b>Chat · Sindicato</b><span class="en-linea">En línea</span></div>
-  </div></header>
+  <header class="top">
+    <button class="volver" data-go="home" aria-label="Volver al inicio"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+    <div class="tt"><h1>Chat</h1><span>Sindicato · En línea</span></div>
+    <img src="escudo.png" alt="Escudo del sindicato">
+  </header>
+  <div class="franjas" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <div class="chat-log" id="chat-log" aria-live="polite"></div>
   <div class="chat-pie">
     <div class="chips" id="chat-chips"></div>
     <form class="chat-form" id="chat-form">
-      <input id="mensaje" autocomplete="off" placeholder="Escribe tu mensaje…" aria-label="Mensaje">
-      <button class="enviar" aria-label="Enviar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"/><path d="M13 6l6 6-6 6"/></svg></button>
+      <label for="mensaje" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">Mensaje</label>
+      <div class="entrada vidrio"><input id="mensaje" autocomplete="off" placeholder="Escribe un mensaje"></div>
+      <button class="enviar" aria-label="Enviar mensaje"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"/><path d="M12.5 6l6 6-6 6"/></svg></button>
     </form>
   </div>
 </main>
 
-<nav id="nav" hidden aria-label="Navegación">
-  <button class="tab" data-go="home"><span class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg></span><span class="tl">Inicio</span></button>
-  <button class="tab" data-go="desglose"><span class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></span><span class="tl">Desglose de nóminas</span></button>
-  <button class="tab" data-go="fondo"><span class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg></span><span class="tl">Fondo de ahorro</span></button>
-  <button class="tab" data-go="prestamos"><span class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3l3.5 1.5h3a1.5 1.5 0 0 1 0 3H9"/><path d="M12.5 18.5l5.2-2.2a1.6 1.6 0 0 1 1.3 2.9L13 22H6l-3-1.5"/><circle cx="15" cy="7" r="4"/></svg></span><span class="tl">Préstamos</span></button>
-  <button class="tab" data-go="chat"><span class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></span><span class="tl">Chat</span></button>
+<nav id="nav" hidden aria-label="Navegación principal">
+  <button class="tab" data-go="home"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.5L12 4l8.5 6.5V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/></svg><span class="tl">Inicio</span><span class="bar"></span></button>
+  <button class="tab" data-go="desglose"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/><path d="M14 3l5 5v2"/><path d="M14 3v5h5"/><circle cx="16.5" cy="16.5" r="3"/><path d="M18.7 18.7L21 21"/></svg><span class="tl">Desglose de nóminas</span><span class="bar"></span></button>
+  <button class="tab" data-go="fondo"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 10.5c0-3.6-3.4-6-7.5-6S4 6.9 4 10.5c0 2 1 3.6 2.5 4.7V19h3v-2h4v2h3v-3.6c1-.6 1.8-1.5 2.2-2.4H21v-3h-1.6c-.1-.5-.2-1-.4-1.5"/><path d="M9.5 8h4"/></svg><span class="tl">Fondo de ahorro</span><span class="bar"></span></button>
+  <button class="tab" data-go="prestamos"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3l3.5 1.5h3a1.5 1.5 0 0 1 0 3H9"/><path d="M12.5 18.5l5.2-2.2a1.6 1.6 0 0 1 1.3 2.9L13 22H6l-3-1.5"/><circle cx="15" cy="7" r="4"/></svg><span class="tl">Préstamos</span><span class="bar"></span></button>
+  <button class="tab" data-go="chat"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4H6.5A2.5 2.5 0 0 1 4 13.5z"/><path d="M8.5 8.5h7M8.5 11.5h4.5"/></svg><span class="tl">Chat</span><span class="bar"></span></button>
 </nav>
 <div id="toast" role="status" hidden></div>
 </div>
@@ -768,6 +830,7 @@ const SCREENS = ['login', 'home', 'fondo', 'desglose', 'chat', 'prestamos'];
 function show(name) {
   SCREENS.forEach(s => { $('#s-' + s).hidden = s !== name; });
   $('#nav').hidden = name === 'login';
+  document.body.classList.toggle('en-chat', name === 'chat');
   document.querySelectorAll('#nav .tab').forEach(t => {
     const on = t.dataset.go === name;
     t.classList.toggle('on', on);
@@ -1079,6 +1142,7 @@ function chips(list) {
 function abrirChat() {
   if (chatIniciado) return;
   chatIniciado = true; chatStage = 'chat';
+  clog.append(el('span', 'hoy', 'Hoy'));
   const d = session.data, pn = primerNombre(d), sem = semanas(d);
   bot(`Hola${pn ? ', ' + pn : ''}. Soy el asistente de la Secretaría de Relaciones. Puedo darte tu saldo del fondo de ahorro, tu desglose de nómina o resolver tus dudas sobre la Ley Federal del Trabajo, el Contrato Ley y el ISR.`);
   chips(baseChips());
@@ -1198,12 +1262,6 @@ async function pasoPrestamo(text, q) {
   revisarIBM();
 })();
 
-document.getElementById('ic-desg').innerHTML = ICON.doc;
-document.getElementById('ic-fondo').innerHTML = ICON.pig;
-document.getElementById('ch1').innerHTML = ICON.chev;
-document.getElementById('ch2').innerHTML = ICON.chev;
-document.getElementById('ch3').innerHTML = ICON.chev;
-document.getElementById('ic-prest').innerHTML = ICON.hand;
 </script>
 </body>
 </html>
