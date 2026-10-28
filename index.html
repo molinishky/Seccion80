@@ -125,7 +125,7 @@ body.en-chat .deco img{opacity:.12}
 
 /* Fondo de ahorro */
 .saldo{display:flex;flex-direction:column;gap:10px;background:var(--azul);color:#fff;border-radius:20px;padding:22px 20px;box-shadow:0 10px 24px rgba(0,104,184,.22)}
-.saldo-lbl{font-size:13px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#DCEAF8}
+.saldo-lbl{font-size:16px;font-weight:800;color:#FFFFFF}
 .saldo-amt{font-size:40px;font-weight:800;line-height:1.05;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
 .saldo-meta{font-size:15px;color:#E8F1FB;line-height:1.4}
 .saldo-pill{align-self:flex-start;margin-top:4px;padding:8px 14px;border-radius:999px;background:var(--azul-os);font-size:14px;font-weight:600}
@@ -179,7 +179,7 @@ body.en-chat .deco img{opacity:.12}
 .pre-h b{font-size:16px;flex:1;color:var(--ac)}
 .pre-tag{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:#fff;color:var(--ac);border:1px solid var(--ac);white-space:nowrap}
 .pre-m{padding:18px 16px 16px}
-.pre-lbl{font-size:13px;color:var(--mu);font-weight:600}
+.pre-lbl{display:inline-block;font-size:14px;font-weight:800;color:#FFFFFF;background:var(--ac);padding:4px 12px;border-radius:999px}
 .pre-amt{font-size:34px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:2px;color:var(--ac)}
 .pre-meta{font-size:13.5px;color:var(--mu);margin-top:4px}
 .pre-ok{display:flex;gap:10px;align-items:center;margin-top:12px;padding:12px;border-radius:12px;background:var(--ac-cl);color:var(--ac);font-size:14.5px;font-weight:600}
@@ -1130,7 +1130,7 @@ async function renderFondo() {
   const h = d.historial || [], last = h[h.length - 1];
   const tr = round2((d.movs || []).reduce((a, x) => a + (x.tr || 0), 0)), pa = round2((d.movs || []).reduce((a, x) => a + (x.pa || 0), 0));
   const c = el('section', 'saldo'); c.setAttribute('aria-label', 'Saldo acumulado');
-  c.append(el('span', 'saldo-lbl', pn ? `Saldo de ${pn}` : 'Saldo acumulado'), el('span', 'saldo-amt', money(d.saldo)),
+  c.append(el('span', 'saldo-lbl', 'Tu saldo'), el('span', 'saldo-amt', money(d.saldo)),
     el('span', 'saldo-meta', `Al ${fdate(d.actualizado)}${last && last.p ? ' · semana ' + last.p : ''} · IBM ${corto(d.socio)}`));
   if (tr || pa) c.append(el('span', 'saldo-meta', `Tu aportación ${money(tr)} · Aportación de la empresa ${money(pa)}`));
   if (h.length >= 2) { const df = round2(h[h.length - 1].s - h[h.length - 2].s); c.append(el('span', 'saldo-pill', `${df >= 0 ? '+' : '−'}${money(Math.abs(df))} vs. semana anterior`)); }
@@ -1157,7 +1157,7 @@ function cajaPrestamo(x, pn, i) {
   const debe = x.saldo > 0.005, favor = x.saldo < -0.005;
   h.append(el('span', 'pre-tag', debe ? 'Saldo pendiente' : favor ? 'Saldo a favor' : 'Sin adeudo'));
   const m = el('div', 'pre-m');
-  m.append(el('div', 'pre-lbl', favor ? (pn ? `Saldo a favor de ${pn}` : 'Saldo a favor') : (pn ? `Saldo restante de ${pn}` : 'Saldo restante')));
+  m.append(el('div', 'pre-lbl', favor ? 'Tu saldo a favor' : 'Tu saldo'));
   m.append(el('div', 'pre-amt' + (debe ? '' : ' cero'), money(debe ? x.saldo : favor ? -x.saldo : 0)));
   m.append(el('div', 'pre-meta', x.sem ? `Al cierre de la semana ${x.sem}${x.anio ? ' de ' + x.anio : ''}${periodo(x.sem) ? ' (' + periodo(x.sem) + ')' : ''}` : 'Préstamo por acuerdo de asamblea'));
   if (!debe) {
