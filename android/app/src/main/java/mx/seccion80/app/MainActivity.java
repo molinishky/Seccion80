@@ -33,6 +33,7 @@ import java.io.OutputStream;
 public class MainActivity extends Activity {
     static final String URL = "https://molinishky.github.io/Seccion80/";
     static final String HOST = "molinishky.github.io";
+    static final String VERSION = "1.2";
     WebView web;
     ValueCallback<Uri[]> elegir;
     static final int FOTO = 7;
@@ -48,6 +49,7 @@ public class MainActivity extends Activity {
         s.setDatabaseEnabled(true);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
         s.setTextZoom(100);
+        s.setUserAgentString(s.getUserAgentString() + " Seccion80App/" + VERSION);
         web.addJavascriptInterface(new Puente(), "AndroidApp");
         web.setWebViewClient(new WebViewClient() {
             @Override
@@ -114,6 +116,9 @@ public class MainActivity extends Activity {
     }
 
     class Puente {
+        @JavascriptInterface
+        public String version() { return VERSION; }
+
         @JavascriptInterface
         public void guardarPdf(String b64, String nombre) {
             runOnUiThread(() -> {
