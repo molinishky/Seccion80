@@ -245,7 +245,8 @@ body.en-chat .deco img{opacity:.12}
 .entra-d{animation:entraD .26s cubic-bezier(.2,.8,.2,1)}
 .entra-i{animation:entraI .26s cubic-bezier(.2,.8,.2,1)}
 .scr{will-change:transform}
-body{overflow-x:hidden}
+html,body{overflow-x:hidden}
+.app{overflow-x:clip}
 #ptr{position:fixed;top:calc(var(--sat) + 0px);left:50%;transform:translate(-50%,-40px);z-index:15;width:40px;height:40px;border-radius:50%;background:#fff;box-shadow:0 4px 16px rgba(0,58,110,.18);display:grid;place-items:center;color:var(--mu);transition:transform .2s}
 #ptr.listo{color:var(--azul)}
 #ptr.gira svg{animation:gira .7s linear infinite}
@@ -853,7 +854,7 @@ const ICON = {
 /* ================= Pantallas ================= */
 const SCREENS = ['login', 'home', 'fondo', 'desglose', 'chat', 'prestamos'];
 const ORDEN = ['home', 'desglose', 'fondo', 'prestamos', 'chat'];
-let actual = 'login';
+let actual = 'login', ignorarPop = false;
 const vibrar = () => { try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
 function show(name, o = {}) {
   const prev = actual;
@@ -874,11 +875,13 @@ function show(name, o = {}) {
     scr.classList.remove('entra-d', 'entra-i'); void scr.offsetWidth;
     scr.classList.add(dir > 0 ? 'entra-d' : 'entra-i');
   }
-  // historial: el botón atrás de Android y del navegador regresa de pantalla
+  // historial: atrás (botón de Android o del navegador) siempre regresa a Inicio
   try {
     if (!o.desdeHist) {
+      const enSeccion = history.state && history.state.s && history.state.s !== 'home' && history.state.s !== 'login';
       if (name === 'login') history.replaceState({ s: 'login' }, '');
-      else if (prev === 'login' || prev === name) history.replaceState({ s: name }, '');
+      else if (name === 'home') { if (enSeccion) { ignorarPop = true; history.back(); } else history.replaceState({ s: 'home' }, ''); }
+      else if (enSeccion) history.replaceState({ s: name }, '');
       else history.pushState({ s: name }, '');
     }
   } catch (e) {}
@@ -891,11 +894,10 @@ function show(name, o = {}) {
   if (name === 'home') renderHome();
 }
 document.addEventListener('animationend', e => { if (e.target.classList) e.target.classList.remove('entra-d', 'entra-i'); });
-window.addEventListener('popstate', e => {
+window.addEventListener('popstate', () => {
+  if (ignorarPop) { ignorarPop = false; return; }
   if (!session) { if (actual !== 'login') show('login', { desdeHist: true }); return; }
-  const s = (e.state && e.state.s) || 'home';
-  if (s === 'login') { try { history.pushState({ s: actual }, ''); } catch (x) {} return; }
-  show(s, { desdeHist: true, dir: -1 });
+  if (actual !== 'home') show('home', { desdeHist: true, dir: -1 });
 });
 document.addEventListener('click', e => {
   const g = e.target.closest('[data-go]');
@@ -919,15 +921,13 @@ document.addEventListener('click', e => {
     const t = e.touches[0]; g.dx = t.clientX - g.x0; g.dy = t.clientY - g.y0;
     if (!g.modo) {
       if (Math.abs(g.dx) < 10 && Math.abs(g.dy) < 10) return;
-      if (Math.abs(g.dx) > Math.abs(g.dy) * 1.2 && (!g.bloqueado || g.borde)) g.modo = 'h';
+      if (g.dx > 0 && actual !== 'home' && Math.abs(g.dx) > Math.abs(g.dy) * 1.2 && (!g.bloqueado || g.borde)) g.modo = 'h';
       else if (g.dy > 0 && window.scrollY <= 0 && recargar[actual] && !g.bloqueado) g.modo = 'v';
       else { g.modo = 'nada'; return; }
     }
     if (g.modo === 'h') {
       e.preventDefault();
-      const i = ORDEN.indexOf(actual);
-      const hay = g.borde && g.dx > 0 ? actual !== 'home' : (g.dx < 0 ? i < ORDEN.length - 1 : i > 0);
-      const d = hay ? g.dx : g.dx * 0.25;
+      const d = Math.max(0, g.dx);
       g.scr.style.transition = 'none';
       g.scr.style.transform = `translateX(${d}px)`;
       g.scr.style.opacity = String(1 - Math.min(Math.abs(d) / 900, 0.25));
@@ -945,18 +945,12 @@ document.addEventListener('click', e => {
     const { modo, dx, dy, t0, scr } = g;
     const v = Math.abs(dx) / Math.max(1, Date.now() - t0);
     if (modo === 'h') {
-      const i = ORDEN.indexOf(actual);
-      let dest = null;
-      if (Math.abs(dx) > 90 || v > 0.45) {
-        if (g.borde && dx > 0) dest = actual === 'home' ? null : 'home';
-        else if (dx < 0 && i < ORDEN.length - 1) dest = ORDEN[i + 1];
-        else if (dx > 0 && i > 0) dest = ORDEN[i - 1];
-      }
+      const dest = (dx > 90 || (dx > 30 && v > 0.45)) && actual !== 'home' ? 'home' : null;
       if (dest) {
         vibrar();
         scr.style.transition = 'transform .18s ease-out, opacity .18s';
-        scr.style.transform = `translateX(${dx < 0 ? '-' : ''}100%)`; scr.style.opacity = '0.4';
-        setTimeout(() => { scr.style.transition = ''; scr.style.transform = ''; scr.style.opacity = ''; show(dest, { dir: dx < 0 ? 1 : -1 }); }, 170);
+        scr.style.transform = 'translateX(100%)'; scr.style.opacity = '0.4';
+        setTimeout(() => { scr.style.transition = ''; scr.style.transform = ''; scr.style.opacity = ''; show(dest, { dir: -1 }); }, 170);
       } else {
         scr.style.transition = 'transform .25s cubic-bezier(.2,.9,.3,1.2), opacity .2s';
         scr.style.transform = ''; scr.style.opacity = '';
