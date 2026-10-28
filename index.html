@@ -245,8 +245,7 @@ body.en-chat .deco img{opacity:.12}
 .entra-d{animation:entraD .26s cubic-bezier(.2,.8,.2,1)}
 .entra-i{animation:entraI .26s cubic-bezier(.2,.8,.2,1)}
 .scr{will-change:transform}
-html,body{overflow-x:hidden}
-.app{overflow-x:clip}
+.app{overflow-x:clip;max-width:min(480px,100vw)}
 #ptr{position:fixed;top:calc(var(--sat) + 0px);left:50%;transform:translate(-50%,-40px);z-index:15;width:40px;height:40px;border-radius:50%;background:#fff;box-shadow:0 4px 16px rgba(0,58,110,.18);display:grid;place-items:center;color:var(--mu);transition:transform .2s}
 #ptr.listo{color:var(--azul)}
 #ptr.gira svg{animation:gira .7s linear infinite}
