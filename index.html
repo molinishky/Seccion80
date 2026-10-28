@@ -701,7 +701,7 @@ async function responderLey(text) {
         c.append(el('div', 'ley-x', `Ingenios de más de 40 mil tons.: ${r[2]}\nDe 20 a 40 mil tons.: ${r[3]}\nMenos de 20 mil tons.: ${r[4]}`));
         box.append(c);
       });
-      box.append(el('div', 'ley-nota', 'Tabulador vigente del 16 de octubre de 2024 al 15 de octubre de 2025, antes de los aumentos posteriores. Confirma la cifra actual con la Secretaría de Relaciones.'));
+      box.append(el('div', 'ley-nota', 'Tabulador vigente del 16 de octubre de 2024 al 15 de octubre de 2025, antes de los aumentos posteriores. Confirma la cifra actual con la Secretaría de Relaciones.'), botonSecretario('con una duda sobre el tabulador de salarios'));
       bot(box); return true;
     }
   }
@@ -710,14 +710,14 @@ async function responderLey(text) {
   if (art) {
     if (!art.list.length) { bot(`No encontré el artículo ${art.num} en los libros que tengo (Ley Federal del Trabajo, Contrato Ley, Ley del ISR y su Reglamento).`); return true; }
     if (art.exact || art.list.length === 1) {
-      const box = el('div', 'msg-acc'); box.append(tarjetaArt(art.list[0], null), el('div', 'ley-nota', NOTA_LEY)); bot(box); return true;
+      const box = el('div', 'msg-acc'); box.append(tarjetaArt(art.list[0], null), el('div', 'ley-nota', NOTA_LEY), botonSecretario('con una duda sobre la ley o el Contrato Ley')); bot(box); return true;
     }
     const box = el('div', 'msg-acc');
     box.append(el('div', null, `El artículo ${art.num} aparece en varios libros. ¿Cuál quieres ver?`));
     const row = el('div', 'ley-ops');
     art.list.forEach(i => {
       const b = el('button', 'chip', NOMBRE_DOC(LEY.data.a[i][0])); b.type = 'button';
-      b.onclick = () => { yo(`Artículo ${art.num} · ${NOMBRE_DOC(LEY.data.a[i][0])}`); const bx = el('div', 'msg-acc'); bx.append(tarjetaArt(i, null), el('div', 'ley-nota', NOTA_LEY)); bot(bx); };
+      b.onclick = () => { yo(`Artículo ${art.num} · ${NOMBRE_DOC(LEY.data.a[i][0])}`); const bx = el('div', 'msg-acc'); bx.append(tarjetaArt(i, null), el('div', 'ley-nota', NOTA_LEY), botonSecretario('con una duda sobre la ley o el Contrato Ley')); bot(bx); };
       row.append(b);
     });
     box.append(row); bot(box); return true;
@@ -741,7 +741,7 @@ async function responderLey(text) {
     });
     box.append(row);
   }
-  box.append(el('div', 'ley-nota', NOTA_LEY));
+  box.append(el('div', 'ley-nota', NOTA_LEY), botonSecretario('con una duda sobre la ley o el Contrato Ley'));
   bot(box);
   return true;
 }
@@ -841,7 +841,7 @@ async function iniciar(socio, pin) {
   if (!blob) throw new Error('no');
   const data = await unseal(socio, pin, blob);
   session = { socio, pin, id, data, key: unseal.key, salt: blob.s };
-  dCache = {}; semanaSel = null; chatIniciado = false; $('#chat-log').replaceChildren();
+  dCache = {}; semanaSel = null; chatIniciado = false; chatHist = []; $('#chat-log').replaceChildren();
 }
 async function refresh() {
   try { DATA = await cargarDatos(); waNumber = (DATA.meta && DATA.meta.whatsapp) || waNumber; } catch (e) { /* sin red: usa lo cargado */ }
@@ -1029,7 +1029,34 @@ let toastT = null;
 function toast(t) { const x = $('#toast'); x.textContent = t; x.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { x.hidden = true; }, 3200); }
 
 /* ================= Chat ================= */
-let chatIniciado = false, chatStage = 'chat';
+let chatIniciado = false, chatStage = 'chat', chatHist = [];
+function registrar(quien, c) {
+  let t = '';
+  if (typeof c === 'string') t = c;
+  else if (c && c.nodeType === 1 && !/^(BUTTON|A)$/.test(c.tagName) && !c.classList.contains('dots')) {
+    const k = c.cloneNode(true); k.querySelectorAll('button, a, .ley-ops, .ley-nota, .ley-sub').forEach(x => x.remove());
+    k.querySelectorAll('.ley-t, .ley-x, div').forEach(x => x.append(' '));
+    t = k.textContent;
+  }
+  t = String(t).replace(/\s+/g, ' ').trim();
+  if (t) chatHist.push([quien, t]);
+}
+function textoSecretario(motivo) {
+  const d = session.data;
+  let s = `Hola, soy ${nombreCompleto(d)}, IBM ${corto(d.socio)}. Te escribo desde la app de la Sección 80${motivo ? ' ' + motivo : ''}.`;
+  const h = chatHist.slice(1).slice(-8);
+  if (h.length) {
+    s += '\n\nConversación en la app:';
+    h.forEach(([q, t]) => { s += `\n${q === 'yo' ? '• Yo' : '• App'}: ${t.length > 280 ? t.slice(0, 277) + '…' : t}`; });
+  }
+  return s.length > 1900 ? s.slice(0, 1897) + '…' : s;
+}
+function botonSecretario(motivo) {
+  const b = el('button', 'btn-wa sm'); b.type = 'button';
+  b.innerHTML = ICON.wa + '<span>Hablar con el Secretario</span>';
+  b.onclick = () => { const l = waLink(textoSecretario(motivo)); if (l) window.open(l, '_blank', 'noopener'); else toast('No hay número de WhatsApp configurado.'); };
+  return b;
+}
 const clog = $('#chat-log');
 const hora = () => { const d = new Date(); return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
 function burbuja(quien, contenido) {
@@ -1039,6 +1066,7 @@ function burbuja(quien, contenido) {
   const b = el('div', 'msg-b'); typeof contenido === 'string' ? (b.textContent = contenido) : b.append(contenido);
   col.append(b, el('span', 'msg-h', hora()));
   w.append(col); clog.append(w);
+  registrar(quien, contenido);
   requestAnimationFrame(() => { clog.scrollTop = clog.scrollHeight; });
   return w;
 }
@@ -1062,6 +1090,11 @@ async function enviarChat(raw) {
   yo(text);
   const q = text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   if (chatStage === 'loan' || chatStage === 'loanConfirm') return pasoPrestamo(text, q);
+  if (/(hablar|platicar|comunicar|contactar|llamar).*(alguien|persona|secretari|delegado|sindicato|comite|humano)|\b(secretario|humano|una persona)\b/.test(q) && !/(prestamo|oficio)/.test(q)) {
+    const bx = el('div', 'msg-acc');
+    bx.append(el('div', null, 'Claro. Toca el botón y se abrirá tu WhatsApp con un mensaje para el Secretario de Relaciones con tu nombre, tu IBM y lo que hemos platicado. Solo revisa y toca enviar.'), botonSecretario('para pedir orientación'));
+    bot(bx); return;
+  }
   const legal = /(articulo|art\.|clausula|\bley\b|contrato|reglamento|que dice|lft|isr|\bsat\b|impuesto)/.test(q);
   if (!legal && /(debo|adeudo|adeudos|cuanto me falta|me falta pagar|saldo (de|del) (mi )?prestamo|prestamo.*(saldo|debo|falta|pendiente)|mis prestamos)/.test(q)) {
     const t = escribiendo(); let d; try { d = await refresh(); } catch (e) { t.remove(); bot('No pude cargar tu información. Revisa tu conexión a internet.'); return; }
@@ -1088,7 +1121,7 @@ async function enviarChat(raw) {
   }
   if (/^(hola|buen|que tal|hey|gracias)\b/.test(q) && q.split(/\s+/).length <= 4) { bot(/^gracias/.test(q) ? '¡Con gusto! Aquí estoy para lo que necesites.' : '¡Hola! ¿Quieres tu saldo, tu desglose de nómina o tienes alguna duda sobre la ley o el Contrato Ley?'); chips(baseChips()); return; }
   if (legal || esConsultaLey(q) || tokens(text).length >= 2) { if (await responderLey(text)) return; }
-  bot('No encontré algo claro sobre eso. Puedo darte tu saldo del fondo de ahorro, tu desglose de nómina de cualquier semana o buscar en la Ley Federal del Trabajo, el Contrato Ley y la Ley del ISR. Prueba, por ejemplo: "¿qué dice la ley sobre la prima vacacional?" o "artículo 87".');
+  { const bx = el('div', 'msg-acc'); bx.append(el('div', null, 'No encontré algo claro sobre eso. Puedo darte tu saldo del fondo de ahorro, tu desglose de nómina de cualquier semana o buscar en la Ley Federal del Trabajo, el Contrato Ley y la Ley del ISR. Prueba, por ejemplo: "¿qué dice la ley sobre la prima vacacional?" o "artículo 87".'), el('div', 'ley-nota', 'Si prefieres, envíale tu duda al Secretario de Relaciones:'), botonSecretario('con una duda')); bot(bx); }
   chips(baseChips());
 }
 async function chatDesglose(q, d) {
@@ -1147,6 +1180,7 @@ async function pasoPrestamo(text, q) {
   }
   const dl = el('button', 'btn-sec sm'); dl.type = 'button'; dl.innerHTML = ICON.dl + '<span>Descargar oficio</span>';
   dl.onclick = () => guardarPDF(bytes, fname); box.append(dl);
+  box.append(el('div', 'ley-nota', '¿Tienes dudas sobre tu préstamo? Escríbele al Secretario:'), botonSecretario('sobre mi solicitud de préstamo por ' + cantidadConLetra(monto)));
   bot(box); chips(baseChips());
 }
 
