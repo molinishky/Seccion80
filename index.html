@@ -98,7 +98,16 @@ body.en-chat .deco img{opacity:.12}
 .home-top #salir{position:absolute;right:12px;top:22px;color:var(--mu)}
 .home-top+.franjas{justify-content:center;margin-top:12px}
 .saludo{display:flex;align-items:center;gap:16px;padding:18px;border-radius:18px;background:var(--azul-cl);box-shadow:var(--flota)}
-.avatar{flex:none;width:60px;height:60px;border-radius:50%;background:var(--azul);display:grid;place-items:center}
+.avatar{position:relative;flex:none;width:60px;height:60px;border-radius:50%;background:var(--azul);display:grid;place-items:center;border:0;padding:0;cursor:pointer}
+.avatar img{width:60px;height:60px;border-radius:50%;object-fit:cover;display:block;box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--azul)}
+.avatar .cam{position:absolute;right:-3px;bottom:-3px;width:24px;height:24px;border-radius:50%;background:#fff;color:var(--azul);display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,58,110,.25)}
+.hoja-fondo{position:fixed;inset:0;z-index:40;background:rgba(15,25,40,.35);display:flex;align-items:flex-end;justify-content:center}
+.hoja{width:100%;max-width:480px;background:#fff;border-radius:22px 22px 0 0;padding:10px 16px calc(16px + var(--sab));box-shadow:0 -8px 30px rgba(0,0,0,.15);animation:sube .22s cubic-bezier(.2,.8,.2,1)}
+@keyframes sube{from{transform:translateY(100%)}to{transform:none}}
+.hoja .agarre{width:40px;height:5px;border-radius:3px;background:var(--ln);margin:0 auto 12px}
+.hoja h3{font-size:16px;text-align:center;margin-bottom:4px}
+.hoja p{font-size:13px;color:var(--mu);text-align:center;margin-bottom:12px}
+.hoja .btns{display:flex;flex-direction:column;gap:10px}
 .saludo .tx{display:flex;flex-direction:column;gap:2px;min-width:0}
 .saludo small{font-size:15px}
 .saludo h2{font-size:22px;font-weight:700;line-height:1.2;overflow-wrap:anywhere}
@@ -302,7 +311,12 @@ body{overflow-x:hidden}
   <div class="franjas" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <div class="pad">
     <section class="saludo">
-      <div class="avatar" aria-hidden="true"><svg width="32" height="32" viewBox="0 0 24 24" fill="#FFFFFF"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20c.9-3.6 3.9-5.6 7.5-5.6s6.6 2 7.5 5.6z"/></svg></div>
+      <button type="button" class="avatar" id="foto-btn" aria-label="Agregar tu foto">
+        <svg id="foto-mono" aria-hidden="true" width="32" height="32" viewBox="0 0 24 24" fill="#FFFFFF"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20c.9-3.6 3.9-5.6 7.5-5.6s6.6 2 7.5 5.6z"/></svg>
+        <img id="foto-img" alt="" hidden>
+        <span class="cam" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
+      </button>
+      <input type="file" id="foto-in" accept="image/*" hidden>
       <div class="tx">
         <small>Hola,</small>
         <h2 id="home-nombre"></h2>
@@ -598,7 +612,7 @@ function recordado(socio) { return leerRec()[socio] || null; }
 function recordar(socio, pin) { try { const r = leerRec(); r[socio] = pin; localStorage.setItem(RKEY, JSON.stringify(r)); } catch (e) {} }
 function olvidar(socio) { try { const r = leerRec(); delete r[socio]; localStorage.setItem(RKEY, JSON.stringify(r)); } catch (e) {} }
 
-function olvidarTodo() { try { localStorage.removeItem(RKEY); localStorage.removeItem('s80_ultimo'); } catch (e) {} }
+function olvidarTodo() { try { localStorage.removeItem(RKEY); localStorage.removeItem('s80_ultimo'); Object.keys(localStorage).filter(k => k.startsWith('s80_foto_')).forEach(k => localStorage.removeItem(k)); } catch (e) {} }
 
 async function cargarDatos() {
   const r = await fetch('datos.json?v=' + Date.now(), { cache: 'no-store' });
@@ -1055,6 +1069,7 @@ const periodo = w => (DATA && DATA.meta && DATA.meta.periodos && DATA.meta.perio
 /* ================= Inicio ================= */
 function renderHome() {
   const d = session.data, pn = primerNombre(d);
+  pintarFoto();
   $('#home-nombre').textContent = pn || 'Compañero';
   $('#home-ibm').textContent = `IBM ${corto(d.socio)} · Bienvenido a tu portal de la Sección 80`;
   const sem = semanas(d);
@@ -1063,6 +1078,47 @@ function renderHome() {
   $('#card-prest-sub').textContent = pend > 0 ? `${pn ? pn + ', tu' : 'Tu'} saldo pendiente: ${money(pend)}` : `${pn ? pn + ', no' : 'No'} tienes saldo pendiente`;
   $('#card-fondo-sub').textContent = d.fondo === false ? 'Sin saldo registrado' : `${pn ? pn + ', tu' : 'Tu'} saldo: ${money(d.saldo)}`;
 }
+
+/* ================= Foto del usuario (se guarda solo en este teléfono) ================= */
+const FKEY = s => 's80_foto_' + s;
+function leerFoto() { try { return localStorage.getItem(FKEY(session.socio)); } catch (e) { return null; } }
+function pintarFoto() {
+  const f = session && leerFoto(), img = $('#foto-img');
+  if (f) { img.src = f; img.hidden = false; $('#foto-mono').style.display = 'none'; $('#foto-btn').setAttribute('aria-label', 'Cambiar tu foto'); }
+  else { img.removeAttribute('src'); img.hidden = true; $('#foto-mono').style.display = ''; $('#foto-btn').setAttribute('aria-label', 'Agregar tu foto'); }
+}
+function hoja(titulo, texto, botones) {
+  const f = el('div', 'hoja-fondo'); const h = el('div', 'hoja'); h.setAttribute('role', 'dialog'); h.setAttribute('aria-label', titulo);
+  h.append(el('div', 'agarre'), el('h3', null, titulo)); if (texto) h.append(el('p', null, texto));
+  const bs = el('div', 'btns');
+  botones.forEach(([t, cls, fn]) => { const b = el('button', cls, t); b.type = 'button'; b.onclick = () => { f.remove(); fn && fn(); }; bs.append(b); });
+  h.append(bs); f.append(h); f.addEventListener('click', e => { if (e.target === f) f.remove(); });
+  document.body.append(f); bs.firstChild && bs.firstChild.focus();
+}
+$('#foto-btn').addEventListener('click', () => {
+  if (!canStore()) { toast('Este teléfono no permite guardar la foto.'); return; }
+  if (!leerFoto()) { $('#foto-in').click(); return; }
+  hoja('Tu foto', 'Se guarda solo en este teléfono; nadie más la ve.', [
+    ['Cambiar foto', 'btn-pri sm', () => $('#foto-in').click()],
+    ['Quitar foto', 'btn-sec sm', () => { try { localStorage.removeItem(FKEY(session.socio)); } catch (e) {} pintarFoto(); toast('Foto quitada'); }],
+    ['Cancelar', 'link', null]
+  ]);
+});
+$('#foto-in').addEventListener('change', async e => {
+  const file = e.target.files && e.target.files[0]; e.target.value = '';
+  if (!file || !session) return;
+  try {
+    const url = URL.createObjectURL(file);
+    const im = await new Promise((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = mal; i.src = url; });
+    const lado = Math.min(im.naturalWidth, im.naturalHeight), N = 320;
+    const c = document.createElement('canvas'); c.width = c.height = N;
+    const cx = c.getContext('2d'); cx.fillStyle = '#FFFFFF'; cx.fillRect(0, 0, N, N);
+    cx.drawImage(im, (im.naturalWidth - lado) / 2, (im.naturalHeight - lado) / 2, lado, lado, 0, 0, N, N);
+    URL.revokeObjectURL(url);
+    localStorage.setItem(FKEY(session.socio), c.toDataURL('image/jpeg', 0.85));
+    pintarFoto(); vibrar(); toast('¡Listo! Tu foto se guardó en este teléfono.');
+  } catch (err) { toast('No pude usar esa imagen. Prueba con otra.'); }
+});
 
 /* ================= Fondo de ahorro ================= */
 async function renderFondo() {

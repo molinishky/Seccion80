@@ -15,6 +15,8 @@ import android.provider.MediaStore;
 import android.util.Base64;
 import android.view.View;
 import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -32,6 +34,8 @@ public class MainActivity extends Activity {
     static final String URL = "https://molinishky.github.io/Seccion80/";
     static final String HOST = "molinishky.github.io";
     WebView web;
+    ValueCallback<Uri[]> elegir;
+    static final int FOTO = 7;
 
     @Override
     protected void onCreate(Bundle b) {
@@ -58,6 +62,19 @@ public class MainActivity extends Activity {
                 if (r.isForMainFrame()) v.loadDataWithBaseURL(null, sinRed(), "text/html", "utf-8", null);
             }
         });
+        web.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams p) {
+                if (elegir != null) elegir.onReceiveValue(null);
+                elegir = cb;
+                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                i.addCategory(Intent.CATEGORY_OPENABLE);
+                i.setType("image/*");
+                try { startActivityForResult(Intent.createChooser(i, "Elige tu foto"), FOTO); }
+                catch (ActivityNotFoundException e) { elegir = null; return false; }
+                return true;
+            }
+        });
         if (b != null) web.restoreState(b); else web.loadUrl(URL);
     }
 
@@ -70,6 +87,18 @@ public class MainActivity extends Activity {
     void abrirFuera(Uri u) {
         try { startActivity(new Intent(Intent.ACTION_VIEW, u)); }
         catch (ActivityNotFoundException e) { Toast.makeText(this, "No hay una app para abrir esto", Toast.LENGTH_SHORT).show(); }
+    }
+
+    @Override
+    protected void onActivityResult(int req, int res, Intent data) {
+        if (req == FOTO && elegir != null) {
+            Uri[] r = null;
+            if (res == RESULT_OK && data != null && data.getData() != null) r = new Uri[]{ data.getData() };
+            elegir.onReceiveValue(r);
+            elegir = null;
+            return;
+        }
+        super.onActivityResult(req, res, data);
     }
 
     @Override protected void onSaveInstanceState(Bundle o) { super.onSaveInstanceState(o); web.saveState(o); }
