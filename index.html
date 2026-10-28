@@ -1015,7 +1015,7 @@ $('#login-form').addEventListener('submit', async e => {
     if (!rp && recIn.checked && canStore()) recordar(soc, pin);
     setUltimo(soc);
     pinIn.value = '';
-    show('home');
+    show('home'); registrarAcceso();
   } catch (err) {
     if (rp) { olvidar(soc); revisarIBM(); loginMsg.textContent = 'Necesito tu PIN otra vez en este teléfono.'; }
     else {
@@ -1049,6 +1049,7 @@ async function refresh() {
   return session.data;
 }
 function salir() {
+  accesoRegistrado = false;
   session = null; dCache = {};
   ibmIn.value = ultimo(); pinIn.value = ''; loginMsg.textContent = '';
   revisarIBM(); show('login');
@@ -1419,6 +1420,24 @@ async function pasoPrestamo(text, q) {
   bot(box); chips(baseChips());
 }
 
+/* ================= Registro de accesos (IBM y hora, para la Secretaría) ================= */
+let accesoRegistrado = false;
+function dispositivo() {
+  const v = apkVersion(), ua = navigator.userAgent || '';
+  if (v) return ['App Android', v];
+  const inst = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
+  if (/iPhone|iPad|iPod/.test(ua)) return [inst ? 'iPhone (icono)' : 'iPhone (navegador)', ''];
+  if (/Android/.test(ua)) return [inst ? 'Android (icono)' : 'Android (navegador)', ''];
+  return ['Computadora', ''];
+}
+function registrarAcceso() {
+  if (accesoRegistrado || !session || !DATA || !DATA.meta || !DATA.meta.registro) return;
+  accesoRegistrado = true;
+  const [disp, ver] = dispositivo(), d = session.data;
+  const cuerpo = JSON.stringify({ ibm: corto(d.socio), socio: d.socio, nombre: nombreCompleto(d), disp, ver });
+  try { fetch(DATA.meta.registro, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: cuerpo, keepalive: true }).catch(() => {}); } catch (e) {}
+}
+
 /* ================= Versión del APK ================= */
 const APK_MIN = '1.2';
 const APK_URL = 'https://github.com/molinishky/Seccion80/releases/download/apk-latest/Seccion80.apk';
@@ -1455,7 +1474,7 @@ function pedirActualizar() {
   if (!DATA) { loginMsg.textContent = 'No pude cargar la información. Revisa tu conexión a internet y vuelve a abrir.'; $('#splash').hidden = true; return; }
   waNumber = (DATA.meta && DATA.meta.whatsapp) || '';
   const u = ultimo(), rp = u && recordado(u);
-  if (rp) { try { await iniciar(u, rp); $('#splash').hidden = true; show('home'); return; } catch (e) { olvidar(u); } }
+  if (rp) { try { await iniciar(u, rp); $('#splash').hidden = true; show('home'); registrarAcceso(); return; } catch (e) { olvidar(u); } }
   $('#splash').hidden = true;
   revisarIBM();
 })();
