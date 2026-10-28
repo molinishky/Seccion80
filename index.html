@@ -250,6 +250,13 @@ html,body{overflow-x:hidden}
 #ptr{position:fixed;top:calc(var(--sat) + 0px);left:50%;transform:translate(-50%,-40px);z-index:15;width:40px;height:40px;border-radius:50%;background:#fff;box-shadow:0 4px 16px rgba(0,58,110,.18);display:grid;place-items:center;color:var(--mu);transition:transform .2s}
 #ptr.listo{color:var(--azul)}
 #ptr.gira svg{animation:gira .7s linear infinite}
+/* Aviso de actualización del APK */
+.actualizar{min-height:100dvh;display:flex;flex-direction:column;align-items:center;text-align:center;padding:calc(56px + var(--sat)) 28px calc(28px + var(--sab));gap:16px}
+.actualizar img{width:120px;height:auto}
+.actualizar h1{font-size:24px;font-weight:800;margin-top:8px}
+.actualizar p{font-size:15.5px;color:var(--mu);line-height:1.5}
+.pasos{text-align:left;align-self:stretch;background:var(--azul-cl);border-radius:18px;padding:16px 16px 16px 36px;display:flex;flex-direction:column;gap:10px;font-size:15px;line-height:1.45;box-shadow:var(--flota)}
+.actualizar .btn-pri{margin-top:6px}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--navh) + var(--sab) + 18px);background:var(--tx);color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;z-index:20;max-width:90%;text-align:center}
 #splash{position:fixed;inset:0;background:#fff;display:grid;place-items:center;z-index:30}
 #splash img{height:120px;animation:lat 1.4s ease-in-out infinite}
@@ -1413,8 +1420,35 @@ async function pasoPrestamo(text, q) {
   bot(box); chips(baseChips());
 }
 
+/* ================= Versión del APK ================= */
+const APK_MIN = '1.2';
+const APK_URL = 'https://github.com/molinishky/Seccion80/releases/download/apk-latest/Seccion80.apk';
+function apkVersion() {
+  if (!window.AndroidApp) return null;
+  try { return typeof window.AndroidApp.version === 'function' ? String(window.AndroidApp.version()) : '1.0'; } catch (e) { return '1.0'; }
+}
+function apkViejo() {
+  const v = apkVersion(); if (!v) return false;
+  const a = v.split('.').map(Number), b = APK_MIN.split('.').map(Number);
+  for (let i = 0; i < Math.max(a.length, b.length); i++) { if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) < (b[i] || 0); }
+  return false;
+}
+function pedirActualizar() {
+  $('#splash').hidden = true;
+  SCREENS.forEach(s => { $('#s-' + s).hidden = true; }); $('#nav').hidden = true;
+  const w = el('main', 'actualizar');
+  const im = el('img'); im.src = 'escudo.png'; im.alt = 'Escudo del sindicato';
+  const fr = el('div', 'franjas g'); fr.setAttribute('aria-hidden', 'true'); fr.append(el('i'), el('i'), el('i'), el('i'));
+  const pasos = el('ol', 'pasos');
+  ['Toca «Descargar nueva versión».', 'Abre el archivo Seccion80.apk que se descargó.', 'Toca «Actualizar» o «Instalar». No pierdes nada: tu IBM y tu foto se conservan.'].forEach(t => pasos.append(el('li', null, t)));
+  const a = el('a', 'btn-pri'); a.href = APK_URL; a.innerHTML = ICON.dl + '<span>Descargar nueva versión</span>';
+  w.append(im, fr, el('h1', null, 'Actualiza tu app'), el('p', null, 'Esta versión de la app de la Sección 80 ya no funciona. Instala la nueva versión para seguir consultando tu fondo, tus nóminas y tus préstamos.'), pasos, a);
+  document.querySelector('.app').append(w);
+}
+
 /* ================= Arranque ================= */
 (async () => {
+  if (apkViejo()) { pedirActualizar(); return; }
   ibmIn.value = ultimo();
   $('#olvidar').hidden = !Object.keys(leerRec()).length;
   if (!(window.crypto && crypto.subtle)) { loginMsg.textContent = 'Este navegador no permite abrir la información protegida. Usa Chrome o Safari actualizados.'; return; }
