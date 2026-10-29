@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Sección 80">
@@ -269,7 +271,10 @@ body.en-chat .deco img{opacity:.12}
 @keyframes rebota{50%{transform:translateY(8px)}}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--navh) + var(--sab) + 18px);background:var(--tx);color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;z-index:20;max-width:90%;text-align:center}
 #splash{position:fixed;inset:0;background:#fff;display:grid;place-items:center;z-index:30}
-#splash img{height:120px;animation:lat 1.4s ease-in-out infinite}
+#splash .sp-in{display:flex;flex-direction:column;align-items:center;gap:22px}
+#splash img{height:132px;animation:latido 1.15s ease-in-out infinite;filter:drop-shadow(0 10px 22px rgba(0,58,110,.22))}
+#splash p{font-size:14px;font-weight:600;color:var(--mu);min-height:18px}
+@keyframes latido{0%{transform:scale(1)}14%{transform:scale(1.13)}28%{transform:scale(1)}42%{transform:scale(1.08)}70%,100%{transform:scale(1)}}
 @keyframes lat{50%{opacity:.6;transform:scale(.97)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:350px){.tarjeta{min-height:150px;padding:14px}.tarjeta b{font-size:15.5px}.circ{width:48px;height:48px}}
@@ -370,7 +375,7 @@ html.lente .burbuja{z-index:2;background:linear-gradient(180deg,rgba(var(--tinte
 </head>
 <body>
 <div class="app">
-<div id="splash"><img src="escudo.png" alt="Sección 80"></div>
+<div id="splash"><div class="sp-in"><img src="escudo.png" alt="Sección 80"><p id="splash-txt" aria-live="polite">Buscando actualizaciones…</p></div></div>
 
 <div class="deco" aria-hidden="true">
   <svg class="c1" width="120" height="230" viewBox="0 0 100 200"><g fill="#1E8A3C"><rect x="44" y="62" width="12" height="140" rx="3"/><path d="M50 72 C 42 44, 28 24, 10 8 C 30 20, 46 40, 55 68 Z"/><path d="M51 70 C 56 40, 66 20, 86 4 C 72 24, 62 44, 56 72 Z"/><path d="M48 96 C 34 78, 18 72, 2 76 C 20 70, 38 74, 52 92 Z"/><path d="M53 112 C 66 88, 80 78, 98 74 C 82 84, 70 96, 57 118 Z"/></g><path d="M44 104h12M44 144h12M44 180h12" stroke="#FFFFFF" stroke-width="2.5"/></svg>
@@ -1762,7 +1767,41 @@ function continuarNavegador(w) {
   w.remove(); $('#s-login').hidden = false; $('#splash').hidden = false;
   arrancar();
 }
+/* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
+const APP_VERSION = '20261028231245';
+async function versionPublicada() {
+  try {
+    const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 4000);
+    const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store', signal: ctrl.signal }); clearTimeout(to);
+    if (!r.ok) return null; const j = await r.json(); return j && j.v ? String(j.v) : null;
+  } catch (e) { return null; }
+}
+function recargarCon(v) {
+  try { sessionStorage.setItem('s80_upd', v); } catch (e) {}
+  const t = $('#splash-txt'); if (t) t.textContent = 'Descargando actualización…';
+  $('#splash').hidden = false;
+  setTimeout(() => { location.replace(location.pathname + '?v=' + encodeURIComponent(v) + location.hash); }, 350);
+}
+async function buscarActualizacion() {
+  const v = await versionPublicada();
+  if (!v || v === APP_VERSION) return false;
+  let ya = ''; try { ya = sessionStorage.getItem('s80_upd') || ''; } catch (e) {}
+  if (ya === v) return false;  // ya se intentó con esta versión: no entrar en ciclo
+  recargarCon(v); return true;
+}
+let ocultoDesde = 0;
+document.addEventListener('visibilitychange', async () => {
+  if (document.hidden) { ocultoDesde = Date.now(); return; }
+  if (ocultoDesde && Date.now() - ocultoDesde > 10 * 60 * 1000) {
+    const v = await versionPublicada();
+    if (v && v !== APP_VERSION) { $('#splash-txt').textContent = 'Hay una actualización…'; recargarCon(v); }
+  }
+});
 (async () => {
+  const t0 = Date.now();
+  if (await buscarActualizacion()) return;
+  const espera = 900 - (Date.now() - t0); if (espera > 0) await new Promise(r => setTimeout(r, espera));
+  $('#splash-txt').textContent = '';
   if (apkViejo()) { pedirActualizar(); return; }
   let saltar = false; try { saltar = sessionStorage.getItem('s80_nav') === '1'; } catch (e) {}
   if (!saltar && iosEnNavegador()) { pedirInstalarIOS(); return; }
