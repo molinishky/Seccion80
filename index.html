@@ -273,7 +273,8 @@ body.en-chat .deco img{opacity:.12}
 #splash{position:fixed;inset:0;background:#fff;display:grid;place-items:center;z-index:30}
 #splash .sp-in{display:flex;flex-direction:column;align-items:center;gap:22px}
 #splash img{height:132px;animation:latido 1.15s ease-in-out infinite;filter:drop-shadow(0 10px 22px rgba(0,58,110,.22))}
-#splash p{font-size:14px;font-weight:600;color:var(--mu);min-height:18px}
+#splash .sp-barra{width:132px;height:4px;border-radius:2px;background:var(--ln3);overflow:hidden}
+#splash .sp-barra i{display:block;height:100%;width:0;border-radius:2px;background:var(--azul);transition:width .6s cubic-bezier(.3,.7,.3,1)}
 @keyframes latido{0%{transform:scale(1)}14%{transform:scale(1.13)}28%{transform:scale(1)}42%{transform:scale(1.08)}70%,100%{transform:scale(1)}}
 @keyframes lat{50%{opacity:.6;transform:scale(.97)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -375,7 +376,7 @@ html.lente .burbuja{z-index:2;background:linear-gradient(180deg,rgba(var(--tinte
 </head>
 <body>
 <div class="app">
-<div id="splash"><div class="sp-in"><img src="escudo.png" alt="Sección 80"><p id="splash-txt" aria-live="polite">Buscando actualizaciones…</p></div></div>
+<div id="splash"><div class="sp-in"><img src="escudo.png" alt="Sección 80"><div class="sp-barra" role="progressbar" aria-label="Cargando la app" aria-valuemin="0" aria-valuemax="100"><i id="sp-fill"></i></div></div></div>
 
 <div class="deco" aria-hidden="true">
   <svg class="c1" width="120" height="230" viewBox="0 0 100 200"><g fill="#1E8A3C"><rect x="44" y="62" width="12" height="140" rx="3"/><path d="M50 72 C 42 44, 28 24, 10 8 C 30 20, 46 40, 55 68 Z"/><path d="M51 70 C 56 40, 66 20, 86 4 C 72 24, 62 44, 56 72 Z"/><path d="M48 96 C 34 78, 18 72, 2 76 C 20 70, 38 74, 52 92 Z"/><path d="M53 112 C 66 88, 80 78, 98 74 C 82 84, 70 96, 57 118 Z"/></g><path d="M44 104h12M44 144h12M44 180h12" stroke="#FFFFFF" stroke-width="2.5"/></svg>
@@ -1753,22 +1754,25 @@ function pedirInstalarAndroid() {
 async function arrancar() {
   ibmIn.value = ultimo();
   $('#olvidar').hidden = !Object.keys(leerRec()).length;
-  if (!(window.crypto && crypto.subtle)) { loginMsg.textContent = 'Este navegador no permite abrir la información protegida. Usa Chrome o Safari actualizados.'; $('#splash').hidden = true; return; }
+  if (!(window.crypto && crypto.subtle)) { loginMsg.textContent = 'Este navegador no permite abrir la información protegida. Usa Chrome o Safari actualizados.'; ocultarSplash(); return; }
   try { DATA = await cargarDatos(); } catch (e) { DATA = null; }
-  if (!DATA) { loginMsg.textContent = 'No pude cargar la información. Revisa tu conexión a internet y vuelve a abrir.'; $('#splash').hidden = true; return; }
+  if (!DATA) { loginMsg.textContent = 'No pude cargar la información. Revisa tu conexión a internet y vuelve a abrir.'; ocultarSplash(); return; }
   waNumber = (DATA.meta && DATA.meta.whatsapp) || '';
   const u = ultimo(), rp = u && recordado(u);
-  if (rp) { try { await iniciar(u, rp); $('#splash').hidden = true; show('home'); registrarAcceso(); return; } catch (e) { olvidar(u); } }
-  $('#splash').hidden = true;
+  if (rp) { try { await iniciar(u, rp); ocultarSplash(); show('home'); registrarAcceso(); return; } catch (e) { olvidar(u); } }
+  ocultarSplash();
   revisarIBM();
 }
 function continuarNavegador(w) {
   try { sessionStorage.setItem('s80_nav', '1'); } catch (e) {}
-  w.remove(); $('#s-login').hidden = false; $('#splash').hidden = false;
+  w.remove(); $('#s-login').hidden = false; $('#splash').hidden = false; barra(65);
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261028231245';
+const APP_VERSION = '20261029000922';
+function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
+function ocultarSplash() { barra(100); setTimeout(() => { $('#splash').hidden = true; }, 260); }
+requestAnimationFrame(() => barra(35));
 async function versionPublicada() {
   try {
     const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 4000);
@@ -1778,7 +1782,7 @@ async function versionPublicada() {
 }
 function recargarCon(v) {
   try { sessionStorage.setItem('s80_upd', v); } catch (e) {}
-  const t = $('#splash-txt'); if (t) t.textContent = 'Descargando actualización…';
+  barra(100);
   $('#splash').hidden = false;
   setTimeout(() => { location.replace(location.pathname + '?v=' + encodeURIComponent(v) + location.hash); }, 350);
 }
@@ -1794,14 +1798,14 @@ document.addEventListener('visibilitychange', async () => {
   if (document.hidden) { ocultoDesde = Date.now(); return; }
   if (ocultoDesde && Date.now() - ocultoDesde > 10 * 60 * 1000) {
     const v = await versionPublicada();
-    if (v && v !== APP_VERSION) { $('#splash-txt').textContent = 'Hay una actualización…'; recargarCon(v); }
+    if (v && v !== APP_VERSION) { barra(15); recargarCon(v); }
   }
 });
 (async () => {
   const t0 = Date.now();
   if (await buscarActualizacion()) return;
   const espera = 900 - (Date.now() - t0); if (espera > 0) await new Promise(r => setTimeout(r, espera));
-  $('#splash-txt').textContent = '';
+  barra(65);
   if (apkViejo()) { pedirActualizar(); return; }
   let saltar = false; try { saltar = sessionStorage.getItem('s80_nav') === '1'; } catch (e) {}
   if (!saltar && iosEnNavegador()) { pedirInstalarIOS(); return; }
