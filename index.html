@@ -383,6 +383,27 @@ body.teclado #s-chat{min-height:0!important;position:fixed;top:0;left:50%;transf
 body.teclado .chat-pie{padding-bottom:10px}
 body.teclado .deco{opacity:0}
 .deco{transition:opacity .3s}
+/* ================= Detalle de abonos ================= */
+.pre.toca{cursor:pointer;transition:transform .18s cubic-bezier(.2,.8,.2,1)}
+.pre.toca:active{transform:scale(.975)}
+.pre-ver{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:11px 14px;border-radius:12px;background:rgba(var(--ac-rgb,0,104,184),.10);color:var(--ac);font-size:14.5px;font-weight:700}
+.pre-ver-f{font-size:22px;line-height:1;font-weight:600}
+.pre-atras{display:inline-flex;align-items:center;gap:4px;margin:0 0 12px -4px;padding:6px 10px 6px 4px;border:0;background:none;color:var(--azul);font:inherit;font-size:15px;font-weight:700;cursor:pointer;border-radius:10px}
+.pre-atras:active{opacity:.6}
+.pre-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.pre-st{flex:1 1 30%;min-width:96px;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:rgba(var(--ac-rgb,0,104,184),.08)}
+.pre-st span{font-size:12px;color:var(--mu);font-weight:600}
+.pre-st b{font-size:15px;font-variant-numeric:tabular-nums;color:var(--tx)}
+.ab-panel{margin-top:0}
+.ab-anio{display:flex;align-items:baseline;justify-content:space-between;margin:14px 0 2px;padding:8px 12px;border-radius:10px;background:rgba(var(--ac-rgb,0,104,184),.08)}
+.ab-anio b{font-size:15px}
+.ab-anio span{font-size:13px;color:var(--mu);font-variant-numeric:tabular-nums}
+.ab-panel h2+.ab-anio{margin-top:6px}
+.ab-sub{color:var(--mu)}
+.pre-tono{--ac-rgb:0,104,184}.pre-tono.v{--ac-rgb:30,138,60}
+@media (prefers-color-scheme:dark){.pre-tono{--ac-rgb:59,155,234}.pre-tono.v{--ac-rgb:52,179,90}}
+#prest-body.entra-d{animation:entraD .26s cubic-bezier(.2,.8,.2,1)}
+#prest-body.entra-i{animation:entraI .26s cubic-bezier(.2,.8,.2,1)}
 /* ================= Gestos fluidos ================= */
 html{overscroll-behavior:none}
 .scr.arrastra{position:relative;z-index:3;background:var(--fondo);box-shadow:-12px 0 28px rgba(0,20,50,.18);will-change:transform}
@@ -1559,10 +1580,92 @@ function cajaPrestamo(x, pn, i) {
   if (!debe) {
     const ok = el('div', 'pre-ok'); ok.append(el('span', null, '✓'), el('span', null, favor ? `No tienes saldo pendiente. Abonaste ${money(-x.saldo)} de más, que quedan como saldo a favor.` : 'No tienes saldo pendiente en este préstamo.')); m.append(ok);
   }
+  if (x.np) {
+    const ver = el('div', 'pre-ver'); ver.append(el('span', null, `Ver tus abonos (${x.np})`), el('span', 'pre-ver-f', '›'));
+    m.append(ver);
+    c.classList.add('toca'); c.tabIndex = 0; c.setAttribute('role', 'button');
+    c.setAttribute('aria-label', `${x.t}: ver todos tus abonos`);
+    const abrir = () => { vibrar(); abrirAbonos(i); };
+    c.addEventListener('click', abrir);
+    c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
+  }
   c.append(h, m);
   return c;
 }
+/* ----- Detalle de abonos de un préstamo (archivo cifrado aparte, se baja solo al abrirlo) ----- */
+let pagCache = null;
+async function cargarAbonos() {
+  if (pagCache) return pagCache;
+  const r = await fetch(`d/pag/${session.id}.bin?v=${(DATA.meta && DATA.meta.version) || ''}`, { cache: 'no-store' });
+  if (r.status === 404) return (pagCache = []);
+  if (!r.ok) throw new Error('http ' + r.status);
+  const buf = new Uint8Array(await r.arrayBuffer());
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(0, 12) }, session.key, buf.slice(12));
+  return (pagCache = JSON.parse(td.decode(plain)));
+}
+const MESES_L = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+function mesDeSemana(w, y) { // jueves de la semana ISO
+  if (!w || !y) return '';
+  const j4 = new Date(Date.UTC(y, 0, 4)), lun1 = new Date(j4); lun1.setUTCDate(4 - ((j4.getUTCDay() + 6) % 7));
+  const jue = new Date(lun1); jue.setUTCDate(lun1.getUTCDate() + (w - 1) * 7 + 3);
+  return MESES_L[jue.getUTCMonth()] + ' ' + jue.getUTCFullYear();
+}
+async function abrirAbonos(i) {
+  const box = $('#prest-body'), d = session.data, x = (d.prestamos || [])[i];
+  if (!x) return;
+  const scr = $('#s-prestamos');
+  const atras = el('button', 'pre-atras'); atras.type = 'button';
+  atras.innerHTML = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg><span>Todos los préstamos</span>';
+  atras.addEventListener('click', () => { vibrar(); volverPrestamos(); });
+  const cab = el('section', 'pre' + (i % 2 ? ' v' : ''));
+  const h = el('div', 'pre-h'); h.append(el('b', null, String(x.t).replace(/-/g, '\u2011')));
+  const debe = x.saldo > 0.005, favor = x.saldo < -0.005;
+  h.append(el('span', 'pre-tag', debe ? 'Saldo pendiente' : favor ? 'Saldo a favor' : 'Sin adeudo'));
+  const m = el('div', 'pre-m');
+  m.append(el('div', 'pre-lbl', favor ? 'Tu saldo a favor' : 'Tu saldo'), el('div', 'pre-amt' + (debe ? '' : ' cero'), money(debe ? x.saldo : favor ? -x.saldo : 0)));
+  const stats = el('div', 'pre-stats'); m.append(stats);
+  cab.append(h, m);
+  const panel = el('section', 'panel ab-panel pre-tono' + (i % 2 ? ' v' : '')); panel.append(el('div', 'cargando', 'Cargando tus abonos…'));
+  box.replaceChildren(atras, cab, panel);
+  box.classList.remove('entra-d', 'entra-i'); void box.offsetWidth; box.classList.add('entra-d');
+  window.scrollTo(0, 0);
+  let P;
+  try { P = (await cargarAbonos())[i] || []; } catch (e) { panel.replaceChildren(el('div', 'aviso', 'No pude abrir tus abonos. Revisa tu conexión a internet.')); return; }
+  if (!box.contains(panel)) return;
+  const total = round2(P.reduce((a, p) => a + p[2], 0));
+  const st = (k, v) => { const s = el('div', 'pre-st'); s.append(el('span', null, k), el('b', null, v)); return s; };
+  stats.append(st('Total abonado', money(total)), st('Abonos', String(P.length)));
+  if (x.ini != null && x.ini > 0) stats.append(st(x.iniLbl || 'Monto del préstamo', money(x.ini)));
+  if (!P.length) { panel.replaceChildren(el('div', 'aviso', 'Aún no hay abonos registrados en este préstamo.')); return; }
+  const frag = [];
+  let anio = null, lista = null;
+  const porAnio = {}; P.forEach(p => { porAnio[p[1]] = round2((porAnio[p[1]] || 0) + p[2]); });
+  P.forEach(p => {
+    const [w, y, monto, con] = p;
+    if (y !== anio) {
+      anio = y; const hh = el('div', 'ab-anio'); hh.append(el('b', null, String(y)), el('span', null, `${money(porAnio[y])} abonado`));
+      lista = el('div', 'lista'); frag.push(hh, lista);
+    }
+    const row = el('div', 'fila');
+    const l = el('div', 'fila-l');
+    l.append(el('span', 'fila-t', w ? `Semana ${w}` : 'Abono'));
+    const sub = [mesDeSemana(w, y), con].filter(Boolean).join(' · ');
+    if (sub) l.append(el('span', 'fila-s ab-sub', sub.charAt(0).toUpperCase() + sub.slice(1)));
+    row.append(l, el('span', 'fila-r', money(monto)));
+    lista.append(row);
+  });
+  panel.replaceChildren(el('h2', null, 'Tus abonos'), ...frag);
+}
+function volverPrestamos() {
+  const box = $('#prest-body');
+  const d = session.data, pn = primerNombre(d);
+  const lista = d.prestamos || [];
+  box.replaceChildren(...lista.map((x, i) => cajaPrestamo(x, pn, i)));
+  box.classList.remove('entra-d', 'entra-i'); void box.offsetWidth; box.classList.add('entra-i');
+  window.scrollTo(0, 0);
+}
 async function renderPrestamos() {
+  pagCache = null;
   const box = $('#prest-body');
   box.replaceChildren(el('div', 'cargando', 'Actualizando tus préstamos…'));
   let d; try { d = await refresh(); } catch (e) { box.replaceChildren(el('div', 'aviso', 'No pude actualizar tus préstamos. Revisa tu conexión a internet.')); return; }
@@ -1966,7 +2069,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261029012654';
+const APP_VERSION = '20261029013851';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 function ocultarSplash() { barra(100); setTimeout(() => { $('#splash').hidden = true; }, 260); }
 requestAnimationFrame(() => barra(35));
