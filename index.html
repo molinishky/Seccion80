@@ -1769,7 +1769,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261029000922';
+const APP_VERSION = '20261029001402';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 function ocultarSplash() { barra(100); setTimeout(() => { $('#splash').hidden = true; }, 260); }
 requestAnimationFrame(() => barra(35));
@@ -1792,6 +1792,9 @@ async function buscarActualizacion() {
   let ya = ''; try { ya = sessionStorage.getItem('s80_upd') || ''; } catch (e) {}
   if (ya === v) return false;  // ya se intentó con esta versión: no entrar en ciclo
   recargarCon(v); return true;
+}
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  try { navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {}); } catch (e) {}
 }
 let ocultoDesde = 0;
 document.addEventListener('visibilitychange', async () => {
