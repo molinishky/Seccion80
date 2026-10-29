@@ -1527,17 +1527,49 @@ function pedirInstalarIOS() {
   w.append(im, fr, el('h1', null, 'Instala la app en tu iPhone'), el('p', null, 'Para usar la app de la Sección 80 agrégala a tu pantalla de inicio. Así se abre como una app, sin la barra del navegador, y tus datos quedan más protegidos.'), pasos);
   const flecha = el('div', 'flecha-abajo'); flecha.setAttribute('aria-hidden', 'true');
   flecha.innerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#0068B8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v15"/><path d="M6 13l6 6 6-6"/></svg>';
-  w.append(flecha);
+  const seguir = el('button', 'link', 'Continuar desde el navegador'); seguir.type = 'button'; seguir.onclick = () => continuarNavegador(w);
+  w.append(seguir, flecha);
+  document.querySelector('.app').append(w);
+}
+
+/* ================= Android en el navegador: instalar con un toque ================= */
+let promptInstalar = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptInstalar = e; const b = document.getElementById('btn-instalar'); if (b) b.hidden = false; const pm = document.getElementById('pasos-menu'); if (pm) pm.hidden = true; });
+window.addEventListener('appinstalled', () => { const t = document.getElementById('inst-msg'); if (t) t.textContent = '¡Listo! Ya puedes abrir la app desde el icono Sección 80 en tu pantalla de inicio.'; });
+function androidEnNavegador() {
+  const ua = navigator.userAgent || '';
+  const inst = (window.matchMedia && (matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: minimal-ui)').matches));
+  return /Android/.test(ua) && !window.AndroidApp && !inst;
+}
+function pedirInstalarAndroid() {
+  $('#splash').hidden = true;
+  SCREENS.forEach(s => { $('#s-' + s).hidden = true; }); $('#nav').hidden = true;
+  const w = el('main', 'actualizar instalar');
+  const im = el('img'); im.src = 'icono-192.png'; im.alt = 'Icono de la app Sección 80'; im.className = 'ico-app';
+  const fr = el('div', 'franjas g'); fr.setAttribute('aria-hidden', 'true'); fr.append(el('i'), el('i'), el('i'), el('i'));
+  const b = el('button', 'btn-pri'); b.type = 'button'; b.id = 'btn-instalar'; b.hidden = !promptInstalar;
+  b.innerHTML = ICON.dl + '<span>Instalar app</span>';
+  const msg = el('p', null, ''); msg.id = 'inst-msg';
+  b.onclick = async () => {
+    if (!promptInstalar) return;
+    promptInstalar.prompt();
+    try { const r = await promptInstalar.userChoice; if (r && r.outcome === 'accepted') msg.textContent = '¡Listo! En unos segundos aparecerá el icono Sección 80 en tu pantalla de inicio; ábrela desde ahí.'; } catch (e) {}
+    promptInstalar = null; b.hidden = true;
+  };
+  const DOTS = '<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="#0068B8"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+  const pasos = el('ol', 'pasos'); pasos.id = 'pasos-menu'; pasos.hidden = !!promptInstalar;
+  [['Toca el menú ' + DOTS + ' arriba a la derecha de Chrome.'], ['Elige <b>Instalar app</b> o <b>Agregar a la pantalla principal</b>.'], ['Toca <b>Instalar</b> y abre la app desde el icono <b>Sección 80</b>.']].forEach(([h]) => { const li = el('li'); li.innerHTML = h; pasos.append(li); });
+  const apk = el('a', 'btn-sec sm'); apk.href = APK_URL; apk.innerHTML = ICON.dl + '<span>Descargar el APK para Android</span>';
+  const seguir = el('button', 'link', 'Continuar desde el navegador'); seguir.type = 'button'; seguir.onclick = () => continuarNavegador(w);
+  w.append(im, fr, el('h1', null, 'Instala la app en tu teléfono'), el('p', null, 'Agrégala a tu pantalla de inicio para abrirla como una app, sin la barra del navegador.'), b, pasos, msg, apk, seguir);
   document.querySelector('.app').append(w);
 }
 
 /* ================= Arranque ================= */
-(async () => {
-  if (apkViejo()) { pedirActualizar(); return; }
-  if (iosEnNavegador()) { pedirInstalarIOS(); return; }
+async function arrancar() {
   ibmIn.value = ultimo();
   $('#olvidar').hidden = !Object.keys(leerRec()).length;
-  if (!(window.crypto && crypto.subtle)) { loginMsg.textContent = 'Este navegador no permite abrir la información protegida. Usa Chrome o Safari actualizados.'; return; }
+  if (!(window.crypto && crypto.subtle)) { loginMsg.textContent = 'Este navegador no permite abrir la información protegida. Usa Chrome o Safari actualizados.'; $('#splash').hidden = true; return; }
   try { DATA = await cargarDatos(); } catch (e) { DATA = null; }
   if (!DATA) { loginMsg.textContent = 'No pude cargar la información. Revisa tu conexión a internet y vuelve a abrir.'; $('#splash').hidden = true; return; }
   waNumber = (DATA.meta && DATA.meta.whatsapp) || '';
@@ -1545,6 +1577,18 @@ function pedirInstalarIOS() {
   if (rp) { try { await iniciar(u, rp); $('#splash').hidden = true; show('home'); registrarAcceso(); return; } catch (e) { olvidar(u); } }
   $('#splash').hidden = true;
   revisarIBM();
+}
+function continuarNavegador(w) {
+  try { sessionStorage.setItem('s80_nav', '1'); } catch (e) {}
+  w.remove(); $('#s-login').hidden = false; $('#splash').hidden = false;
+  arrancar();
+}
+(async () => {
+  if (apkViejo()) { pedirActualizar(); return; }
+  let saltar = false; try { saltar = sessionStorage.getItem('s80_nav') === '1'; } catch (e) {}
+  if (!saltar && iosEnNavegador()) { pedirInstalarIOS(); return; }
+  if (!saltar && androidEnNavegador()) { pedirInstalarAndroid(); return; }
+  arrancar();
 })();
 
 </script>
