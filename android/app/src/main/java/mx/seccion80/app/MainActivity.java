@@ -33,7 +33,7 @@ import java.io.OutputStream;
 public class MainActivity extends Activity {
     static final String URL = "https://molinishky.github.io/Seccion80/";
     static final String HOST = "molinishky.github.io";
-    static final String VERSION = "1.2";
+    static final String VERSION = "1.3";
     WebView web;
     ValueCallback<Uri[]> elegir;
     static final int FOTO = 7;
@@ -42,6 +42,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle b) {
         super.onCreate(b);
         web = new WebView(this);
+        web.setBackgroundColor(getResources().getColor(R.color.fondo, getTheme()));
         setContentView(web);
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
