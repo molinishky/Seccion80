@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script>/* Halloween: hasta el último minuto del 31 de octubre de 2026 */if(Date.now()<Date.parse('2026-11-01T00:00:00-06:00'))document.documentElement.classList.add('hw')</script>
+<script>/* Halloween: hasta el último minuto del 31 de octubre de 2026 */if(Date.now()<Date.parse('2026-11-01T00:00:00-06:00'))document.documentElement.classList.add('hw');/* Día de Muertos: 1 y 2 de noviembre */else if(Date.now()<Date.parse('2026-11-03T00:00:00-06:00'))document.documentElement.classList.add('dm')</script>
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
@@ -459,6 +459,60 @@ html.hw .deco .hw-deco{display:block;left:50%;right:auto;transform:translateX(-5
 .hw-hojas .hw-hoja{animation-name:hwCaeApp}
 @keyframes hwCaeApp{to{transform:translate(var(--dx),110vh)}}
 @media (prefers-reduced-motion:reduce){.hw-hojas,#splash .hw-hoja,#splash .hw-murc{display:none}}
+/* ================= Día de Muertos (solo con html.dm) ================= */
+html.dm #splash{background:radial-gradient(120% 75% at 50% 32%,#8A3358 0%,#5A1C3E 42%,#26091C 100%);overflow:hidden;transition:opacity .45s ease}
+html.dm #splash.fuera{opacity:0}
+html.dm #splash .sp-in{position:absolute;left:50%;top:33%;transform:translate(-50%,-50%);z-index:3;gap:26px}
+html.dm #splash img.sp-esc{height:min(36vw,150px);filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 20px rgba(255,180,0,.85)) drop-shadow(0 12px 26px rgba(0,0,0,.45))}
+html.dm #splash .sp-barra{width:150px;background:rgba(255,255,255,.16)}
+html.dm #splash .sp-barra i{background:linear-gradient(90deg,#FF8C00,#FFC300);box-shadow:0 0 10px #FFA500}
+.dm-luz{position:absolute;left:50%;top:33%;width:min(80vw,340px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,200,60,.55) 0%,rgba(255,140,0,.25) 36%,rgba(255,110,0,.08) 56%,transparent 70%);animation:dmLuz 1.15s ease-in-out infinite}
+@keyframes dmLuz{0%,70%,100%{transform:translate(-50%,-50%) scale(1);opacity:.85}14%{transform:translate(-50%,-50%) scale(1.1);opacity:1}42%{transform:translate(-50%,-50%) scale(1.05)}}
+/* pareja que baila */
+.dm-pareja{position:absolute;left:50%;bottom:3%;width:min(92vw,400px);aspect-ratio:949/739;transform:translateX(-50%);animation:dmBrinco .6s ease-in-out infinite;filter:drop-shadow(0 14px 22px rgba(0,0,0,.45))}
+.dm-pareja img{position:absolute;inset:0;width:100%;height:100%;transform-origin:53.2% 44.7%}
+html.dm #splash .dm-pareja img{height:100%;animation:none;filter:none}
+html.dm #splash .dm-pareja .ella{animation:dmElla 1.2s ease-in-out infinite}
+html.dm #splash .dm-pareja .el{animation:dmEl 1.2s ease-in-out infinite}
+@keyframes dmBrinco{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-7px)}}
+@keyframes dmElla{0%,100%{transform:rotate(0)}25%{transform:rotate(-5deg)}75%{transform:rotate(3.5deg)}}
+@keyframes dmEl{0%,100%{transform:rotate(0)}25%{transform:rotate(4deg)}75%{transform:rotate(-3deg)}}
+.dm-piso{position:absolute;left:50%;bottom:2%;width:min(80vw,340px);height:28px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.35),transparent)}
+/* papel picado */
+.dm-papel{position:absolute;left:0;right:0;top:0;height:70px;pointer-events:none;overflow:visible}
+.dm-papel .cuerda{position:absolute;left:-2%;right:-2%;top:6px;height:2px;background:rgba(255,255,255,.55);border-radius:2px}
+.dm-papel .tira{position:absolute;top:0;display:flex;justify-content:space-between;left:0;right:0;padding:0 4px}
+.dm-papel svg{display:block;transform-origin:50% 6px;animation:dmBandera 2.6s ease-in-out infinite;filter:drop-shadow(0 3px 4px rgba(0,0,0,.18))}
+@keyframes dmBandera{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+#splash .dm-papel{z-index:2}
+#splash .dm-papel.dos{top:64px;opacity:.85}
+/* Inicio: papel picado detrás del escudo y luz dorada */
+html.dm .home-top{padding-top:20px}
+html.dm .home-top .dm-papel{top:2px;z-index:0;height:60px;opacity:.95}
+html.dm .home-top img{position:relative;z-index:1;filter:drop-shadow(0 0 10px rgba(255,170,0,.6)) drop-shadow(0 6px 14px rgba(0,0,0,.2));animation:hwLat 2.4s ease-in-out infinite}
+html.dm .home-top::before{content:"";position:absolute;left:50%;top:calc(50% + 10px);width:112px;height:112px;transform:translate(-50%,-50%);border-radius:50%;z-index:0;background:radial-gradient(circle,rgba(255,190,40,.42),rgba(255,140,0,.14) 45%,transparent 70%);animation:hwLuna 2.4s ease-in-out infinite;pointer-events:none}
+@media (prefers-color-scheme:dark){html.dm .home-top img{filter:drop-shadow(0 0 14px rgba(255,170,0,.75)) drop-shadow(0 6px 14px rgba(0,0,0,.25))}html.dm .home-top::before{width:150px;height:150px;background:radial-gradient(circle,rgba(255,195,60,.55),rgba(255,140,0,.18) 45%,transparent 70%)}}
+/* tarjeta de temporada */
+.dm-card{position:relative;overflow:hidden;margin-top:12px;border-radius:16px;padding:11px 110px 11px 14px;background:linear-gradient(120deg,rgba(255,140,0,.20),rgba(230,0,126,.16),rgba(123,44,191,.18));border:1px solid rgba(255,150,40,.38);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);box-shadow:0 8px 20px rgba(140,40,60,.12)}
+.dm-card b{display:block;font-size:15.5px;color:#D9480F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dm-card p{font-size:12.5px;color:var(--mu);margin-top:2px;line-height:1.3}
+.dm-card img{position:absolute;right:-4px;bottom:-6px;width:118px}
+@media (prefers-color-scheme:dark){.dm-card b{color:#FFB13D}.dm-card{background:linear-gradient(120deg,rgba(255,140,0,.18),rgba(230,0,126,.18),rgba(123,44,191,.26))}}
+html.dm #s-home .saludo{padding:14px}
+html.dm #s-home .tarjetas{gap:12px;margin-top:12px}
+html.dm #s-home .tarjeta{min-height:146px;gap:10px;padding:14px}
+/* fondo de todas las pantallas: la pareja quieta en lugar de las cañas */
+html.dm .deco{height:330px}
+html.dm .deco svg,html.dm .deco img:not(.dm-deco){display:none}
+html.dm .deco .dm-deco{display:block;left:50%;right:auto;transform:translateX(-50%);width:96%;height:auto;bottom:-4px;opacity:.17;filter:none;-webkit-mask-image:linear-gradient(0deg,#000 60%,transparent);mask-image:linear-gradient(0deg,#000 60%,transparent)}
+@media (prefers-color-scheme:dark){html.dm .deco .dm-deco{opacity:.20!important;filter:none!important}}
+/* flores de cempasúchil que caen por detrás */
+.dm-flores{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
+.dm-flor{position:absolute;top:-40px;animation:dmCae linear infinite}
+.dm-flor svg{width:100%;height:100%;animation:hwGira 4s ease-in-out infinite alternate}
+@keyframes dmCae{to{transform:translate(var(--dx),110vh)}}
+#splash .dm-flor{z-index:1}
+@media (prefers-reduced-motion:reduce){.dm-flores,#splash .dm-flor{display:none}.dm-pareja,.dm-pareja img,.dm-papel svg{animation:none!important}}
 /* ================= Subpáginas ================= */
 .sub-base,.sub-det{position:relative}
 .sub-det{margin:0 -20px;padding:0 20px}
@@ -1534,6 +1588,7 @@ function renderHome() {
   pintarFoto();
   $('#home-nombre').textContent = pn || 'Compañero';
   if (HW_CARD) HW_CARD.querySelector('b').textContent = pn ? `¡Feliz Halloween, ${pn}!` : '¡Feliz Halloween!';
+  if (DM_CARD) DM_CARD.querySelector('p').textContent = `${pn ? pn + ', recordemos' : 'Recordemos'} con cariño a quienes ya no están.`;
   $('#home-ibm').textContent = `IBM ${corto(d.socio)} · Bienvenido a tu portal de la Sección 80`;
   const sem = semanas(d);
   $('#card-desg-sub').textContent = sem.length ? `${pn ? pn + ', tu' : 'Tu'} recibo más reciente: semana ${sem[0]}` : 'Aún no hay recibos disponibles';
@@ -2221,7 +2276,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261029091336';
+const APP_VERSION = '20261029093611';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Halloween (se apaga solo después del 31 de octubre) ================= */
 const HW = document.documentElement.classList.contains('hw');
@@ -2249,9 +2304,49 @@ if (HW) (() => {
   const H = el('div', 'hw-hojas'); deco.after(H); hojas(H, 9, 10);
 })();
 
+/* ================= Día de Muertos (1 y 2 de noviembre) ================= */
+const DM = document.documentElement.classList.contains('dm');
+var DM_CARD = null;
+if (DM) (() => {
+  const COLP = ['#E6007E', '#FF8C00', '#7B2CBF', '#00A86B', '#1E90FF', '#FFC300'];
+  // bandera de papel picado: rectángulo con picos abajo y figuras recortadas (evenodd)
+  const bandera = (col, w, h, i) => {
+    const pk = 6, base = h - 7; let d = `M0 4H${w}V${base}`;
+    for (let k = pk; k >= 0; k--) d += `L${(w * k / pk).toFixed(1)} ${k % 2 ? h : base}`;
+    d += 'Z';
+    const cx = w / 2, cy = base * .52, r = w * .15;
+    let cortes = '';
+    for (let a = 0; a < 8; a++) { const t = a * Math.PI / 4, x = cx + Math.cos(t) * r * 1.55, y = cy + Math.sin(t) * r * 1.55; cortes += `M${(x + r * .42).toFixed(1)} ${y.toFixed(1)}a${(r * .42).toFixed(1)} ${(r * .42).toFixed(1)} 0 1 0 ${(-r * .84).toFixed(1)} 0a${(r * .42).toFixed(1)} ${(r * .42).toFixed(1)} 0 1 0 ${(r * .84).toFixed(1)} 0Z`; }
+    cortes += `M${(cx + r * .7).toFixed(1)} ${cy}a${(r * .7).toFixed(1)} ${(r * .7).toFixed(1)} 0 1 0 ${(-r * 1.4).toFixed(1)} 0a${(r * .7).toFixed(1)} ${(r * .7).toFixed(1)} 0 1 0 ${(r * 1.4).toFixed(1)} 0Z`;
+    for (let k = 0; k < 4; k++) { const x = w * (k + .5) / 4, y = 10; cortes += `M${x} ${y - 3}l3 3-3 3-3-3Z`; }
+    for (let k = 0; k < 3; k++) { const x = w * (k + .5) / 3, y = base - 7; cortes += `M${x} ${y - 3.5}l3.5 3.5-3.5 3.5-3.5-3.5Z`; }
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="animation-delay:${-(i * .37) % 2.6}s"><path fill="${col}" fill-rule="evenodd" d="${d}${cortes}"/></svg>`;
+  };
+  const papel = (n, w, h, cls) => { const p = el('div', 'dm-papel' + (cls ? ' ' + cls : '')); const t = el('div', 'tira'); let hh = ''; for (let i = 0; i < n; i++) hh += bandera(COLP[i % COLP.length], w, h, i); t.innerHTML = hh; p.append(el('div', 'cuerda'), t); return p; };
+  // flor de cempasúchil: anillos de pétalos
+  const flor = () => { let g = ''; const anillos = [[12, 9, 4.2, '#E86A00'], [10, 6.3, 3.8, '#FF8C00'], [8, 3.8, 3.2, '#FFA51F'], [6, 1.6, 2.6, '#FFC233']];
+    anillos.forEach(([n, R, r, c], j) => { for (let k = 0; k < n; k++) { const t = (k + j * .5) * 2 * Math.PI / n; g += `<circle cx="${(12 + Math.cos(t) * R).toFixed(2)}" cy="${(12 + Math.sin(t) * R).toFixed(2)}" r="${r}" fill="${c}"/>`; } });
+    return `<svg viewBox="0 0 24 24">${g}<circle cx="12" cy="12" r="1.8" fill="#C45100"/></svg>`; };
+  const petalo = c => `<svg viewBox="0 0 24 24"><path fill="${c}" d="M12 2c4 3 6 8 4 13-1 3-3 5-4 7-1-2-3-4-4-7-2-5 0-10 4-13z"/></svg>`;
+  const flores = (cont, n, dur) => { for (let i = 0; i < n; i++) { const esFlor = i % 3 !== 2, t = esFlor ? 16 + Math.random() * 14 : 10 + Math.random() * 6, f = el('div', 'dm-flor');
+    f.style.cssText = `left:${Math.random() * 100}%;width:${t}px;height:${t}px;--dx:${Math.random() * 120 - 60}px;animation-duration:${dur + Math.random() * dur * .7}s;animation-delay:${-Math.random() * dur * 1.5}s;opacity:${.6 + Math.random() * .35}`;
+    f.innerHTML = esFlor ? flor() : petalo(['#FF8C00', '#FFA51F', '#E86A00'][i % 3]); cont.append(f); } };
+  // pantalla de carga
+  const sp = $('#splash');
+  const pareja = el('div', 'dm-pareja'); const a = el('img', 'ella'), b = el('img', 'el'); a.src = 'dm_ella.webp'; b.src = 'dm_el.webp'; a.alt = b.alt = ''; pareja.append(b, a);
+  sp.prepend(papel(9, 40, 52), papel(8, 34, 44, 'dos'), el('div', 'dm-luz'), el('div', 'dm-piso'), pareja); flores(sp, 12, 7);
+  // dentro de la app: papel picado detrás del escudo
+  const top = document.querySelector('.home-top'); top.prepend(papel(9, 30, 40));
+  DM_CARD = el('section', 'dm-card');
+  DM_CARD.innerHTML = '<b>¡Feliz Día de Muertos!</b><p>Recordemos con cariño a quienes ya no están.</p><img src="dm_card.webp" alt="">';
+  $('#s-home .saludo').after(DM_CARD);
+  const deco = document.querySelector('.deco'); const di = el('img', 'dm-deco'); di.src = 'dm_fondo.webp'; di.alt = ''; deco.append(di);
+  const F = el('div', 'dm-flores'); deco.after(F); flores(F, 10, 11);
+})();
+
 function ocultarSplash() {
   barra(100);
-  if (!HW) { setTimeout(() => { $('#splash').hidden = true; }, 260); return; }
+  if (!HW && !DM) { setTimeout(() => { $('#splash').hidden = true; }, 260); return; }
   // en temporada la pantalla de carga se ve al menos 1.6 s y se desvanece
   const espera = Math.max(260, 1600 - (Date.now() - HW_T0));
   setTimeout(() => { const sp = $('#splash'); sp.classList.add('fuera'); setTimeout(() => { sp.hidden = true; }, 460); }, espera);
