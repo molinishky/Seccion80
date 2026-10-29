@@ -75,6 +75,10 @@ body.en-chat .deco img{opacity:.12}
 #pin{letter-spacing:.2em}
 #ojo .c{display:none}#ojo.on .c{display:block}#ojo.on .o{display:none}
 #ojo{color:var(--mu)}
+.olvide{align-self:flex-end;margin-top:-10px;background:none;border:0;color:var(--azul);font-weight:600;font-size:14px;padding:8px 2px;cursor:pointer;text-decoration:underline}
+.hoja .campo{margin-bottom:12px;text-align:left}
+.hoja .caja{padding-right:16px}
+.hoja .err{min-height:18px;font-size:13.5px;color:var(--neg);text-align:center;margin-bottom:6px}
 .hola{min-height:20px;font-size:14.5px;color:var(--azul);font-weight:600;margin-top:-6px}
 .chk{display:flex;align-items:center;gap:12px;min-height:44px;margin-top:-4px;font-size:15px;cursor:pointer;user-select:none}
 .chk input{width:22px;height:22px;margin:0;accent-color:var(--azul);cursor:pointer}
@@ -299,6 +303,7 @@ body.en-chat .deco img{opacity:.12}
           </button>
         </div>
       </div>
+      <button type="button" class="olvide" id="olvide-pin">¿Olvidaste tu PIN?</button>
       <label class="chk" id="rec-row"><input type="checkbox" id="recordar" checked> Recordar usuario</label>
       <p id="login-msg" class="msg-err" role="alert"></p>
       <button class="btn-pri" id="entrar" type="submit">Iniciar sesión</button>
@@ -984,7 +989,7 @@ async function revisarIBM() {
   const v = ibmIn.value.trim();
   const soc = normSocio(v);
   const rec = v && recordado(soc);
-  $('#pin-row').hidden = !!rec;
+  $('#pin-row').hidden = !!rec; $('#olvide-pin').hidden = !!rec;
   $('#rec-row').hidden = !!rec || !canStore();
   $('#hola').textContent = '';
   if (!v || !DATA) return;
@@ -1119,6 +1124,32 @@ $('#foto-in').addEventListener('change', async e => {
     localStorage.setItem(FKEY(session.socio), c.toDataURL('image/jpeg', 0.85));
     pintarFoto(); vibrar(); toast('¡Listo! Tu foto se guardó en este teléfono.');
   } catch (err) { toast('No pude usar esa imagen. Prueba con otra.'); }
+});
+
+/* ================= Olvidé mi PIN: aviso por WhatsApp al Secretario ================= */
+$('#olvide-pin').addEventListener('click', async () => {
+  const v = ibmIn.value.trim(); let nm = '';
+  if (v && DATA) { try { const bl = DATA.cuentas[await cuentaId(normSocio(v))]; nm = (bl && bl.nm) || ''; } catch (e) {} }
+  const f = el('div', 'hoja-fondo'); const h = el('form', 'hoja'); h.setAttribute('role', 'dialog'); h.setAttribute('aria-label', 'Olvidé mi PIN'); h.noValidate = true;
+  const campo = (id, lbl, val, ph, num) => { const c = el('div', 'campo'); const l = el('label', null, lbl); l.htmlFor = id; const b = el('div', 'caja'); const i = el('input'); i.id = id; i.value = val; i.placeholder = ph; if (num) i.inputMode = 'numeric'; i.autocomplete = 'off'; b.append(i); c.append(l, b); return c; };
+  const err = el('p', 'err');
+  const bE = el('button', 'btn-wa sm'); bE.type = 'submit'; bE.innerHTML = ICON.wa + '<span>Enviar por WhatsApp</span>';
+  const bC = el('button', 'link', 'Cancelar'); bC.type = 'button'; bC.onclick = () => f.remove();
+  const btns = el('div', 'btns'); btns.append(bE, bC);
+  h.append(el('div', 'agarre'), el('h3', null, '¿Olvidaste tu PIN?'), el('p', null, 'Envía tu nombre e IBM al Secretario de Relaciones por WhatsApp y él te ayudará a recuperarlo.'),
+    campo('op-ibm', 'Número de IBM', v, 'Ej. 235', true), campo('op-nom', 'Nombre completo', nm ? titulo(nm) + ' ' : '', 'Nombre y apellidos', false), err, btns);
+  h.addEventListener('submit', e => {
+    e.preventDefault();
+    const ibm = $('#op-ibm').value.trim(), nom = $('#op-nom').value.trim().replace(/\s+/g, ' ');
+    if (!/^\d{1,5}$/.test(ibm)) { err.textContent = 'Escribe tu número de IBM.'; $('#op-ibm').focus(); return; }
+    if (nom.split(' ').length < 2) { err.textContent = 'Escribe tu nombre y apellidos.'; $('#op-nom').focus(); return; }
+    const link = waLink(`Hola, olvidé mi PIN de la app de la Sección 80.\nNombre: ${nom}\nIBM: ${corto(normSocio(ibm))}\n¿Me puedes ayudar a recuperarlo?`);
+    if (!link) { err.textContent = 'No hay número de WhatsApp configurado.'; return; }
+    f.remove(); window.open(link, '_blank', 'noopener');
+  });
+  f.append(h); f.addEventListener('click', e => { if (e.target === f) f.remove(); });
+  document.body.append(f);
+  setTimeout(() => { const i = v ? $('#op-nom') : $('#op-ibm'); i.focus(); i.setSelectionRange && i.setSelectionRange(i.value.length, i.value.length); }, 250);
 });
 
 /* ================= Fondo de ahorro ================= */
