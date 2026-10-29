@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>/* Halloween: hasta el último minuto del 31 de octubre de 2026 */if(Date.now()<Date.parse('2026-11-01T00:00:00-06:00'))document.documentElement.classList.add('hw')</script>
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
@@ -406,6 +407,58 @@ body.teclado .deco{opacity:0}
 .ap-lin.ap-saldo{margin-top:2px;padding-top:5px;border-top:1px dashed var(--ln2);color:var(--tx);font-weight:600}
 .pre-tono{--ac-rgb:0,104,184}.pre-tono.v{--ac-rgb:30,138,60}
 @media (prefers-color-scheme:dark){.pre-tono{--ac-rgb:59,155,234}.pre-tono.v{--ac-rgb:52,179,90}}
+/* ================= Halloween (solo con html.hw) ================= */
+html.hw #splash{background:radial-gradient(120% 70% at 50% 34%,#3A1A5C 0%,#1B0E33 45%,#0B0716 100%);overflow:hidden;transition:opacity .45s ease}
+html.hw #splash.fuera{opacity:0}
+html.hw #splash .sp-in{position:absolute;left:50%;top:34%;transform:translate(-50%,-50%);z-index:3;gap:26px}
+html.hw #splash img.sp-esc{height:min(36vw,150px);filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 18px rgba(255,170,60,.85)) drop-shadow(0 12px 26px rgba(0,0,0,.55))}
+html.hw #splash .sp-barra{width:150px;background:rgba(255,255,255,.14)}
+html.hw #splash .sp-barra i{background:linear-gradient(90deg,#FF7A00,#FFB23F);box-shadow:0 0 10px #FF8A1E}
+.hw-est{position:absolute;inset:0;background-image:radial-gradient(1.6px 1.6px at 12% 18%,#fff8,transparent),radial-gradient(1.2px 1.2px at 28% 8%,#fff7,transparent),radial-gradient(1.4px 1.4px at 74% 12%,#fff8,transparent),radial-gradient(1px 1px at 88% 26%,#fff6,transparent),radial-gradient(1.3px 1.3px at 60% 4%,#fff7,transparent),radial-gradient(1px 1px at 6% 40%,#fff5,transparent),radial-gradient(1.2px 1.2px at 94% 46%,#fff6,transparent),radial-gradient(1px 1px at 40% 20%,#fff5,transparent);animation:hwTit 3.2s ease-in-out infinite alternate}
+@keyframes hwTit{from{opacity:.45}to{opacity:1}}
+.hw-sluna{position:absolute;left:50%;top:34%;width:min(78vw,340px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,196,92,.55) 0%,rgba(255,140,40,.28) 34%,rgba(255,110,20,.10) 55%,transparent 70%);animation:hwSL 1.15s ease-in-out infinite}
+@keyframes hwSL{0%,70%,100%{transform:translate(-50%,-50%) scale(1);opacity:.85}14%{transform:translate(-50%,-50%) scale(1.10);opacity:1}42%{transform:translate(-50%,-50%) scale(1.05)}}
+html.hw #splash img.hw-escena{position:absolute;left:50%;bottom:-2%;width:min(112vw,500px);height:auto;transform:translateX(-50%);filter:brightness(.82) drop-shadow(0 -6px 30px rgba(255,120,20,.25));animation:hwFl 4.5s ease-in-out infinite}
+@keyframes hwFl{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-8px)}}
+.hw-niebla{position:absolute;left:0;right:0;bottom:0;height:26%;background:linear-gradient(0deg,rgba(11,7,22,.85),rgba(11,7,22,0))}
+.hw-murc{position:absolute;width:34px;opacity:.75;pointer-events:none}
+.hw-murc svg{width:100%;animation:hwAle .22s ease-in-out infinite alternate;transform-origin:50% 60%}
+@keyframes hwAle{to{transform:scaleY(.45)}}
+#splash .hw-murc{animation:hwVuela linear infinite}
+@keyframes hwVuela{0%{transform:translate(-20vw,0)}50%{transform:translate(50vw,-4vh)}100%{transform:translate(120vw,2vh)}}
+.hw-hoja{position:absolute;top:-30px;animation:hwCae linear infinite}
+.hw-hoja svg{width:100%;height:100%;animation:hwGira 3s ease-in-out infinite alternate}
+@keyframes hwCae{to{transform:translate(var(--dx),118vh)}}
+@keyframes hwGira{from{transform:rotate(-40deg)}to{transform:rotate(60deg)}}
+/* Inicio: escudo con resplandor de luna (mismo tamaño de día y de noche) */
+html.hw .home-top img{position:relative;z-index:1;filter:drop-shadow(0 0 10px rgba(255,150,40,.6)) drop-shadow(0 6px 14px rgba(0,0,0,.2));animation:hwLat 2.4s ease-in-out infinite}
+html.hw .home-top::before{content:"";position:absolute;left:50%;top:calc(50% + 14px);width:112px;height:112px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,180,80,.38),rgba(255,130,30,.12) 45%,transparent 70%);animation:hwLuna 2.4s ease-in-out infinite;pointer-events:none}
+@media (prefers-color-scheme:dark){html.hw .home-top img{filter:drop-shadow(0 0 14px rgba(255,150,40,.75)) drop-shadow(0 6px 14px rgba(0,0,0,.25))}html.hw .home-top::before{width:150px;height:150px;background:radial-gradient(circle,rgba(255,190,90,.55),rgba(255,130,30,.18) 45%,transparent 70%)}}
+@keyframes hwLat{0%,100%{transform:scale(1)}12%{transform:scale(1.07)}24%{transform:scale(1)}36%{transform:scale(1.04)}}
+@keyframes hwLuna{0%,100%{opacity:.7;transform:translate(-50%,-50%) scale(1)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}}
+.home-top .hw-murc{width:22px;top:20px;left:50%;z-index:2;opacity:.85;animation:hwOrbita 7s linear infinite}
+.home-top .hw-murc path{fill:#2a1840}
+@keyframes hwOrbita{0%,100%{transform:translate(-90px,10px)}25%{transform:translate(-20px,-14px)}50%{transform:translate(70px,6px)}75%{transform:translate(10px,30px)}}
+/* tarjeta de temporada (compacta) */
+.hw-card{position:relative;overflow:hidden;margin-top:12px;border-radius:16px;padding:11px 104px 11px 14px;background:linear-gradient(120deg,rgba(255,138,30,.20),rgba(120,60,180,.20));border:1px solid rgba(255,150,60,.35);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);box-shadow:0 8px 20px rgba(120,50,0,.12)}
+.hw-card b{display:block;font-size:15.5px;color:#E86A00;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hw-card p{font-size:12.5px;color:var(--mu);margin-top:2px;line-height:1.3}
+.hw-card img{position:absolute;right:-8px;bottom:-14px;width:112px;animation:hwFlo 3.6s ease-in-out infinite;-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 38%);mask-image:linear-gradient(90deg,transparent 0%,#000 38%)}
+@keyframes hwFlo{50%{transform:translateY(-4px) rotate(-1.5deg)}}
+@media (prefers-color-scheme:dark){.hw-card b{color:#FFA53D}.hw-card{background:linear-gradient(120deg,rgba(255,138,30,.18),rgba(110,50,170,.28))}}
+html.hw .home-top{padding-top:20px}
+html.hw #s-home .saludo{padding:14px}
+html.hw #s-home .tarjetas{gap:12px;margin-top:12px}
+html.hw #s-home .tarjeta{min-height:146px;gap:10px;padding:14px}
+/* fondo de todas las pantallas: calabazas en lugar de las cañas */
+html.hw .deco{height:300px}
+html.hw .deco svg,html.hw .deco img:not(.hw-deco){display:none}
+html.hw .deco .hw-deco{display:block;left:50%;right:auto;transform:translateX(-50%);width:100%;height:auto;bottom:-6px;opacity:.16;filter:none;-webkit-mask-image:linear-gradient(0deg,#000 55%,transparent);mask-image:linear-gradient(0deg,#000 55%,transparent)}
+@media (prefers-color-scheme:dark){html.hw .deco .hw-deco{opacity:.20!important;filter:none!important}}
+.hw-hojas{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
+.hw-hojas .hw-hoja{animation-name:hwCaeApp}
+@keyframes hwCaeApp{to{transform:translate(var(--dx),110vh)}}
+@media (prefers-reduced-motion:reduce){.hw-hojas,#splash .hw-hoja,#splash .hw-murc{display:none}}
 /* ================= Subpáginas ================= */
 .sub-base,.sub-det{position:relative}
 .sub-det{margin:0 -20px;padding:0 20px}
@@ -422,7 +475,7 @@ html{overscroll-behavior:none}
 </head>
 <body>
 <div class="app">
-<div id="splash"><div class="sp-in"><img src="escudo.png" alt="Sección 80"><div class="sp-barra" role="progressbar" aria-label="Cargando la app" aria-valuemin="0" aria-valuemax="100"><i id="sp-fill"></i></div></div></div>
+<div id="splash"><div class="sp-in"><img class="sp-esc" src="escudo.png" alt="Sección 80"><div class="sp-barra" role="progressbar" aria-label="Cargando la app" aria-valuemin="0" aria-valuemax="100"><i id="sp-fill"></i></div></div></div>
 
 <div class="deco" aria-hidden="true">
   <svg class="c1" width="120" height="230" viewBox="0 0 100 200"><g fill="#1E8A3C"><rect x="44" y="62" width="12" height="140" rx="3"/><path d="M50 72 C 42 44, 28 24, 10 8 C 30 20, 46 40, 55 68 Z"/><path d="M51 70 C 56 40, 66 20, 86 4 C 72 24, 62 44, 56 72 Z"/><path d="M48 96 C 34 78, 18 72, 2 76 C 20 70, 38 74, 52 92 Z"/><path d="M53 112 C 66 88, 80 78, 98 74 C 82 84, 70 96, 57 118 Z"/></g><path d="M44 104h12M44 144h12M44 180h12" stroke="#FFFFFF" stroke-width="2.5"/></svg>
@@ -1480,6 +1533,7 @@ function renderHome() {
   const d = session.data, pn = primerNombre(d);
   pintarFoto();
   $('#home-nombre').textContent = pn || 'Compañero';
+  if (HW_CARD) HW_CARD.querySelector('b').textContent = pn ? `¡Feliz Halloween, ${pn}!` : '¡Feliz Halloween!';
   $('#home-ibm').textContent = `IBM ${corto(d.socio)} · Bienvenido a tu portal de la Sección 80`;
   const sem = semanas(d);
   $('#card-desg-sub').textContent = sem.length ? `${pn ? pn + ', tu' : 'Tu'} recibo más reciente: semana ${sem[0]}` : 'Aún no hay recibos disponibles';
@@ -2167,9 +2221,41 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261029031639';
+const APP_VERSION = '20261029091336';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
-function ocultarSplash() { barra(100); setTimeout(() => { $('#splash').hidden = true; }, 260); }
+/* ================= Halloween (se apaga solo después del 31 de octubre) ================= */
+const HW = document.documentElement.classList.contains('hw');
+const HW_T0 = Date.now();
+var HW_CARD = null;
+if (HW) (() => {
+  const MURC = '<svg viewBox="0 0 64 28"><path fill="#140a22" d="M32 8c2-3 5-3 6 0l2-3 1 4c7-6 16-7 23-3-6 1-9 5-9 9-4-3-9-2-11 2-2-3-6-4-9-1-1-3-2-3-3-3s-2 0-3 3c-3-3-7-2-9 1-2-4-7-5-11-2 0-4-3-8-9-9 7-4 16-3 23 3l1-4 2 3c1-3 4-3 6 0z"/></svg>';
+  const COL = ['#FFB23F', '#FF8A1E', '#F25C05', '#FFD15C'];
+  const hojas = (cont, n, dur) => { for (let i = 0; i < n; i++) { const h = el('div', 'hw-hoja'), t = 12 + Math.random() * 12;
+    h.style.cssText = `left:${Math.random() * 100}%;width:${t}px;height:${t}px;--dx:${Math.random() * 120 - 60}px;animation-duration:${dur + Math.random() * dur * .7}s;animation-delay:${-Math.random() * dur * 1.5}s;opacity:${.45 + Math.random() * .4}`;
+    h.innerHTML = `<svg viewBox="0 0 24 24"><path fill="${COL[i % 4]}" d="M12 2c3 3 7 4 9 3-1 3 0 6 1 8-3 0-5 2-6 4 1 1 1 3 0 4l-4-3-4 3c-1-1-1-3 0-4-1-2-3-4-6-4 1-2 2-5 1-8 2 1 6 0 9-3z"/></svg>`; cont.append(h); } };
+  // pantalla de carga
+  const sp = $('#splash');
+  const est = el('div', 'hw-est'), luna = el('div', 'hw-sluna'), esc = el('img', 'hw-escena'), nie = el('div', 'hw-niebla');
+  esc.src = 'halloween.webp'; esc.alt = '';
+  const m1 = el('div', 'hw-murc'); m1.innerHTML = MURC; m1.style.cssText = 'top:13%;animation-duration:9s';
+  const m2 = el('div', 'hw-murc'); m2.innerHTML = MURC; m2.style.cssText = 'top:22%;width:24px;animation-duration:12s;animation-delay:-5s';
+  sp.prepend(est, m1, m2, luna, esc, nie); hojas(sp, 10, 7);
+  // dentro de la app
+  const top = document.querySelector('.home-top'); const mh = el('div', 'hw-murc'); mh.innerHTML = MURC; top.append(mh);
+  HW_CARD = el('section', 'hw-card');
+  HW_CARD.innerHTML = '<b>¡Feliz Halloween!</b><p>Que pases una noche segura y llena de dulces.</p><img src="hw_banner.webp" alt="">';
+  $('#s-home .saludo').after(HW_CARD);
+  const deco = document.querySelector('.deco'); const di = el('img', 'hw-deco'); di.src = 'hw_fondo.webp'; di.alt = ''; deco.append(di);
+  const H = el('div', 'hw-hojas'); deco.after(H); hojas(H, 9, 10);
+})();
+
+function ocultarSplash() {
+  barra(100);
+  if (!HW) { setTimeout(() => { $('#splash').hidden = true; }, 260); return; }
+  // en temporada la pantalla de carga se ve al menos 1.6 s y se desvanece
+  const espera = Math.max(260, 1600 - (Date.now() - HW_T0));
+  setTimeout(() => { const sp = $('#splash'); sp.classList.add('fuera'); setTimeout(() => { sp.hidden = true; }, 460); }, espera);
+}
 requestAnimationFrame(() => barra(35));
 async function versionPublicada() {
   try {
