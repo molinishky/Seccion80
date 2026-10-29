@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Sección 80">
@@ -271,6 +273,99 @@ body.en-chat .deco img{opacity:.12}
 @keyframes lat{50%{opacity:.6;transform:scale(.97)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:350px){.tarjeta{min-height:150px;padding:14px}.tarjeta b{font-size:15.5px}.circ{width:48px;height:48px}}
+/* ================= Material de vidrio (mismo de la barra) en recuadros y menús ================= */
+:root{
+  --g-bg:rgba(255,255,255,.58);--g-bg-fuerte:rgba(255,255,255,.78);--g-borde:rgba(255,255,255,.8);
+  --g-blur:blur(22px) saturate(180%);
+  --g-sombra:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 1px rgba(255,255,255,.35),0 0 0 .5px rgba(0,58,110,.10),0 10px 30px rgba(0,58,110,.12);
+  --g-tinte-az:rgba(238,245,252,.62);--g-tinte-ve:rgba(233,245,236,.62);
+}
+.tarjeta,.panel,.recibo,.pre,.cargando,.aviso,.ley,.pasos,.saldo.vacio{background:var(--g-bg);backdrop-filter:var(--g-blur);-webkit-backdrop-filter:var(--g-blur);border:1px solid var(--g-borde);box-shadow:var(--g-sombra)}
+.saludo{background:var(--g-tinte-az);backdrop-filter:var(--g-blur);-webkit-backdrop-filter:var(--g-blur);border:1px solid var(--g-borde);box-shadow:var(--g-sombra)}
+.tarjeta:hover{border-color:var(--g-borde);box-shadow:var(--g-sombra),0 0 0 1.5px var(--azul)}
+.caja{background:var(--g-bg-fuerte);backdrop-filter:var(--g-blur);-webkit-backdrop-filter:var(--g-blur);border:1px solid var(--g-borde);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 0 0 .5px rgba(0,58,110,.16),0 4px 14px rgba(0,58,110,.08)}
+.caja:focus-within{box-shadow:0 0 0 3px rgba(255,214,0,.55),0 4px 14px rgba(0,58,110,.08)}
+.hoja{background:var(--g-bg-fuerte);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border-top:1px solid var(--g-borde);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 -10px 34px rgba(0,58,110,.18)}
+.hoja-fondo{background:rgba(15,25,40,.28)}
+.pre-h{background:linear-gradient(180deg,rgba(var(--ac-rgb),.14),rgba(var(--ac-rgb),.07))}
+.pre{--ac-rgb:0,104,184}.pre.v{--ac-rgb:30,138,60}
+.pre-ok{background:rgba(var(--ac-rgb),.10)}
+.pre-tag{background:rgba(255,255,255,.6)}
+.recibo-h{background:linear-gradient(180deg,rgba(238,245,252,.7),rgba(238,245,252,.35))}
+.rec-tot{background:rgba(250,251,253,.5)}
+.msg-b{background:var(--g-tinte-az);backdrop-filter:blur(14px) saturate(180%);-webkit-backdrop-filter:blur(14px) saturate(180%);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 0 0 .5px rgba(0,58,110,.10),0 4px 14px rgba(0,58,110,.08)}
+.yo .msg-b{background:var(--azul);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 4px 14px rgba(0,104,184,.22)}
+.msg-av{background:var(--g-tinte-az);box-shadow:0 0 0 .5px rgba(0,58,110,.12)}
+.saldo{box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 1px rgba(0,0,0,.08),0 10px 24px rgba(0,104,184,.22)}
+.btn-pri,.btn-wa,.enviar{box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 6px 16px rgba(0,104,184,.22)}
+.btn-sec{background:var(--g-bg);backdrop-filter:var(--g-blur);-webkit-backdrop-filter:var(--g-blur)}
+#splash{background:var(--fondo)}
+html,body,.app{background:var(--fondo)}
+:root{--fondo:#FFFFFF}
+
+/* ================= Burbuja de vidrio en la barra ================= */
+#nav{isolation:isolate;touch-action:none}
+#nav .tab{position:relative;z-index:1;background:none!important;transition:color .25s}
+#nav .tab:hover{background:none}
+#nav .tab .bar{display:none}
+#nav .tab svg{transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+#nav .tab.on svg{transform:scale(1.14)}
+#nav .tab.cerca svg{transform:scale(1.24)}
+#nav .tab.on.v{color:var(--verde)}
+.burbuja{position:absolute;top:6px;bottom:6px;left:0;width:0;z-index:0;border-radius:24px;pointer-events:none;--tinte:0,104,184;
+  background:linear-gradient(180deg,rgba(var(--tinte),.28),rgba(var(--tinte),.14));
+  backdrop-filter:blur(6px) saturate(200%) brightness(1.08);-webkit-backdrop-filter:blur(6px) saturate(200%) brightness(1.08);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.95),inset 0 -1px 1.5px rgba(255,255,255,.45),inset 0 0 0 .5px rgba(var(--tinte),.35),0 6px 18px rgba(var(--tinte),.22),0 1px 3px rgba(0,0,0,.08);
+  transition:transform .55s cubic-bezier(.25,1.45,.45,1),width .4s,background .45s,box-shadow .45s;transform-origin:center}
+.burbuja::after{content:"";position:absolute;inset:2px 10% auto;height:42%;border-radius:20px 20px 40% 40%;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0));opacity:.7}
+.burbuja.v{--tinte:30,138,60}
+.burbuja.arrastre{transition:background .3s,box-shadow .3s}
+.burbuja.sin-anim{transition:none}
+/* Android/Chrome: refracción real tipo lente */
+html.lente .burbuja{z-index:2;background:linear-gradient(180deg,rgba(var(--tinte),.16),rgba(var(--tinte),.06));backdrop-filter:url(#lente) saturate(160%) brightness(1.05);-webkit-backdrop-filter:url(#lente) saturate(160%) brightness(1.05)}
+@media (prefers-reduced-motion:reduce){.burbuja{transition:none}}
+
+/* ================= Modo oscuro (según la configuración del teléfono) ================= */
+@media (prefers-color-scheme: dark){
+  :root{--azul:#3B9BEA;--azul-h:#5AADF0;--azul-os:#0A2A47;--azul-cl:#13283F;--verde:#34B35A;--verde-cl:#11301C;--tx:#E9EEF5;--mu:#9AA6B6;--mu2:#7A8696;--ln:#2A3646;--ln2:#243142;--ln3:#1E2938;--neg:#FF7A7A;
+    --fondo:#0B1220;
+    --g-bg:rgba(24,34,52,.55);--g-bg-fuerte:rgba(24,34,52,.82);--g-borde:rgba(255,255,255,.09);
+    --g-sombra:inset 0 1px 0 rgba(255,255,255,.10),0 0 0 .5px rgba(0,0,0,.5),0 12px 34px rgba(0,0,0,.45);
+    --g-tinte-az:rgba(26,52,82,.55);--g-tinte-ve:rgba(20,52,32,.55);
+    --flota:0 10px 28px rgba(0,0,0,.45)}
+  .deco svg{opacity:.10!important}
+  .deco img{opacity:.10!important;filter:invert(1) hue-rotate(180deg) brightness(1.5)}
+  .caja{box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 0 .5px rgba(0,0,0,.5)}
+  .hoja{box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 -10px 34px rgba(0,0,0,.5)}
+  .hoja-fondo{background:rgba(0,0,0,.5)}
+  .recibo-h{background:linear-gradient(180deg,rgba(26,52,82,.7),rgba(26,52,82,.35));box-shadow:inset 0 -.5px 0 rgba(255,255,255,.06)}
+  .rec-tot{background:rgba(10,16,28,.4)}
+  .pre-tag{background:rgba(11,18,32,.6)}
+  .pre{--ac-rgb:59,155,234}.pre.v{--ac-rgb:52,179,90}
+  .pre-h{background:linear-gradient(180deg,rgba(var(--ac-rgb),.20),rgba(var(--ac-rgb),.08))}
+  .saldo{background:#0F5FA8}
+  .saldo-pill{background:rgba(0,0,0,.28)}
+  .yo .msg-b{background:#1F6FBF}
+  .msg-b{box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 0 .5px rgba(0,0,0,.4)}
+  .chip{background:var(--g-tinte-az);border-color:var(--g-borde);box-shadow:0 0 0 .5px rgba(0,0,0,.4)}
+  .vidrio{background:var(--g-bg);border-color:var(--g-borde);box-shadow:var(--g-sombra)}
+  .hoy{background:rgba(24,34,52,.6);box-shadow:0 0 0 .5px rgba(255,255,255,.08)}
+  .btn-sec{background:rgba(24,34,52,.4)}
+  #nav{background:rgba(22,32,48,.55);border-color:rgba(255,255,255,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 0 .5px rgba(0,0,0,.5),0 14px 40px rgba(0,0,0,.55)}
+  .burbuja{background:linear-gradient(180deg,rgba(var(--tinte),.40),rgba(var(--tinte),.18));box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 0 0 .5px rgba(255,255,255,.12),0 6px 18px rgba(0,0,0,.45)}
+  .burbuja.v{--tinte:52,179,90}.burbuja{--tinte:59,155,234}
+  .burbuja::after{opacity:.25}
+  html.lente .burbuja{background:linear-gradient(180deg,rgba(var(--tinte),.32),rgba(var(--tinte),.12))}
+  .avatar img{box-shadow:0 0 0 2px var(--fondo),0 0 0 3.5px var(--azul)}
+  .top img,.home-top img,.login-escudo{filter:drop-shadow(0 2px 8px rgba(0,0,0,.45))}
+  .tri i:nth-child(2){background:#2A3646}
+  .instalar .ico-app{box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.08)}
+  .tarjeta:hover{box-shadow:var(--g-sombra),0 0 0 1.5px var(--azul)}
+  input::placeholder{color:var(--mu2)}
+  .chk input{accent-color:var(--azul)}
+  #toast{background:#E9EEF5;color:#0B1220}
+}
+
 </style>
 </head>
 <body>
@@ -432,6 +527,7 @@ body.en-chat .deco img{opacity:.12}
   <button class="tab" data-go="prestamos"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3l3.5 1.5h3a1.5 1.5 0 0 1 0 3H9"/><path d="M12.5 18.5l5.2-2.2a1.6 1.6 0 0 1 1.3 2.9L13 22H6l-3-1.5"/><circle cx="15" cy="7" r="4"/></svg><span class="tl">Préstamos</span><span class="bar"></span></button>
   <button class="tab" data-go="chat"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4H6.5A2.5 2.5 0 0 1 4 13.5z"/><path d="M8.5 8.5h7M8.5 11.5h4.5"/></svg><span class="tl">Chat</span><span class="bar"></span></button>
 </nav>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="lente" x="0" y="0" width="70" height="58" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feImage id="lente-mapa" x="0" y="0" width="70" height="58" preserveAspectRatio="none" result="mapa"/><feDisplacementMap in="SourceGraphic" in2="mapa" scale="13" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 <div id="ptr" hidden aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg></div>
 <div id="toast" role="status" hidden></div>
 </div>
@@ -902,6 +998,7 @@ function show(name, o = {}) {
     }
   } catch (e) {}
   actual = name;
+  requestAnimationFrame(() => marcarBurbuja(name));
   window.scrollTo(0, 0);
   if (name === 'fondo') renderFondo();
   if (name === 'prestamos') renderPrestamos();
@@ -986,6 +1083,83 @@ document.addEventListener('click', e => {
   document.addEventListener('touchend', fin);
   document.addEventListener('touchcancel', fin);
 })();
+
+
+/* ================= Barra de vidrio: burbuja que se desliza ================= */
+const BURBUJA = el('span', 'burbuja'); BURBUJA.setAttribute('aria-hidden', 'true');
+const NAV = $('#nav'), NAV_TABS = [...NAV.querySelectorAll('.tab')];
+NAV.prepend(BURBUJA);
+const SECC_VERDE = ['fondo', 'prestamos'];
+NAV_TABS.forEach(t => t.classList.toggle('v', SECC_VERDE.includes(t.dataset.go)));
+function marcarBurbuja(name) {
+  const i = NAV_TABS.findIndex(t => t.dataset.go === name);
+  if (i < 0 || NAV.hidden) return;
+  const t = NAV_TABS[i];
+  if (!BURBUJA.style.width || BURBUJA.style.width === '0px') { BURBUJA.classList.add('sin-anim'); requestAnimationFrame(() => requestAnimationFrame(() => BURBUJA.classList.remove('sin-anim'))); }
+  BURBUJA.style.width = t.offsetWidth + 'px';
+  BURBUJA.style.transform = `translateX(${t.offsetLeft}px)`;
+  BURBUJA.classList.toggle('v', SECC_VERDE.includes(name));
+  ajustarLente(t.offsetWidth, NAV.offsetHeight - 12);
+}
+window.addEventListener('resize', () => marcarBurbuja(actual));
+(() => {
+  let drag = null;
+  NAV.addEventListener('pointerdown', e => { drag = { x0: e.clientX, n: NAV.getBoundingClientRect(), movio: false, last: e.clientX, t: performance.now(), id: e.pointerId }; });
+  NAV.addEventListener('pointermove', e => {
+    if (!drag) return;
+    if (!drag.movio && Math.abs(e.clientX - drag.x0) < 8) return;
+    if (!drag.movio) { try { NAV.setPointerCapture(drag.id); } catch (x) {} }
+    drag.movio = true; BURBUJA.classList.add('arrastre');
+    const n = drag.n, k = NAV.offsetWidth / n.width, w = BURBUJA.offsetWidth;
+    const x = Math.max(6, Math.min(NAV.offsetWidth - w - 6, (e.clientX - n.left) * k - w / 2));
+    const now = performance.now(), v = (e.clientX - drag.last) / Math.max(1, now - drag.t); drag.last = e.clientX; drag.t = now;
+    const st = LENTE_OK ? 0 : Math.min(Math.abs(v) * 0.35, 0.28);
+    BURBUJA.style.transform = `translateX(${x}px) scale(${1 + st}, ${1 - st * 0.6})`;
+    const i = Math.max(0, Math.min(NAV_TABS.length - 1, Math.floor((e.clientX - n.left) / (n.width / NAV_TABS.length))));
+    NAV_TABS.forEach((t, j) => t.classList.toggle('cerca', j === i));
+    BURBUJA.classList.toggle('v', SECC_VERDE.includes(NAV_TABS[i].dataset.go));
+    drag.i = i;
+  });
+  const fin = e => {
+    if (!drag) return;
+    const d = drag; drag = null; BURBUJA.classList.remove('arrastre'); NAV_TABS.forEach(t => t.classList.remove('cerca'));
+    if (d.movio && d.i != null) {
+      NAV._sinClick = true; setTimeout(() => { NAV._sinClick = false; }, 60);
+      const go = NAV_TABS[d.i].dataset.go;
+      if (go !== actual && session) { vibrar(); show(go); } else marcarBurbuja(actual);
+    }
+  };
+  NAV.addEventListener('pointerup', fin); NAV.addEventListener('pointercancel', fin);
+  NAV.addEventListener('click', e => { if (NAV._sinClick) { e.stopPropagation(); e.preventDefault(); } }, true);
+})();
+
+/* ================= Lente (refracción) en Android / Chrome ================= */
+const LENTE_OK = (() => { const ua = navigator.userAgent || ''; return /Chrome\/\d+/.test(ua) && !/iPhone|iPad|iPod|CriOS|Edg\//.test(ua) && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); })();
+if (LENTE_OK) document.documentElement.classList.add('lente');
+let lenteTam = '';
+function ajustarLente(w, h) {
+  if (!LENTE_OK || !w || !h) return;
+  w = Math.round(w); h = Math.round(h);
+  const clave = w + 'x' + h; if (clave === lenteTam) return; lenteTam = clave;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d'), img = x.createImageData(w, h), r = Math.min(24, h / 2), banda = Math.min(13, h / 3);
+  for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) {
+    // distancia al borde del rectángulo redondeado y dirección hacia el centro
+    const cx = Math.min(Math.max(px, r), w - r), cy = Math.min(Math.max(py, r), h - r);
+    let dx = px - cx, dy = py - cy, dist;
+    if (dx || dy) { const l = Math.hypot(dx, dy); dist = r - l; dx /= l; dy /= l; }
+    else { const izq = px, der = w - 1 - px, arr = py, aba = h - 1 - py; dist = Math.min(izq, der, arr, aba);
+      dx = dist === izq ? -1 : dist === der ? 1 : 0; dy = dx ? 0 : (dist === arr ? -1 : 1); }
+    const t = Math.max(0, Math.min(1, dist / banda)), f = (1 - t) * (1 - t);
+    const i = (py * w + px) * 4;
+    img.data[i] = 128 - dx * f * 127; img.data[i + 1] = 128 - dy * f * 127; img.data[i + 2] = 128; img.data[i + 3] = 255;
+  }
+  x.putImageData(img, 0, 0);
+  const f = $('#lente'), m = $('#lente-mapa');
+  f.setAttribute('width', w); f.setAttribute('height', h);
+  m.setAttribute('width', w); m.setAttribute('height', h);
+  m.setAttribute('href', c.toDataURL());
+}
 
 /* ================= Inicio de sesión ================= */
 const ibmIn = $('#ibm'), pinIn = $('#pin'), recIn = $('#recordar'), loginMsg = $('#login-msg');
@@ -1475,7 +1649,7 @@ function registrarAcceso() {
 }
 
 /* ================= Versión del APK ================= */
-const APK_MIN = '1.2';
+const APK_MIN = '1.3';
 const APK_URL = 'https://github.com/molinishky/Seccion80/releases/download/apk-latest/Seccion80.apk';
 function apkVersion() {
   if (!window.AndroidApp) return null;
