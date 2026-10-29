@@ -398,13 +398,19 @@ body.teclado .deco{opacity:0}
 .ab-anio span{font-size:13px;color:var(--mu);font-variant-numeric:tabular-nums}
 .ab-panel h2+.ab-anio{margin-top:6px}
 .ab-sub{color:var(--mu)}
+.pre-pill{display:inline-block;margin-top:10px;padding:7px 13px;border-radius:999px;background:rgba(var(--ac-rgb,0,104,184),.12);color:var(--ac);font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.ap-fila{flex-direction:column;align-items:stretch;gap:8px}
+.ap-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ap-con{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border-radius:10px;background:rgba(var(--ac-rgb,0,104,184),.06)}
+.ap-lin{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--mu);font-variant-numeric:tabular-nums}
+.ap-lin.ap-saldo{margin-top:2px;padding-top:5px;border-top:1px dashed var(--ln2);color:var(--tx);font-weight:600}
 .pre-tono{--ac-rgb:0,104,184}.pre-tono.v{--ac-rgb:30,138,60}
 @media (prefers-color-scheme:dark){.pre-tono{--ac-rgb:59,155,234}.pre-tono.v{--ac-rgb:52,179,90}}
 /* ================= Subpáginas ================= */
 .sub-base,.sub-det{position:relative}
 .sub-det{margin:0 -20px;padding:0 20px}
 .sub-det.arrastra{z-index:3;background:transparent;box-shadow:none;will-change:transform}
-#prest-body{position:relative}
+#prest-body,#fondo-body{position:relative}
 .sub-base.debajo-sub{position:absolute!important;left:20px;right:20px;z-index:1;pointer-events:none;will-change:transform,opacity,filter;animation:none!important}
 /* ================= Gestos fluidos ================= */
 html{overscroll-behavior:none}
@@ -1558,27 +1564,63 @@ async function renderFondo() {
       el('span', 'saldo-meta', 'Cuando aparezcan tus aportaciones en el reporte semanal, las verás aquí.'));
     box.replaceChildren(c); return;
   }
-  const h = d.historial || [], last = h[h.length - 1];
-  const tr = round2((d.movs || []).reduce((a, x) => a + (x.tr || 0), 0)), pa = round2((d.movs || []).reduce((a, x) => a + (x.pa || 0), 0));
-  const c = el('section', 'saldo'); c.setAttribute('aria-label', 'Saldo acumulado');
-  c.append(el('span', 'saldo-lbl', 'Tu saldo'), el('span', 'saldo-amt', money(d.saldo)),
-    el('span', 'saldo-meta', `Al ${fdate(d.actualizado)}${last && last.p ? ' · semana ' + last.p : ''} · IBM ${corto(d.socio)}`));
-  if (tr || pa) c.append(el('span', 'saldo-meta', `Tu aportación ${money(tr)} · Aportación de la empresa ${money(pa)}`));
-  if (h.length >= 2) { const df = round2(h[h.length - 1].s - h[h.length - 2].s); c.append(el('span', 'saldo-pill', `${df >= 0 ? '+' : '−'}${money(Math.abs(df))} vs. semana anterior`)); }
-  const hist = el('section', 'panel');
-  hist.append(el('h2', null, 'Historial semanal'));
-  const list = el('div', 'lista');
-  h.slice().reverse().forEach((p, i, arr) => {
-    const prev = arr[i + 1];
-    const row = el('div', 'fila');
-    const l = el('div', 'fila-l');
-    l.append(el('span', 'fila-t', (p.p ? 'Semana ' + p.p : 'Semana') + ' · ' + fdate(p.f, { day: 'numeric', month: 'short' })));
-    if (prev) { const df = round2(p.s - prev.s); l.append(el('span', 'fila-s ' + (df >= 0 ? 'pos' : 'neg'), `${df >= 0 ? '+' : '−'}${money(Math.abs(df))}`)); }
-    row.append(l, el('span', 'fila-r', money(p.s)));
-    list.append(row);
-  });
-  hist.append(list);
-  box.replaceChildren(c, hist);
+  SUB.fondo = null;
+  const h = d.historial || [], last = h[h.length - 1], movs = d.movs || [];
+  const tr = round2(movs.reduce((a, x) => a + (x.tr || 0), 0)), pa = round2(movs.reduce((a, x) => a + (x.pa || 0), 0));
+  const tarjeta = (conBoton) => {
+    const c = el('section', 'pre'); c.setAttribute('aria-label', 'Saldo acumulado del fondo de ahorro');
+    const hd = el('div', 'pre-h'); hd.append(el('b', null, 'Fondo de ahorro'), el('span', 'pre-tag', 'Acumulado'));
+    const m = el('div', 'pre-m');
+    m.append(el('div', 'pre-lbl', 'Tu saldo'), el('div', 'pre-amt', money(d.saldo)),
+      el('div', 'pre-meta', `Al ${fdate(d.actualizado)}${last && last.p ? ' · semana ' + last.p : ''} · IBM ${corto(d.socio)}`));
+    if (h.length >= 2) { const df = round2(h[h.length - 1].s - h[h.length - 2].s); m.append(el('div', 'pre-pill', `${df >= 0 ? '+' : '−'}${money(Math.abs(df))} vs. semana anterior`)); }
+    const st = (k, v) => { const s = el('div', 'pre-st'); s.append(el('span', null, k), el('b', null, v)); return s; };
+    if (tr || pa) { const stats = el('div', 'pre-stats'); stats.append(st('Tu aportación', money(tr)), st('Aportación de la empresa', money(pa))); m.append(stats); }
+    if (conBoton && movs.length) {
+      const ver = el('div', 'pre-ver'); ver.append(el('span', null, `Ver tus aportaciones (${movs.length})`), el('span', 'pre-ver-f', '›'));
+      m.append(ver);
+      c.classList.add('toca'); c.tabIndex = 0; c.setAttribute('role', 'button');
+      const abrir = () => { vibrar(); abrirAportaciones(); };
+      c.addEventListener('click', abrir);
+      c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
+    }
+    c.append(hd, m);
+    return c;
+  };
+  function abrirAportaciones() {
+    const base = box.querySelector('.sub-base'); if (!base) return;
+    const saldoDe = {}; h.forEach(x => { saldoDe[x.p + '|' + (x.f || '').slice(0, 4)] = x.s; });
+    const panel = el('section', 'panel ab-panel pre-tono');
+    panel.append(el('h2', null, 'Tus aportaciones'));
+    const lst = movs.slice().sort((a, b) => String(b.f).localeCompare(String(a.f)));
+    const porAnio = {}; lst.forEach(x => { const y = String(x.f).slice(0, 4); porAnio[y] = round2((porAnio[y] || 0) + (x.m || 0)); });
+    let anio = null, lista = null;
+    lst.forEach(x => {
+      const y = String(x.f).slice(0, 4);
+      if (y !== anio) { anio = y; const hh = el('div', 'ab-anio'); hh.append(el('b', null, y), el('span', null, `${money(porAnio[y])} aportado`)); lista = el('div', 'lista'); panel.append(hh, lista); }
+      const mt = String(x.c || '').match(/semana\s*(\d+)\s*·?\s*(.*)$/i);
+      const sem = mt ? +mt[1] : null, per = mt ? mt[2] : '';
+      const row = el('div', 'fila ap-fila');
+      const top = el('div', 'ap-top');
+      const l = el('div', 'fila-l');
+      l.append(el('span', 'fila-t', sem ? `Semana ${sem}` : 'Aportación'));
+      const sub = [per ? per.charAt(0).toUpperCase() + per.slice(1) : '', x.f ? fdate(x.f, { day: 'numeric', month: 'short', year: 'numeric' }) : ''].filter(Boolean).join(' · ');
+      if (sub) l.append(el('span', 'fila-s ab-sub', sub));
+      top.append(l, el('span', 'fila-r', money(x.m)));
+      const con = el('div', 'ap-con');
+      const linea = (k, v) => { const r = el('div', 'ap-lin'); r.append(el('span', null, k), el('span', null, money(v))); return r; };
+      if (x.tr) con.append(linea('557 · Aportación trabajador', x.tr));
+      if (x.pa) con.append(linea('604 · Aportación patronal', x.pa));
+      const s = sem != null ? saldoDe[sem + '|' + y] : null;
+      if (s != null) { const r = linea('Saldo acumulado', s); r.classList.add('ap-saldo'); con.append(r); }
+      row.append(top, con);
+      lista.append(row);
+    });
+    const det = el('div'); det.append(tarjeta(false), panel);
+    abrirSub('fondo', base, det);
+  }
+  const base = el('div', 'sub-base'); base.append(tarjeta(true));
+  box.replaceChildren(base);
 }
 
 /* ================= Préstamos ================= */
@@ -2091,7 +2133,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261029023211';
+const APP_VERSION = '20261029024801';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 function ocultarSplash() { barra(100); setTimeout(() => { $('#splash').hidden = true; }, 260); }
 requestAnimationFrame(() => barra(35));
