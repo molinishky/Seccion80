@@ -513,6 +513,54 @@ html.dm .deco .dm-deco{display:block;left:50%;right:auto;transform:translateX(-5
 @keyframes dmCae{to{transform:translate(var(--dx),110vh)}}
 #splash .dm-flor{z-index:1}
 @media (prefers-reduced-motion:reduce){.dm-flores,#splash .dm-flor{display:none}.dm-pareja,.dm-pareja img,.dm-papel svg{animation:none!important}}
+/* ================= Sudoku (3 toques al escudo de Inicio) ================= */
+#home-caja{position:relative}
+#home-caja>.sub-det{margin:0}
+#home-caja>.sub-base.debajo-sub{left:0;right:0}
+.sdk-cab{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.sdk-cab h2{flex:1;font-size:22px;font-weight:800;letter-spacing:-.01em}
+.sdk-salir{border:0;background:none;color:var(--azul);padding:4px;margin-left:-6px;cursor:pointer;display:grid;place-items:center}
+.sdk-tiempo{font-variant-numeric:tabular-nums;font-weight:700;color:var(--mu);font-size:15px;display:flex;align-items:center;gap:6px}
+.sdk-niv{display:flex;gap:6px;margin-bottom:12px}
+.sdk-niv button{flex:1;border:1px solid var(--g-borde);background:var(--g-bg);backdrop-filter:var(--g-blur);-webkit-backdrop-filter:var(--g-blur);color:var(--tx);font:inherit;font-size:14px;font-weight:700;padding:9px 0;border-radius:12px;cursor:pointer}
+.sdk-niv button.on{background:var(--azul);color:#fff;border-color:var(--azul)}
+.sdk-tab{display:grid;grid-template-columns:repeat(9,1fr);width:100%;max-width:420px;margin:0 auto;aspect-ratio:1;border-radius:14px;overflow:hidden;border:2px solid var(--sdk-linea);background:var(--g-bg);backdrop-filter:var(--g-blur);-webkit-backdrop-filter:var(--g-blur);box-shadow:var(--g-sombra);--sdk-linea:rgba(0,58,110,.55);--sdk-fina:rgba(0,58,110,.14);touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.sdk-c{position:relative;display:grid;place-items:center;border-right:1px solid var(--sdk-fina);border-bottom:1px solid var(--sdk-fina);font-size:min(6.2vw,26px);font-weight:600;color:var(--azul);cursor:pointer;font-variant-numeric:tabular-nums;transition:background .12s}
+.sdk-c:nth-child(9n){border-right:0}
+.sdk-c:nth-child(9n+3),.sdk-c:nth-child(9n+6){border-right:2px solid var(--sdk-linea)}
+.sdk-c:nth-child(n+19):nth-child(-n+27),.sdk-c:nth-child(n+46):nth-child(-n+54){border-bottom:2px solid var(--sdk-linea)}
+.sdk-c:nth-child(n+73){border-bottom:0}
+.sdk-c.fija{color:var(--tx);font-weight:800}
+.sdk-c.zona{background:rgba(0,104,184,.07)}
+.sdk-c.igual{background:rgba(0,104,184,.18)}
+.sdk-c.sel{background:rgba(0,104,184,.30)}
+.sdk-c.mal{color:#D92D20}
+.sdk-c.mal.fija{color:#D92D20}
+.sdk-c.pista{color:var(--verde)}
+.sdk-c.pop{animation:sdkPop .28s cubic-bezier(.3,1.6,.5,1)}
+@keyframes sdkPop{50%{transform:scale(1.25)}}
+.sdk-notas{position:absolute;inset:2px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);font-size:min(2.4vw,10px);font-weight:600;color:var(--mu);line-height:1}
+.sdk-notas i{display:grid;place-items:center;font-style:normal}
+.sdk-herr{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:420px;margin:14px auto 10px}
+.sdk-herr button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0;border:0;background:none;color:var(--mu);font:inherit;font-size:12px;font-weight:600;cursor:pointer;border-radius:12px}
+.sdk-herr button svg{width:24px;height:24px}
+.sdk-herr button.on{color:var(--azul);background:rgba(0,104,184,.10)}
+.sdk-herr button:active{transform:scale(.94)}
+.sdk-nums{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;max-width:420px;margin:0 auto}
+.sdk-nums button{aspect-ratio:.82;border:1px solid var(--g-borde);border-radius:12px;background:var(--g-bg);backdrop-filter:var(--g-blur);-webkit-backdrop-filter:var(--g-blur);box-shadow:var(--g-sombra);color:var(--azul);font:inherit;font-size:24px;font-weight:700;cursor:pointer;transition:transform .1s,opacity .2s}
+.sdk-nums button:active{transform:scale(.9)}
+.sdk-nums button.lleno{opacity:.25;pointer-events:none}
+.sdk-fin{position:absolute;inset:0;z-index:5;display:grid;place-items:center;background:rgba(0,20,50,.25);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:14px;animation:sdkFade .3s ease}
+.sdk-fin>div{text-align:center;padding:22px 24px;border-radius:20px;background:var(--g-bg);backdrop-filter:var(--g-blur);-webkit-backdrop-filter:var(--g-blur);border:1px solid var(--g-borde);box-shadow:var(--g-sombra);animation:sdkSube .4s cubic-bezier(.2,1.4,.4,1)}
+.sdk-fin b{display:block;font-size:22px;margin-bottom:6px}
+.sdk-fin p{color:var(--mu);font-size:14.5px;line-height:1.5}
+.sdk-fin button{margin-top:14px;border:0;background:var(--azul);color:#fff;font:inherit;font-weight:700;font-size:15px;padding:12px 22px;border-radius:14px;cursor:pointer}
+@keyframes sdkFade{from{opacity:0}}
+@keyframes sdkSube{from{transform:translateY(20px) scale(.9);opacity:0}}
+.sdk-zona-tab{position:relative;max-width:420px;margin:0 auto}
+@media (prefers-color-scheme:dark){.sdk-tab{--sdk-linea:rgba(140,190,255,.55);--sdk-fina:rgba(140,190,255,.14)}.sdk-c.zona{background:rgba(59,155,234,.10)}.sdk-c.igual{background:rgba(59,155,234,.22)}.sdk-c.sel{background:rgba(59,155,234,.38)}.sdk-c.mal{color:#FF6B5E}}
+.home-top img.toque{animation:sdkToque .25s ease}
+@keyframes sdkToque{50%{transform:scale(.9)}}
 /* ================= Subpáginas ================= */
 .sub-base,.sub-det{position:relative}
 .sub-det{margin:0 -20px;padding:0 20px}
@@ -580,6 +628,7 @@ html{overscroll-behavior:none}
     <button class="ico-btn" id="salir" aria-label="Cerrar sesión"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4"/><path d="M6 12h10"/></svg></button>
   </header>
   <div class="franjas" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <div id="home-caja">
   <div class="pad">
     <section class="saludo">
       <button type="button" class="avatar" id="foto-btn" aria-label="Agregar tu foto">
@@ -612,6 +661,7 @@ html{overscroll-behavior:none}
         <b>Chat</b><span class="sub">Resuelve tus dudas sobre la ley y el Contrato Ley</span>
       </button>
     </div>
+  </div>
   </div>
 </main>
 
@@ -1301,7 +1351,7 @@ document.addEventListener('animationend', e => { if (e.target.classList) e.targe
 window.addEventListener('popstate', () => {
   if (ignorarPop) { ignorarPop = false; return; }
   if (!session) { if (actual !== 'login') show('login', { desdeHist: true }); return; }
-  if (SUB[actual]) { cerrarSub(actual); try { history.pushState({ s: actual }, ''); } catch (e) {} return; }
+  if (SUB[actual]) { cerrarSub(actual); if (actual !== 'home') { try { history.pushState({ s: actual }, ''); } catch (e) {} } return; }
   if (actual !== 'home') show('home', { desdeHist: true, dir: -1 });
 });
 document.addEventListener('click', e => {
@@ -1371,7 +1421,7 @@ document.addEventListener('click', e => {
     const t = e.touches[0]; g.dx = t.clientX - g.x0; g.dy = t.clientY - g.y0; muestra(t);
     if (!g.modo) {
       if (Math.abs(g.dx) < 8 && Math.abs(g.dy) < 8) return;
-      if (g.dx > 0 && actual !== 'home' && !document.body.classList.contains('teclado') && Math.abs(g.dx) > Math.abs(g.dy) * 1.2 && (!g.bloqueado || g.borde)) { g.modo = 'h'; g.x0 = t.clientX; g.dx = 0; empezarH(); }
+      if (g.dx > 0 && (actual !== 'home' || SUB[actual]) && !document.body.classList.contains('teclado') && Math.abs(g.dx) > Math.abs(g.dy) * 1.2 && (!g.bloqueado || g.borde)) { g.modo = 'h'; g.x0 = t.clientX; g.dx = 0; empezarH(); }
       else if (g.dy > 0 && window.scrollY <= 0 && recargar[actual] && !g.bloqueado) { g.modo = 'v'; g.y0 = t.clientY; g.dy = 0; ptr.hidden = false; ptr.style.transition = 'none'; }
       else { g.modo = 'nada'; return; }
     }
@@ -1766,7 +1816,7 @@ function cajaPrestamo(x, pn, i) {
 const SUB = {};
 function abrirSub(pantalla, base, det) {
   cerrarSub(pantalla, true);
-  base.hidden = true; base.after(det); det.hidden = false; det.classList.add('sub-det');
+  base.classList.add('sub-base'); base.hidden = true; base.after(det); det.hidden = false; det.classList.add('sub-det');
   SUB[pantalla] = { base, det };
   det.classList.remove('entra-d', 'entra-i'); void det.offsetWidth; det.classList.add('entra-d');
   window.scrollTo(0, 0);
@@ -2276,8 +2326,141 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261029093611';
+const APP_VERSION = '20261029134637';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
+/* ================= Sudoku: 3 toques al escudo de Inicio ================= */
+(() => {
+  const ALM = 's80_sudoku', REC = 's80_sudoku_rec';
+  const NIVEL = { facil: { pistas: 40, nom: 'Fácil' }, medio: { pistas: 32, nom: 'Medio' }, dificil: { pistas: 26, nom: 'Difícil' } };
+  const leer = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  const guardar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  const mezclar = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const fila = i => Math.floor(i / 9), col = i => i % 9, caja = i => Math.floor(fila(i) / 3) * 3 + Math.floor(col(i) / 3);
+  const VEC = Array.from({ length: 81 }, (_, i) => { const v = new Set(); for (let j = 0; j < 81; j++) if (j !== i && (fila(j) === fila(i) || col(j) === col(i) || caja(j) === caja(i))) v.add(j); return [...v]; });
+  // resuelve contando soluciones (se detiene en "max")
+  function contar(g, max) {
+    let n = 0; const t = g.slice();
+    (function bt() {
+      let mejor = -1, opc = null;
+      for (let i = 0; i < 81; i++) if (!t[i]) {
+        const usado = new Set(VEC[i].map(j => t[j])); const o = []; for (let d = 1; d <= 9; d++) if (!usado.has(d)) o.push(d);
+        if (!o.length) return; if (!opc || o.length < opc.length) { mejor = i; opc = o; if (o.length === 1) break; }
+      }
+      if (mejor < 0) { n++; return; }
+      for (const d of opc) { t[mejor] = d; bt(); if (n >= max) break; } t[mejor] = 0;
+    })();
+    return n;
+  }
+  function completo() {
+    const t = Array(81).fill(0);
+    (function bt(i) { if (i === 81) return true; for (const d of mezclar([1, 2, 3, 4, 5, 6, 7, 8, 9])) { if (!VEC[i].some(j => t[j] === d)) { t[i] = d; if (bt(i + 1)) return true; } } t[i] = 0; return false; })(0);
+    return t;
+  }
+  function nuevoTablero(nivel) {
+    const sol = completo(), p = sol.slice(); let quedan = 81;
+    for (const i of mezclar([...Array(81).keys()])) {
+      if (quedan <= NIVEL[nivel].pistas) break;
+      const v = p[i]; p[i] = 0;
+      if (contar(p, 2) !== 1) p[i] = v; else quedan--;
+    }
+    return { nivel, sol, fija: p.map(v => v > 0), val: p.slice(), notas: Array(81).fill(0), seg: 0, pistas: 0, fin: false };
+  }
+  let J = null, sel = -1, lapiz = false, reloj = null, vista = null;
+  const fmt = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  function construir() {
+    const v = el('div', 'pad sdk');
+    v.innerHTML = `<div class="sdk-cab"><button type="button" class="sdk-salir" aria-label="Salir del sudoku"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><h2>Sudoku</h2><span class="sdk-tiempo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><span class="sdk-t">0:00</span></span></div>
+      <div class="sdk-niv">${Object.entries(NIVEL).map(([k, n]) => `<button type="button" data-niv="${k}">${n.nom}</button>`).join('')}</div>
+      <div class="sdk-zona-tab"><div class="sdk-tab" role="grid" aria-label="Tablero de sudoku"></div></div>
+      <div class="sdk-herr">
+        <button type="button" data-h="borrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5H9l-6 7 6 7h11a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><path d="M17 9l-6 6M11 9l6 6"/></svg>Borrar</button>
+        <button type="button" data-h="lapiz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/></svg>Notas</button>
+        <button type="button" data-h="pista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>Pista</button>
+        <button type="button" data-h="nuevo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Nuevo</button>
+      </div>
+      <div class="sdk-nums">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button type="button" data-n="${n}">${n}</button>`).join('')}</div>`;
+    const tab = v.querySelector('.sdk-tab');
+    for (let i = 0; i < 81; i++) { const c = el('div', 'sdk-c'); c.dataset.i = i; c.setAttribute('role', 'gridcell'); tab.append(c); }
+    v.querySelector('.sdk-salir').addEventListener('click', () => { vibrar(); cerrarSub('home'); });
+    tab.addEventListener('click', e => { const c = e.target.closest('.sdk-c'); if (!c) return; sel = +c.dataset.i; pintar(); });
+    v.querySelector('.sdk-nums').addEventListener('click', e => { const b = e.target.closest('button'); if (b) poner(+b.dataset.n); });
+    v.querySelector('.sdk-niv').addEventListener('click', e => { const b = e.target.closest('button'); if (b && J && b.dataset.niv !== J.nivel) iniciar(b.dataset.niv); });
+    v.querySelector('.sdk-herr').addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b || !J) return; const h = b.dataset.h; vibrar();
+      if (h === 'lapiz') { lapiz = !lapiz; pintar(); }
+      else if (h === 'borrar') { if (sel >= 0 && !J.fija[sel] && !J.fin) { J.val[sel] = 0; J.notas[sel] = 0; pintar(); salvar(); } }
+      else if (h === 'pista') darPista();
+      else if (h === 'nuevo') iniciar(J.nivel);
+    });
+    return v;
+  }
+  function iniciar(nivel) { J = nuevoTablero(nivel); sel = -1; salvar(); pintar(); arrancar(); }
+  function salvar() { guardar(ALM, J); }
+  function arrancar() { clearInterval(reloj); reloj = setInterval(() => { if (!J || J.fin || document.hidden || !SUB.home) return; J.seg++; const t = vista && vista.querySelector('.sdk-t'); if (t) t.textContent = fmt(J.seg); if (J.seg % 5 === 0) salvar(); }, 1000); }
+  function poner(n) {
+    if (!J || J.fin || sel < 0 || J.fija[sel]) return; vibrar();
+    if (lapiz) { if (!J.val[sel]) J.notas[sel] ^= 1 << n; }
+    else {
+      J.val[sel] = J.val[sel] === n ? 0 : n; J.notas[sel] = 0;
+      if (J.val[sel]) VEC[sel].forEach(j => { if (!J.val[j]) J.notas[j] &= ~(1 << n); });
+      const c = vista.querySelectorAll('.sdk-c')[sel]; c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
+    }
+    pintar(); salvar(); revisarFin();
+  }
+  function darPista() {
+    if (J.fin) return;
+    let i = sel >= 0 && !J.fija[sel] && J.val[sel] !== J.sol[sel] ? sel : -1;
+    if (i < 0) { const vac = [...Array(81).keys()].filter(k => !J.fija[k] && J.val[k] !== J.sol[k]); if (!vac.length) return; i = vac[Math.floor(Math.random() * vac.length)]; }
+    J.val[i] = J.sol[i]; J.fija[i] = true; J.notas[i] = 0; J.pistas++; (J.pi = J.pi || []).push(i); sel = i;
+    pintar(); salvar(); revisarFin();
+  }
+  function revisarFin() {
+    if (!J.val.every((v, i) => v === J.sol[i])) return;
+    J.fin = true; salvar();
+    const r = leer(REC) || {}; const ant = r[J.nivel]; const nuevoRec = !J.pistas && (!ant || J.seg < ant);
+    if (nuevoRec) { r[J.nivel] = J.seg; guardar(REC, r); }
+    try { navigator.vibrate && navigator.vibrate([30, 60, 30]); } catch (e) {}
+    const f = el('div', 'sdk-fin'); const caja = el('div');
+    caja.innerHTML = `<b>¡Lo lograste!</b><p>${NIVEL[J.nivel].nom} en <strong>${fmt(J.seg)}</strong>${J.pistas ? ` · ${J.pistas} pista${J.pistas > 1 ? 's' : ''}` : ''}<br>${nuevoRec ? '¡Nuevo récord!' : r[J.nivel] ? 'Tu récord: ' + fmt(r[J.nivel]) : ''}</p><button type="button">Jugar otro</button>`;
+    caja.querySelector('button').addEventListener('click', () => { f.remove(); iniciar(J.nivel); });
+    f.append(caja); vista.querySelector('.sdk-zona-tab').append(f);
+  }
+  function pintar() {
+    if (!vista || !J) return;
+    const cs = vista.querySelectorAll('.sdk-c'), v = J.val, sv = sel >= 0 ? v[sel] : 0;
+    cs.forEach((c, i) => {
+      const mal = v[i] && (v[i] !== J.sol[i] || VEC[i].some(j => v[j] === v[i]));
+      c.className = 'sdk-c' + (J.fija[i] ? ' fija' : '') + ((J.pi || []).includes(i) ? ' pista' : '') + (mal ? ' mal' : '') +
+        (i === sel ? ' sel' : sel >= 0 && sv && v[i] === sv ? ' igual' : sel >= 0 && VEC[sel].includes(i) ? ' zona' : '');
+      if (v[i]) c.textContent = v[i];
+      else if (J.notas[i]) { c.innerHTML = '<div class="sdk-notas">' + [1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<i>${J.notas[i] & (1 << n) ? n : ''}</i>`).join('') + '</div>'; }
+      else c.textContent = '';
+    });
+    vista.querySelectorAll('.sdk-nums button').forEach(b => { const n = +b.dataset.n; b.classList.toggle('lleno', v.filter(x => x === n).length >= 9 && !v.some((x, i) => x === n && VEC[i].some(j => v[j] === n))); });
+    vista.querySelectorAll('.sdk-niv button').forEach(b => b.classList.toggle('on', b.dataset.niv === J.nivel));
+    vista.querySelector('[data-h=lapiz]').classList.toggle('on', lapiz);
+    vista.querySelector('.sdk-t').textContent = fmt(J.seg);
+  }
+  function abrirSudoku() {
+    const base = $('#home-caja > .pad'); if (!base || SUB.home) return;
+    vista = construir();
+    J = leer(ALM); if (!J || J.fin || !J.sol) { J = nuevoTablero((J && NIVEL[J.nivel]) ? J.nivel : 'facil'); salvar(); }
+    sel = -1; lapiz = false;
+    abrirSub('home', base, vista); pintar(); arrancar();
+    try { history.pushState({ s: 'home', sub: 1 }, ''); } catch (e) {}
+  }
+  // teclado físico (computadora)
+  document.addEventListener('keydown', e => { if (!SUB.home || !J) return; if (/^[1-9]$/.test(e.key)) poner(+e.key); else if (e.key === 'Backspace' || e.key === 'Delete') { if (sel >= 0 && !J.fija[sel] && !J.fin) { J.val[sel] = 0; pintar(); salvar(); } } else if (e.key.startsWith('Arrow') && sel >= 0) { const d = { ArrowUp: -9, ArrowDown: 9, ArrowLeft: -1, ArrowRight: 1 }[e.key]; sel = (sel + d + 81) % 81; pintar(); } });
+  // 3 toques al escudo
+  const esc = document.querySelector('.home-top img'); let toques = [];
+  esc.addEventListener('click', () => {
+    const t = Date.now(); toques = toques.filter(x => t - x < 700); toques.push(t);
+    esc.classList.remove('toque'); void esc.offsetWidth; esc.classList.add('toque');
+    if (toques.length >= 3) { toques = []; vibrar(); abrirSudoku(); }
+  });
+  window.__abrirSudoku = abrirSudoku;
+})();
+
 /* ================= Halloween (se apaga solo después del 31 de octubre) ================= */
 const HW = document.documentElement.classList.contains('hw');
 const HW_T0 = Date.now();
