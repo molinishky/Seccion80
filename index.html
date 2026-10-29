@@ -410,7 +410,8 @@ body.teclado .deco{opacity:0}
 .sub-base,.sub-det{position:relative}
 .sub-det{margin:0 -20px;padding:0 20px}
 .sub-det.arrastra{z-index:3;background:transparent;box-shadow:none;will-change:transform}
-#prest-body,#fondo-body{position:relative}
+#prest-body,#fondo-body,#desg-body{position:relative}
+#desg-body>.sub-base.debajo-sub{left:0;right:0}
 .sub-base.debajo-sub{position:absolute!important;left:20px;right:20px;z-index:1;pointer-events:none;will-change:transform,opacity,filter;animation:none!important}
 /* ================= Gestos fluidos ================= */
 html{overscroll-behavior:none}
@@ -538,6 +539,8 @@ html{overscroll-behavior:none}
   </header>
   <div class="franjas" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <div class="pad">
+    <div id="desg-body"></div>
+    <div id="desg-det" data-fijo="1" hidden>
     <label class="sel-lbl" for="semana">Semana</label>
     <div class="sel vidrio">
       <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0068B8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
@@ -549,6 +552,7 @@ html{overscroll-behavior:none}
       <div id="recibo"></div>
     </section>
     <button class="btn-pri" id="descargar" type="button"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10.5l5 5 5-5"/><path d="M5 19.5h14"/></svg><span>Descargar PDF</span></button>
+    </div>
   </div>
 </main>
 
@@ -1568,7 +1572,7 @@ async function renderFondo() {
   const h = d.historial || [], last = h[h.length - 1], movs = d.movs || [];
   const tr = round2(movs.reduce((a, x) => a + (x.tr || 0), 0)), pa = round2(movs.reduce((a, x) => a + (x.pa || 0), 0));
   const tarjeta = (conBoton) => {
-    const c = el('section', 'pre'); c.setAttribute('aria-label', 'Saldo acumulado del fondo de ahorro');
+    const c = el('section', 'pre v'); c.setAttribute('aria-label', 'Saldo acumulado del fondo de ahorro');
     const hd = el('div', 'pre-h'); hd.append(el('b', null, 'Fondo de ahorro'), el('span', 'pre-tag', 'Acumulado'));
     const m = el('div', 'pre-m');
     m.append(el('div', 'pre-lbl', 'Tu saldo'), el('div', 'pre-amt', money(d.saldo)),
@@ -1590,7 +1594,7 @@ async function renderFondo() {
   function abrirAportaciones() {
     const base = box.querySelector('.sub-base'); if (!base) return;
     const saldoDe = {}; h.forEach(x => { saldoDe[x.p + '|' + (x.f || '').slice(0, 4)] = x.s; });
-    const panel = el('section', 'panel ab-panel pre-tono');
+    const panel = el('section', 'panel ab-panel pre-tono v');
     panel.append(el('h2', null, 'Tus aportaciones'));
     const lst = movs.slice().sort((a, b) => String(b.f).localeCompare(String(a.f)));
     const porAnio = {}; lst.forEach(x => { const y = String(x.f).slice(0, 4); porAnio[y] = round2((porAnio[y] || 0) + (x.m || 0)); });
@@ -1653,7 +1657,7 @@ function cajaPrestamo(x, pn, i) {
 const SUB = {};
 function abrirSub(pantalla, base, det) {
   cerrarSub(pantalla, true);
-  base.hidden = true; base.after(det); det.classList.add('sub-det');
+  base.hidden = true; base.after(det); det.hidden = false; det.classList.add('sub-det');
   SUB[pantalla] = { base, det };
   det.classList.remove('entra-d', 'entra-i'); void det.offsetWidth; det.classList.add('entra-d');
   window.scrollTo(0, 0);
@@ -1661,7 +1665,8 @@ function abrirSub(pantalla, base, det) {
 function cerrarSub(pantalla, sinAnim) {
   const s = SUB[pantalla]; if (!s) return false;
   SUB[pantalla] = null;
-  s.det.remove(); s.base.hidden = false;
+  if (s.det.dataset.fijo) s.det.hidden = true; else s.det.remove();
+  s.base.hidden = false;
   if (!sinAnim) { s.base.classList.remove('entra-d', 'entra-i'); void s.base.offsetWidth; s.base.classList.add('entra-i'); }
   window.scrollTo(0, 0);
   return true;
@@ -1748,17 +1753,46 @@ async function cargarDesglose(w) {
   const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(0, 12) }, session.key, buf.slice(12));
   return (dCache[w] = JSON.parse(td.decode(plain)));
 }
+const DESG_DET = $('#desg-det');
 async function renderDesglose() {
+  const d = session.data, sem = semanas(d), box = $('#desg-body');
+  SUB.desglose = null; DESG_DET.hidden = true; $('#s-desglose .pad').append(DESG_DET);
+  if (!sem.length) { box.replaceChildren(el('div', 'aviso', 'Aún no hay desgloses de nómina disponibles para ti.')); return; }
+  const base = el('div', 'sub-base');
+  const c = el('section', 'pre toca'); c.tabIndex = 0; c.setAttribute('role', 'button'); c.setAttribute('aria-label', 'Tu recibo más reciente: ver el desglose');
+  const hd = el('div', 'pre-h'); hd.append(el('b', null, 'Recibo de nómina'), el('span', 'pre-tag', `Semana ${sem[0]}`));
+  const m = el('div', 'pre-m');
+  m.append(el('div', 'pre-lbl', 'Tu sueldo neto'), el('div', 'pre-amt', '…'));
+  const meta = el('div', 'pre-meta', `Semana ${sem[0]}${periodo(sem[0]) ? ' · ' + periodo(sem[0]) : ''} · IBM ${corto(d.socio)}`);
+  m.append(meta);
+  const pill = el('div', 'pre-pill'); pill.hidden = true; m.append(pill);
+  const stats = el('div', 'pre-stats');
+  const st = (k) => { const s = el('div', 'pre-st'); const b = el('b', null, '…'); s.append(el('span', null, k), b); stats.append(s); return b; };
+  const bBruto = st('Salario bruto'), bDed = st('Deducciones');
+  m.append(stats);
+  const ver = el('div', 'pre-ver'); ver.append(el('span', null, 'Ver el desglose de tu semana'), el('span', 'pre-ver-f', '›')); m.append(ver);
+  c.append(hd, m); base.append(c);
+  const abrir = () => { vibrar(); abrirDesgloseSemana(); };
+  c.addEventListener('click', abrir);
+  c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
+  box.replaceChildren(base);
+  try {
+    const D = await cargarDesglose(sem[0]);
+    m.querySelector('.pre-amt').textContent = money(D.tot[2]);
+    bBruto.textContent = money(D.tot[0]); bDed.textContent = '−' + money(D.tot[1]);
+    if (sem[1] != null) {
+      const P = await cargarDesglose(sem[1]); const df = round2(D.tot[2] - P.tot[2]);
+      pill.textContent = `${df >= 0 ? '+' : '−'}${money(Math.abs(df))} vs. semana ${sem[1]}`; pill.hidden = false;
+    }
+  } catch (e) { m.querySelector('.pre-amt').textContent = '—'; bBruto.textContent = '—'; bDed.textContent = '—'; }
+}
+async function abrirDesgloseSemana() {
   const d = session.data, sem = semanas(d), sel = $('#semana');
-  const vista = $('#recibo');
-  if (!sem.length) {
-    sel.replaceChildren(); sel.disabled = true; $('#descargar').hidden = true;
-    vista.replaceChildren(el('div', 'aviso', 'Aún no hay desgloses de nómina disponibles para ti.')); return;
-  }
-  sel.disabled = false; $('#descargar').hidden = false;
+  const base = $('#desg-body .sub-base'); if (!base) return;
   if (!semanaSel || !sem.includes(semanaSel)) semanaSel = sem[0];
   sel.replaceChildren(...sem.map(w => { const o = el('option', null, `Semana ${w}${periodo(w) ? ' · ' + periodo(w) : ''}`); o.value = w; return o; }));
   sel.value = String(semanaSel);
+  abrirSub('desglose', base, DESG_DET);
   await pintarRecibo();
 }
 $('#semana').addEventListener('change', e => { semanaSel = +e.target.value; pintarRecibo(); });
@@ -2133,7 +2167,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261029024801';
+const APP_VERSION = '20261029031639';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 function ocultarSplash() { barra(100); setTimeout(() => { $('#splash').hidden = true; }, 260); }
 requestAnimationFrame(() => barra(35));
