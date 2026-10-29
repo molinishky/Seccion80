@@ -403,12 +403,12 @@ body.teclado .deco{opacity:0}
 /* ================= Subpáginas ================= */
 .sub-base,.sub-det{position:relative}
 .sub-det{margin:0 -20px;padding:0 20px}
-.sub-det.arrastra{z-index:3;background:var(--fondo);will-change:transform;min-height:calc(100dvh - 90px);box-shadow:-14px 0 30px rgba(0,20,50,.16)}
+.sub-det.arrastra{z-index:3;background:transparent;box-shadow:none;will-change:transform}
 #prest-body{position:relative}
 .sub-base.debajo-sub{position:absolute!important;left:20px;right:20px;z-index:1;pointer-events:none;will-change:transform,opacity,filter;animation:none!important}
 /* ================= Gestos fluidos ================= */
 html{overscroll-behavior:none}
-.scr.arrastra{position:relative;z-index:3;background:var(--fondo);box-shadow:-12px 0 28px rgba(0,20,50,.18);will-change:transform}
+.scr.arrastra{position:relative;z-index:3;background:transparent;box-shadow:none;will-change:transform}
 .scr.debajo{position:fixed!important;transform-origin:50% 30%;top:0;left:max(0px,calc(50% - 240px));width:min(100%,480px);height:100dvh;overflow:hidden;z-index:1;pointer-events:none;will-change:transform,opacity,filter;animation:none!important}
 #chat-log{scroll-behavior:smooth;overscroll-behavior:contain}
 .entra-d,.entra-i{will-change:transform}</style>
@@ -2091,7 +2091,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261029015126';
+const APP_VERSION = '20261029023211';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 function ocultarSplash() { barra(100); setTimeout(() => { $('#splash').hidden = true; }, 260); }
 requestAnimationFrame(() => barra(35));
