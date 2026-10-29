@@ -1518,14 +1518,19 @@ function pedirInstalarIOS() {
   const SH = '<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0068B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7.5 7.5L12 3l4.5 4.5"/><path d="M7 11H5.5A1.5 1.5 0 0 0 4 12.5v7A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5H17"/></svg>';
   const PL = '<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0068B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
   const DOTS = '<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="#0068B8"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>';
+  const ipad = /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  const disp = ipad ? 'iPad' : 'iPhone';
+  const MAS = '<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0068B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M8 10.5l4 4 4-4"/></svg>';
   const pasos = el('ol', 'pasos');
   const paso = (html) => { const li = el('li'); li.innerHTML = html; pasos.append(li); };
   if (enOtraApp) paso('Esta página se abrió dentro de otra app. Toca ' + DOTS + ' o el icono de la brújula y elige <b>Abrir en Safari</b>.');
-  paso('Toca el botón <b>Compartir</b> ' + SH + ' en la barra de Safari. Si no lo ves, toca ' + DOTS + ' y luego <b>Compartir</b>.');
-  paso('Desliza y elige <b>Agregar a pantalla de inicio</b> ' + PL + '. Si aparece «Abrir como app web», déjalo activado.');
-  paso('Toca <b>Agregar</b>. Después abre la app desde el icono <b>Sección 80</b> en tu pantalla de inicio.');
-  w.append(im, fr, el('h1', null, 'Instala la app en tu iPhone'), el('p', null, 'Para usar la app de la Sección 80 agrégala a tu pantalla de inicio. Así se abre como una app, sin la barra del navegador, y tus datos quedan más protegidos.'), pasos);
-  const flecha = el('div', 'flecha-abajo'); flecha.setAttribute('aria-hidden', 'true');
+  paso(ipad ? 'Toca el botón <b>Compartir</b> ' + SH + ' arriba a la derecha de Safari.'
+            : 'Toca el botón <b>Compartir</b> ' + SH + ' de Safari. Si no lo ves, toca ' + DOTS + ' abajo y luego <b>Compartir</b>.');
+  paso('Toca <b>Ver más</b> ' + MAS + ' para abrir la lista completa.');
+  paso('Elige <b>Agregar a Inicio</b> ' + PL + '.');
+  paso('Deja activado <b>Abrir como app web</b> y toca <b>Agregar</b> arriba a la derecha. Después abre la app desde el icono <b>Sección 80</b>.');
+  w.append(im, fr, el('h1', null, 'Instala la app en tu ' + disp), el('p', null, 'Para usar la app de la Sección 80 agrégala a tu pantalla de inicio. Así se abre como una app, sin la barra del navegador, y tus datos quedan más protegidos.'), pasos);
+  const flecha = el('div', 'flecha-abajo'); flecha.setAttribute('aria-hidden', 'true'); if (ipad) flecha.hidden = true;
   flecha.innerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#0068B8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v15"/><path d="M6 13l6 6 6-6"/></svg>';
   const seguir = el('button', 'link', 'Continuar desde el navegador'); seguir.type = 'button'; seguir.onclick = () => continuarNavegador(w);
   w.append(seguir, flecha);
