@@ -234,6 +234,7 @@ body.en-chat .deco img{opacity:.12}
 .ley-sub{font-size:13px;color:var(--mu);font-weight:600}
 .ley-ops{display:flex;flex-wrap:wrap;gap:6px}
 .ley-ops .chip{height:auto;min-height:34px;padding:6px 12px;font-size:13px;text-align:left}
+.faq-r{font-size:15px;line-height:1.5}
 .ley-nota{font-size:12.5px;color:var(--mu);font-style:italic}
 
 /* Barra flotante de vidrio */
@@ -928,12 +929,15 @@ async function responderLey(text) {
     });
     box.append(row); bot(box); return true;
   }
+  // Respuesta en primera persona si es una duda frecuente
+  const fq = buscarFAQ(text);
+  if (fq) { responderFAQ(fq); return true; }
   // Búsqueda por tema
   const r = buscarLey(text);
   if (!r.length || r[0].s < 3.2) return false;
   const box = el('div', 'msg-acc');
   const doc = LEY.data.a[r[0].i][0];
-  box.append(el('div', null, `Esto es lo que dice ${doc === 'CL' || doc === 'RISR' ? 'el' : 'la'} ${NOMBRE_DOC(doc)} sobre tu pregunta:`));
+  box.append(el('div', null, `Te comparto lo que dice ${doc === 'CL' || doc === 'RISR' ? 'el' : 'la'} ${NOMBRE_DOC(doc)} sobre lo que me preguntas:`));
   box.append(tarjetaArt(r[0].i, r[0].q));
   const otros = r.slice(1).filter(x => x.s > r[0].s * 0.55).slice(0, 3);
   if (otros.length) {
@@ -950,6 +954,131 @@ async function responderLey(text) {
   box.append(el('div', 'ley-nota', NOTA_LEY), botonSecretario('con una duda sobre la ley o el Contrato Ley'));
   bot(box);
   return true;
+}
+
+
+/* ================= Respuestas en primera persona (tomadas de la carpeta Libros) ================= */
+// c: frases clave (todas sus palabras deben aparecer en la pregunta); r: respuesta; f: fundamento [libro, artículo]
+const FAQ = [
+  { c: ['vacacion', 'dias vacacion', 'cuantos dias vacacion', 'periodo vacacional'], f: [['CL', '40'], ['LFT', '76']],
+    r: 'Te explico cómo van tus vacaciones. Por el Contrato Ley, si eres de planta y ya tienes más de un año de servicio, te tocan hasta 26 días laborables consecutivos con goce de salario. Si trabajaste toda una zafra, son 15 días, y si trabajaste toda una reparación, son 11. Al cumplir 29 años de antigüedad aumentan, y de ahí en adelante suben otra vez cada 5 años. Si no completaste el ciclo, te tocan vacaciones proporcionales al tiempo que trabajaste. La Ley Federal del Trabajo da como mínimo 12 días al primer año, pero el Contrato Ley te da más.' },
+  { c: ['cuando vacacion', 'empiezan vacacion', 'inician vacacion', 'disfrutar vacacion'], f: [['CL', '40']],
+    r: 'Si eres de planta permanente o de planta temporal de zafra, tus vacaciones empiezan al día siguiente de que termina la zafra y se cuentan solo de lunes a viernes; los sábados, domingos y días festivos que caigan en ese periodo también te los pagan. Si eres temporal de reparación, empiezan al día siguiente de que termina la reparación y se cuentan de lunes a sábado.' },
+  { c: ['enfermo vacaciones', 'enferme vacaciones', 'incapacidad vacaciones', 'enfermedad vacaciones'], f: [['CL', '42'], ['CL', '102']],
+    r: 'Si te incapacitas durante tus vacaciones, la empresa no se queda con el subsidio que te da el Seguro Social: te lo entregan aparte, y además te deben pagar tus vacaciones completas. Y para tu derecho a vacaciones no cuentan como faltas injustificadas las ausencias por enfermedad, riesgo de trabajo, comisiones sindicales o permisos.' },
+  { c: ['prima vacacional', 'prima de vacaciones', 'prima vacacion'], f: [['CL', '40'], ['LFT', '80']],
+    r: 'Tu prima vacacional es del 65% sobre el salario que te corresponde durante tus vacaciones. Eso lo dice el Contrato Ley, y es mucho más que el 25% mínimo que marca la Ley Federal del Trabajo.' },
+  { c: ['aguinaldo', 'cuanto aguinaldo', 'dias aguinaldo', 'cuando pagan aguinaldo'], f: [['CL', '94'], ['LFT', '87']],
+    r: 'Si eres de planta permanente y trabajaste los ciclos completos de zafra y reparación, tu aguinaldo es de 32 días de salario. Si eres temporal, son 17 días por la zafra completa o 15 por la reparación completa. Si no completaste el ciclo, te toca la parte proporcional. Te lo deben pagar a más tardar el 20 de diciembre, con el salario que tenga tu plaza en el momento del pago. La ley da como mínimo 15 días; el Contrato Ley te da más.' },
+  { c: ['aguinaldo isr', 'aguinaldo impuesto', 'aguinaldo paga isr', 'aguinaldo exento', 'impuesto aguinaldo'], f: [['LISR', '93']],
+    r: 'Tu aguinaldo no paga ISR hasta el equivalente de 30 días de salario mínimo; solo lo que pase de esa cantidad paga impuesto. Así lo marca la fracción XIV del artículo 93 de la Ley del ISR.' },
+  { c: ['prima vacacional isr', 'prima vacacional impuesto', 'utilidades isr', 'ptu isr', 'prima dominical isr'], f: [['LISR', '93']],
+    r: 'La prima vacacional y el reparto de utilidades no pagan ISR hasta 15 días de salario mínimo cada uno al año. La prima dominical está exenta hasta un salario mínimo por cada domingo trabajado. Lo que pase de esos topes sí paga impuesto. Es la fracción XIV del artículo 93 de la Ley del ISR.' },
+  { c: ['horas extra', 'tiempo extra', 'tiempo extraordinario', 'horas extras', 'doblar turno'], f: [['CL', '9'], ['CL', '10'], ['LFT', '67'], ['LFT', '68']],
+    r: 'Todo lo que trabajes después de tu jornada legal es tiempo extraordinario. Las primeras 9 horas a la semana te las deben pagar al doble (100% más) y las que pasen de esas 9 horas, al triple (200% más). Si no llega tu relevo en un turno continuo y te quedas, te pagan salario doble por todo ese tiempo. Y si te llaman fuera de tu horario, el tiempo cuenta desde que sales de tu casa; si te ocupan media jornada o menos te pagan media jornada, y si es más, una jornada completa, en ambos casos como tiempo extra.' },
+  { c: ['horas extra isr', 'tiempo extra isr', 'horas extra impuesto'], f: [['LISR', '93']],
+    r: 'Si ganas el salario mínimo, tus horas extra no pagan ISR, dentro del límite de la ley laboral. Si ganas más, el 50% de tus horas extra está exento, siempre que no pase del límite legal ni de 5 salarios mínimos por cada semana de servicio. Es la fracción I del artículo 93 de la Ley del ISR.' },
+  { c: ['dias festivos', 'dia festivo', 'descanso obligatorio', 'trabajar festivo', 'festivos'], f: [['CL', '39'], ['LFT', '74'], ['LFT', '75']],
+    r: 'Por el Contrato Ley tus días de descanso pagados son: 1 y 8 de enero, el primer lunes de febrero, el tercer lunes de marzo, el Viernes Santo, 1 de mayo, 15 y 16 de septiembre, 12 de octubre, el tercer lunes de noviembre, el 25 de diciembre y el 1 de octubre cuando hay cambio de Presidente. Son más que los de la ley. Si te toca trabajar uno de esos días, te pagan salario doble, además del salario de ese día festivo.' },
+  { c: ['descanso semanal', 'dia de descanso', 'septimo dia', 'semana de trabajo', 'jornada'], f: [['CL', '12'], ['CL', '11']],
+    r: 'En zafra la semana es de seis días: 48 horas si tu jornada es diurna, 45 si es mixta y 42 si es nocturna. Después de seis días de trabajo tienes un día de descanso con salario íntegro, de preferencia el domingo o el que te toque según el rol. En reparación la semana es de cinco días y 40 horas. Si tu jornada es continua, tienes al menos media hora de descanso, y si no puedes salir del lugar, ese tiempo cuenta como trabajado.' },
+  { c: ['faltas', 'falta septimo', 'falte', 'falto', 'falto domingo', 'faltas domingo', 'falto pagan', 'faltas pagan', 'falto septimo'], f: [['CL', '12']],
+    r: 'Si tienes una falta en la semana, aun así te pagan completo tu día de descanso. Con dos faltas te pagan el 75% del séptimo día, y con tres o más, la parte proporcional a los días que trabajaste. Pero si las dos faltas son por enfermedad, te pagan el séptimo día completo.' },
+  { c: ['prima dominical', 'trabajar domingo', 'domingo laborado'], f: [['LFT', '71']],
+    r: 'Si trabajas en domingo tienes derecho a una prima adicional de por lo menos el 25% sobre tu salario de ese día. Lo marca el artículo 71 de la Ley Federal del Trabajo.' },
+  { c: ['permiso', 'permisos', 'permiso sin goce', 'pedir permiso'], f: [['CL', '41']],
+    r: 'Hay dos clases de permisos. Para asuntos personales, la empresa te debe dar hasta 20 días al año sin goce de salario; lo pides por escrito y con anticipación a través de la sección. Si por causa de fuerza mayor no puedes regresar a tiempo, se puede ampliar hasta 10 días más. También hay permisos por comisiones sindicales, del Estado o de elección popular, por todo el tiempo de la comisión. Al regresar conservas tu puesto y tus derechos.' },
+  { c: ['permiso matrimonio', 'me caso', 'boda', 'casarme', 'permiso casarme', 'permiso boda', 'matrimonio'], f: [['CL', '41']],
+    r: 'Cuando te casas por el civil tienes 13 días de permiso con goce de salario. Si eres eventual, te toca si trabajaste por lo menos los dos meses anteriores a la boda en zafra o reparación.' },
+  { c: ['fallecimiento', 'fallece', 'fallecio', 'murio', 'defuncion', 'permiso luto', 'muerte familiar', 'murio permiso', 'fallecio permiso', 'permiso fallecimiento', 'funeral', 'gastos funeral'], f: [['CL', '41'], ['CL', '60']],
+    r: 'Si fallece tu esposa o la persona con quien vives y está en tu cédula familiar, o tu papá, tu mamá o tus hijos, tienes 11 días de permiso con goce de salario. Y si el que fallece es un trabajador, la empresa entrega a su familia 135 días de salario para los gastos del funeral, además de lo que dé el Seguro Social.' },
+  { c: ['paternidad', 'permiso paternidad', 'nacimiento hijo', 'nacio hijo', 'nacio bebe', 'adopcion'], f: [['CL', '41'], ['LFT', '132'], ['CL', '59']],
+    r: 'Por el nacimiento o la adopción de un hijo tienes 5 días laborables de permiso de paternidad con goce de sueldo. Además, si eres de planta, cuando nace tu hijo la empresa te da una ayuda de $130.16 por cada bebé, y si hace falta cirugía en el parto, los gastos médicos van por cuenta de la empresa.' },
+  { c: ['maternidad', 'embarazada', 'embarazo', 'incapacidad parto'], f: [['LFT', '170']],
+    r: 'Si estás embarazada tienes derecho a seis semanas de descanso antes del parto y seis después, con tu sueldo. Con autorización del médico puedes pasar hasta cuatro de las semanas de antes para después del parto. Durante el embarazo no te deben poner trabajos pesados o peligrosos para tu salud.' },
+  { c: ['incapacidad enfermedad', 'enfermedad', 'me enferme', 'incapacitado', 'incapacidad general'], f: [['CL', '51'], ['CL', '102']],
+    r: 'Si te enfermas o tienes un accidente que no es de trabajo y eres de planta, la empresa te paga el 50% de tu salario hasta por 107 días al año, y te da las medicinas hasta que te recuperes. Si eres eventual, son hasta 78 días al año. No aplica si la enfermedad es por drogas, embriaguez o riña. Esas faltas por enfermedad cuentan como tiempo trabajado para tu aguinaldo, vacaciones y prima de antigüedad.' },
+  { c: ['accidente trabajo', 'riesgo trabajo', 'enfermedad trabajo', 'accidente en el trabajo', 'me accidente'], f: [['CL', '53']],
+    r: 'Si sufres un accidente de trabajo, una enfermedad de trabajo o un accidente en el trayecto, recibes tu salario íntegro todo el tiempo que estés incapacitado, además de la atención médica. Si el riesgo de trabajo causa la muerte, la indemnización es de 850 días de salario más la prima de antigüedad, y si deja una incapacidad total permanente, son 1,153 días de salario.' },
+  { c: ['jubilacion', 'jubilarme', 'jubilar', 'requisitos jubilacion', 'requisitos pension', 'retiro', 'requisitos jubilarme'], f: [['CL', '71 Bis, Reglamento, Art. XII'], ['CL', '89']],
+    r: 'El plan de jubilaciones del Contrato Ley tiene cuatro tipos. Por vejez: el Seguro Social ya te dio tu pensión por vejez, tienes al menos 15 años de antigüedad (15 ciclos si eres temporal) y 65 años de edad. Por cesantía en edad avanzada: pensión del Seguro por cesantía, 15 años o ciclos y al menos 60 años de edad. Por invalidez: pensión del Seguro por invalidez y 15 años o ciclos. Y por incapacidad total permanente derivada de un riesgo de trabajo. Además, al retirarte con pensión del Seguro, el ingenio da un estímulo de $12,500, hasta a 10 jubilados de cada sección al año.' },
+  { c: ['pension', 'monto jubilacion', 'monto pension', 'calculo pension', 'calcula pension', 'calculo jubilacion'], f: [['CL', '71 Bis, Reglamento, Art. XIII']],
+    r: 'Si eres de planta permanente y te jubilas por vejez, recibes una pensión mensual de por vida, con 60 pagos garantizados. Se calcula con un capital de 90 días de tu salario pensionable más 20 días por cada año completo que trabajaste; si eres temporal, son 10 días por cada ciclo. Esta pensión es aparte de la del Seguro Social. Para saber tu cantidad exacta hay que hacer el cálculo con tu antigüedad y tu salario.' },
+  { c: ['fondo de ahorro', 'como funciona fondo', 'cuanto aportan fondo', 'porcentaje fondo'], f: [['CL', '93']],
+    r: 'Al fondo de ahorro tú aportas el 6.85% de tus salarios ordinarios y la empresa pone otro 6.85%, o sea que se te junta el 13.70% cada semana. El dinero se deposita en una institución de crédito y se invierte. Puedes retirarlo una vez al año, en la fecha que acuerden la empresa y la sección, o antes si termina tu relación de trabajo. Y no forma parte de tu salario: es previsión social.' },
+  { c: ['prestamo fondo', 'cuanto me prestan', 'prestamo del fondo'], f: [['CL', '93, Reglamento, Art. 4'], ['CL', '93']],
+    r: 'Del fondo de ahorro te pueden prestar hasta el 80% de lo que tengas aportado a tu favor en ese momento. Si quieres que te prepare el oficio de solicitud, escríbeme "quiero un préstamo".' },
+  { c: ['retirar fondo', 'cuando reparten fondo', 'cuando entregan fondo', 'sacar fondo'], f: [['CL', '93, Reglamento, Art. 4'], ['CL', '93, Reglamento, Art. 5']],
+    r: 'Tu fondo de ahorro, con lo que aportas tú, lo que aporta el ingenio y sus rendimientos, lo puedes retirar una vez al año, en la última semana del mes que se acuerde con la sección. También se te entrega si termina tu relación de trabajo por cualquier causa. Si un trabajador fallece, el saldo se entrega a sus beneficiarios dentro de los 15 días hábiles siguientes.' },
+  { c: ['despido', 'me corren', 'me corrieron', 'me despidieron', 'despido injustificado', 'liquidacion'], f: [['LFT', '48'], ['LFT', '50'], ['LFT', '162'], ['LFT', '518']],
+    r: 'Si te despiden sin causa justificada, puedes pedir que te reinstalen en tu trabajo o que te indemnicen con tres meses de salario. Si el patrón no comprueba la causa, además te deben los salarios que dejaste de ganar, hasta por 12 meses. Si la empresa no quiere reinstalarte en los casos que permite la ley, también te paga 20 días de salario por cada año trabajado. Y aparte te toca tu prima de antigüedad. Importante: tienes solo dos meses desde el despido para reclamar, así que acércate de inmediato a la Secretaría.' },
+  { c: ['renuncia', 'renunciar', 'finiquito', 'me salgo', 'separarme', 'renunciar pagan', 'renuncio pagan', 'renuncia pagan'], f: [['LFT', '162'], ['CL', '94'], ['CL', '40']],
+    r: 'Si renuncias, en tu finiquito te deben pagar lo que tengas pendiente: la parte proporcional del aguinaldo y de las vacaciones con su prima vacacional, y los salarios que te deban. La prima de antigüedad solo te toca al renunciar si tienes al menos 15 años de servicio. También se te entrega tu fondo de ahorro.' },
+  { c: ['prima antiguedad', 'prima de antiguedad'], f: [['LFT', '162'], ['LFT', '486']],
+    r: 'La prima de antigüedad es de 12 días de salario por cada año que trabajaste, con un tope de salario del doble del mínimo. Te la pagan si te despiden, con o sin justificación, si te separas por causa justificada, y si renuncias teniendo al menos 15 años de servicio.' },
+  { c: ['utilidades', 'reparto utilidades', 'ptu', 'reparto de utilidades'], f: [['LFT', '117'], ['LFT', '122'], ['CL', '38']],
+    r: 'Tienes derecho a participar en las utilidades de la empresa. El reparto se paga dentro de los 60 días siguientes a la fecha en que la empresa debe pagar su impuesto anual. Además, el Contrato Ley tiene un bono de productividad que se paga dentro de los 15 días siguientes a que termina la zafra, a quienes trabajaron la zafra y la reparación anteriores, y se reparte con el mismo criterio que las utilidades.' },
+  { c: ['despensa', 'vales', 'vales despensa', 'monedero'], f: [['CL', '31']],
+    r: 'Si eres de planta permanente, de planta temporal en el ciclo que trabajas o eventual, recibes una ayuda de despensa de $650 al mes en monedero electrónico. Si no trabajas el mes completo, te toca la parte proporcional, y se paga la semana siguiente de terminado el mes.' },
+  { c: ['utiles escolares', 'utiles', 'ayuda escolar'], f: [['CL', '31']],
+    r: 'En la primera quincena de agosto la empresa entrega una ayuda para útiles escolares de tus hijos de 9 días de salario si eres de planta permanente, y proporcional si eres temporal o eventual, según lo que trabajaste en la zafra y la reparación anteriores.' },
+  { c: ['puntualidad', 'premio puntualidad', 'premio asistencia', 'presencia fisica'], f: [['CL', '92']],
+    r: 'Si eres de planta y no tienes ninguna falta ni retardo, ganas un premio por puntualidad y asistencia: 1 día de salario el primer mes, 3 días al segundo mes seguido, 5 al tercero y 6 días a partir del cuarto mes, y se mantiene mientras sigas sin faltas ni retardos. Cualquier falta, aunque sea justificada, o un retardo, cuenta en contra.' },
+  { c: ['cuota sindical', 'cuotas sindicales', 'descuento sindicato', 'cuota sindicato'], f: [['CL', '95']],
+    r: 'La cuota ordinaria del sindicato es el 2% de tus salarios ordinarios y extraordinarios, y la empresa te la descuenta en la nómina sin costo para ti. También se pueden descontar cuotas extraordinarias cuando las apruebe el Congreso o el Consejo del Sindicato.' },
+  { c: ['pago salario', 'cuando pagan', 'dia de pago', 'raya', 'pago semanal'], f: [['CL', '29']],
+    r: 'Tu salario se paga cada semana, dentro de tu jornada, de preferencia el último día hábil de la semana, en efectivo legal o por depósito a tu cuenta con tarjeta de débito. Si la empresa se retrasa sin causa justificada, te debe pagar el tiempo de retraso como tiempo extra. Cada semana te deben dar tu recibo de nómina (CFDI) con tus percepciones y deducciones.' },
+  { c: ['becas', 'beca', 'estudios hijos'], f: [['CL', '107']],
+    r: 'Hay becas para trabajadores de planta o sus hijos que sean estudiantes de excelencia, para estudiar un posgrado. Hay que tener promedio de 9 o más en la licenciatura y mantener mínimo 8.5. Además, cada enero se entregan laptops a los hijos de trabajadores becados con los mejores promedios. Pregunta en la Secretaría cómo inscribirte.' },
+  { c: ['vivienda', 'casa', 'infonavit'], f: [['CL', '66'], ['CL', '68']],
+    r: 'El Contrato Ley tiene un programa de vivienda con apoyo de $100,000 para trabajadores, jubilados, pensionados o sus beneficiarios que no hayan recibido casa en el programa original, y la empresa entrega las constancias de aportaciones al INFONAVIT cuando las pidas. Como cada caso es distinto, te recomiendo revisarlo directamente con la Secretaría.' },
+  { c: ['ascenso', 'escalafon', 'vacante', 'subir de puesto'], f: [['CL', '20'], ['CL', '21']],
+    r: 'Tienes derecho a ascender a los puestos inmediatos superiores que queden vacantes o que se creen, sean permanentes, temporales o interinos, según el escalafón. Las vacantes se cubren con el personal que propone el Sindicato a través de la sección.' },
+  { c: ['herramienta', 'equipo de proteccion', 'herramientas'], f: [['CL', '18'], ['CL', '19']],
+    r: 'La empresa está obligada a darte las herramientas, útiles y materiales que necesitas para tu trabajo. Si no puedes trabajar porque te faltan herramientas o equipo de protección, no es tu responsabilidad.' },
+  { c: ['hostigamiento', 'acoso', 'acoso sexual', 'me acosan', 'me hostigan'], f: [['LFT', '3 Bis'], ['LFT', '133'], ['LFT', '51'], ['LFT', '47'], ['LFT', '132']],
+    r: 'El hostigamiento y el acoso sexual están prohibidos en el trabajo, y el patrón tampoco puede permitirlos ni tolerarlos. Si el patrón o sus representantes lo cometen contra ti, puedes separarte con derecho a indemnización. Si lo comete un compañero, es causa de despido para él. Además, la empresa debe tener un protocolo para atender estos casos. Si te está pasando, acércate con confianza al Secretario de Relaciones para que te acompañe.' },
+  { c: ['vigencia contrato', 'contrato ley vigencia', 'hasta cuando contrato'], f: [['CL', 'Transitorios (Art. 111)']],
+    r: 'El Contrato Ley actual tiene vigencia del 16 de octubre de 2024 al 15 de octubre de 2026, y se puede prorrogar o revisar en los términos de la Ley Federal del Trabajo.' },
+  { c: ['declaracion anual', 'devolucion isr', 'saldo a favor sat', 'declaracion sat'], f: [['LISR', '150'], ['LISR', '151'], ['LISR', '97']],
+    r: 'Si solo ganas salario de un patrón, normalmente tu patrón hace el cálculo anual de tu ISR. Si quieres presentar tu declaración anual, por ejemplo para aplicar deducciones personales como gastos médicos, colegiaturas o intereses de hipoteca, puedes hacerlo ante el SAT en abril y, si te sale saldo a favor, pedir la devolución. Te recomiendo que te ayude un contador con tu caso.' },
+  { c: ['deducciones personales', 'que puedo deducir', 'deducir gastos'], f: [['LISR', '151']],
+    r: 'En tu declaración anual puedes deducir, entre otras cosas: honorarios médicos, dentales, de psicología y nutrición; gastos de funeral; donativos; los intereses reales de tu crédito hipotecario y las aportaciones complementarias para tu retiro. Deben estar pagados con tarjeta de crédito, de débito, de servicios o transferencia, y tener factura. Hay topes, así que te conviene revisarlo con un contador.' },
+  { c: ['isr', 'cuanto isr', 'impuesto sobre la renta', 'retencion isr', 'por que me quitan isr'], f: [['LISR', '96'], ['LISR', '93']],
+    r: 'La empresa te retiene el ISR de tu salario cada semana según la tarifa de la ley. Algunas prestaciones están exentas hasta ciertos topes: tu aguinaldo hasta 30 días de salario mínimo, la prima vacacional y las utilidades hasta 15 días cada una, y parte de tus horas extra. Si ganas el salario mínimo, no te deben retener ISR. Si ves algo raro en tu recibo, revísalo conmigo pidiendo tu desglose o acércate a la Secretaría.' }
+];
+const FAQ_GEN = new Set(['pagan', 'pago', 'permiso', 'permisos', 'salario', 'trabajo', 'pedir', 'dia', 'dias'].map(x => raiz(x)));
+function buscarFAQ(texto) {
+  const qs = new Set(tokens(texto).map(raiz));
+  if (/vacacion/.test(sinAcento(texto))) qs.add(raiz('vacacion'));
+  let mejor = null;
+  FAQ.forEach((e, i) => {
+    let s = 0;
+    e.c.forEach(c => {
+      const w = tokens(c).map(raiz);
+      if (w.length && w.every(x => qs.has(x))) s = Math.max(s, w.reduce((a, x) => a + (FAQ_GEN.has(x) ? 4 : 10), 0));
+    });
+    if (s && (!mejor || s > mejor.s)) mejor = { s, e };
+  });
+  return mejor && mejor.e;
+}
+function responderFAQ(e) {
+  const box = el('div', 'msg-acc');
+  box.append(el('div', 'faq-r', e.r));
+  if (e.f && e.f.length) {
+    box.append(el('div', 'ley-sub', 'Fundamento:'));
+    const row = el('div', 'ley-ops');
+    e.f.forEach(([doc, n]) => {
+      const i = LEY.data.a.findIndex(a => a[0] === doc && a[1] === n); if (i < 0) return;
+      const corto = doc === 'CL' ? 'Contrato Ley' : doc === 'LFT' ? 'LFT' : doc === 'LISR' ? 'Ley ISR' : 'Reglamento ISR';
+      const b = el('button', 'chip', `${corto} · Art. ${n.split(',')[0].replace('Transitorios (Art. 111)', 'Transitorios')}`); b.type = 'button';
+      b.onclick = () => { const bx = el('div', 'msg-acc'); bx.append(tarjetaArt(i, null)); bot(bx); };
+      row.append(b);
+    });
+    box.append(row);
+  }
+  box.append(el('div', 'ley-nota', 'Si tu caso tiene algo especial, el Secretario de Relaciones te puede orientar.'), botonSecretario('con una duda'));
+  bot(box);
 }
 
 
@@ -1572,7 +1701,7 @@ async function enviarChat(raw) {
     return;
   }
   if (/^(hola|buen|que tal|hey|gracias)\b/.test(q) && q.split(/\s+/).length <= 4) { bot(/^gracias/.test(q) ? '¡Con gusto! Aquí estoy para lo que necesites.' : '¡Hola! ¿Quieres tu saldo, tu desglose de nómina o tienes alguna duda sobre la ley o el Contrato Ley?'); chips(baseChips()); return; }
-  if (legal || esConsultaLey(q) || tokens(text).length >= 2) { if (await responderLey(text)) return; }
+  if (legal || esConsultaLey(q) || buscarFAQ(text) || tokens(text).length >= 2) { if (await responderLey(text)) return; }
   { const bx = el('div', 'msg-acc'); bx.append(el('div', null, 'No encontré algo claro sobre eso. Puedo darte tu saldo del fondo de ahorro, tu desglose de nómina de cualquier semana o buscar en la Ley Federal del Trabajo, el Contrato Ley y la Ley del ISR. Prueba, por ejemplo: "¿qué dice la ley sobre la prima vacacional?" o "artículo 87".'), el('div', 'ley-nota', 'Si prefieres, envíale tu duda al Secretario de Relaciones:'), botonSecretario('con una duda')); bot(bx); }
   chips(baseChips());
 }
@@ -1769,7 +1898,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261029001402';
+const APP_VERSION = '20261029005010';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 function ocultarSplash() { barra(100); setTimeout(() => { $('#splash').hidden = true; }, 260); }
 requestAnimationFrame(() => barra(35));
