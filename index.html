@@ -1766,12 +1766,9 @@ async function renderFondo() {
     const st = (k, v) => { const s = el('div', 'pre-st'); s.append(el('span', null, k), el('b', null, v)); return s; };
     if (tr || pa) { const stats = el('div', 'pre-stats'); stats.append(st('Tu aportación', money(tr)), st('Aportación de la empresa', money(pa))); m.append(stats); }
     if (conBoton && movs.length) {
-      const ver = el('div', 'pre-ver'); ver.append(el('span', null, `Ver tus aportaciones (${movs.length})`), el('span', 'pre-ver-f', '›'));
+      const ver = el('button', 'pre-ver boton'); ver.type = 'button'; ver.append(el('span', null, `Ver tus aportaciones (${movs.length})`), el('span', 'pre-ver-f', '›'));
+      ver.addEventListener('click', () => { vibrar(); abrirAportaciones(); });
       m.append(ver);
-      c.classList.add('toca'); c.tabIndex = 0; c.setAttribute('role', 'button');
-      const abrir = () => { vibrar(); abrirAportaciones(); };
-      c.addEventListener('click', abrir);
-      c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
     }
     c.append(hd, m);
     return c;
@@ -1827,13 +1824,10 @@ function cajaPrestamo(x, pn, i) {
     const ok = el('div', 'pre-ok'); ok.append(el('span', null, '✓'), el('span', null, favor ? `No tienes saldo pendiente. Abonaste ${money(-x.saldo)} de más, que quedan como saldo a favor.` : 'No tienes saldo pendiente en este préstamo.')); m.append(ok);
   }
   if (x.np) {
-    const ver = el('div', 'pre-ver'); ver.append(el('span', null, `Ver tus abonos (${x.np})`), el('span', 'pre-ver-f', '›'));
+    const ver = el('button', 'pre-ver boton'); ver.type = 'button'; ver.append(el('span', null, `Ver tus abonos (${x.np})`), el('span', 'pre-ver-f', '›'));
+    ver.setAttribute('aria-label', `${x.t}: ver todos tus abonos`);
+    ver.addEventListener('click', () => { vibrar(); abrirAbonos(i); });
     m.append(ver);
-    c.classList.add('toca'); c.tabIndex = 0; c.setAttribute('role', 'button');
-    c.setAttribute('aria-label', `${x.t}: ver todos tus abonos`);
-    const abrir = () => { vibrar(); abrirAbonos(i); };
-    c.addEventListener('click', abrir);
-    c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
   }
   c.append(h, m);
   return c;
@@ -2507,7 +2501,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261030160208';
+const APP_VERSION = '20261030160423';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
