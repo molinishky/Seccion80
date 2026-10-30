@@ -561,6 +561,29 @@ html.dm .deco .dm-deco{display:block;left:50%;right:auto;transform:translateX(-5
 @media (prefers-color-scheme:dark){.sdk-tab{--sdk-linea:rgba(140,190,255,.55);--sdk-fina:rgba(140,190,255,.14)}.sdk-c.zona{background:rgba(59,155,234,.10)}.sdk-c.igual{background:rgba(59,155,234,.22)}.sdk-c.sel{background:rgba(59,155,234,.38)}.sdk-c.mal{color:#FF6B5E}}
 .home-top img.toque{animation:sdkToque .25s ease}
 @keyframes sdkToque{50%{transform:scale(.9)}}
+/* ================= Menú de semanas (cristal) ================= */
+.sem-btn{display:inline-flex;align-items:center;gap:4px;cursor:pointer;font:inherit;font-size:12px;font-weight:700;transition:transform .15s}
+.sem-btn:active{transform:scale(.94)}
+.sem-btn svg{transition:transform .2s}
+.sem-capa{position:fixed;inset:0;z-index:40;background:rgba(0,20,50,0);transition:background .2s}
+.sem-capa.abierto{background:rgba(0,20,50,.08)}
+.sem-menu{position:fixed;z-index:41;display:flex;flex-direction:column;border-radius:18px;overflow:hidden;
+  background:var(--g-bg);backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);
+  border:1px solid var(--g-borde);box-shadow:0 18px 50px rgba(0,30,70,.22),inset 0 1px 0 rgba(255,255,255,.45);
+  transform-origin:90% 0;transform:scale(.92) translateY(-6px);opacity:0;transition:transform .22s cubic-bezier(.2,1.2,.4,1),opacity .18s}
+.sem-menu.abierto{transform:none;opacity:1}
+.sem-menu-t{padding:12px 16px 6px;font-size:12px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}
+.sem-menu-l{overflow-y:auto;overscroll-behavior:contain;padding:0 6px 6px}
+.sem-op{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 8px;width:100%;text-align:left;border:0;background:none;color:var(--tx);font:inherit;padding:10px 12px;border-radius:12px;cursor:pointer}
+.sem-op b{font-size:15px}
+.sem-op span{grid-column:1;font-size:12.5px;color:var(--mu)}
+.sem-op svg{grid-row:1/3;grid-column:2;color:var(--azul)}
+.sem-op.on{background:rgba(0,104,184,.12)}
+.sem-op.on b{color:var(--azul)}
+.sem-op:active{background:rgba(0,104,184,.18)}
+@media (prefers-color-scheme:dark){.sem-menu{box-shadow:0 18px 50px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.12)}.sem-op.on{background:rgba(59,155,234,.2)}.sem-capa.abierto{background:rgba(0,0,0,.2)}}
+.pre-amt.cambia{animation:semCambia .35s ease}
+@keyframes semCambia{from{opacity:.2;transform:translateY(4px)}}
 /* ================= Subpáginas ================= */
 .sub-base,.sub-det{position:relative}
 .sub-det{margin:0 -20px;padding:0 20px}
@@ -1311,6 +1334,7 @@ const vibrar = () => { try { navigator.vibrate && navigator.vibrate(8); } catch 
 function show(name, o = {}) {
   const prev = actual;
   if (prev !== name && SUB[prev]) cerrarSub(prev, true);
+  { const mn = document.querySelector('.sem-menu'); if (mn) mn.cerrar(); }
   SCREENS.forEach(s => { $('#s-' + s).hidden = s !== name; });
   $('#nav').hidden = name === 'login';
   document.body.classList.toggle('en-chat', name === 'chat');
@@ -1919,33 +1943,82 @@ async function renderDesglose() {
   const d = session.data, sem = semanas(d), box = $('#desg-body');
   SUB.desglose = null; DESG_DET.hidden = true; $('#s-desglose .pad').append(DESG_DET);
   if (!sem.length) { box.replaceChildren(el('div', 'aviso', 'Aún no hay desgloses de nómina disponibles para ti.')); return; }
+  if (!semanaSel || !sem.includes(semanaSel)) semanaSel = sem[0];
   const base = el('div', 'sub-base');
-  const c = el('section', 'pre toca'); c.tabIndex = 0; c.setAttribute('role', 'button'); c.setAttribute('aria-label', 'Tu recibo más reciente: ver el desglose');
-  const hd = el('div', 'pre-h'); hd.append(el('b', null, 'Recibo de nómina'), el('span', 'pre-tag', `Semana ${sem[0]}`));
+  const c = el('section', 'pre toca'); c.tabIndex = 0; c.setAttribute('role', 'button'); c.setAttribute('aria-label', 'Ver el desglose de la semana');
+  const hd = el('div', 'pre-h'); hd.append(el('b', null, 'Recibo de nómina'));
+  // etiqueta de semana = botón que abre el menú de cristal
+  const tag = el('button', 'pre-tag sem-btn'); tag.type = 'button'; tag.setAttribute('aria-haspopup', 'listbox');
+  tag.innerHTML = '<span></span><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  hd.append(tag);
   const m = el('div', 'pre-m');
-  m.append(el('div', 'pre-lbl', 'Tu sueldo neto'), el('div', 'pre-amt', '…'));
-  const meta = el('div', 'pre-meta', `Semana ${sem[0]}${periodo(sem[0]) ? ' · ' + periodo(sem[0]) : ''} · IBM ${corto(d.socio)}`);
-  m.append(meta);
+  const amt = el('div', 'pre-amt', '…');
+  m.append(el('div', 'pre-lbl', 'Tu sueldo neto'), amt);
+  const meta = el('div', 'pre-meta'); m.append(meta);
   const pill = el('div', 'pre-pill'); pill.hidden = true; m.append(pill);
   const stats = el('div', 'pre-stats');
   const st = (k) => { const s = el('div', 'pre-st'); const b = el('b', null, '…'); s.append(el('span', null, k), b); stats.append(s); return b; };
   const bBruto = st('Salario bruto'), bDed = st('Deducciones');
   m.append(stats);
-  const ver = el('div', 'pre-ver'); ver.append(el('span', null, 'Ver el desglose de tu semana'), el('span', 'pre-ver-f', '›')); m.append(ver);
+  const ver = el('div', 'pre-ver'); const verT = el('span'); ver.append(verT, el('span', 'pre-ver-f', '›')); m.append(ver);
   c.append(hd, m); base.append(c);
   const abrir = () => { vibrar(); abrirDesgloseSemana(); };
-  c.addEventListener('click', abrir);
-  c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
+  c.addEventListener('click', e => { if (e.target.closest('.sem-btn')) return; abrir(); });
+  c.addEventListener('keydown', e => { if (e.target === c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); abrir(); } });
+  tag.addEventListener('click', e => { e.stopPropagation(); vibrar(); menuSemanas(tag, sem, semanaSel, w => { semanaSel = w; pintar(w); }); });
   box.replaceChildren(base);
-  try {
-    const D = await cargarDesglose(sem[0]);
-    m.querySelector('.pre-amt').textContent = money(D.tot[2]);
-    bBruto.textContent = money(D.tot[0]); bDed.textContent = '−' + money(D.tot[1]);
-    if (sem[1] != null) {
-      const P = await cargarDesglose(sem[1]); const df = round2(D.tot[2] - P.tot[2]);
-      pill.textContent = `${df >= 0 ? '+' : '−'}${money(Math.abs(df))} vs. semana ${sem[1]}`; pill.hidden = false;
-    }
-  } catch (e) { m.querySelector('.pre-amt').textContent = '—'; bBruto.textContent = '—'; bDed.textContent = '—'; }
+  let turno = 0;
+  async function pintar(w) {
+    const mio = ++turno;
+    tag.firstChild.textContent = `Semana ${w}`;
+    meta.textContent = `Semana ${w}${periodo(w) ? ' · ' + periodo(w) : ''} · IBM ${corto(d.socio)}`;
+    verT.textContent = w === sem[0] ? 'Ver el desglose de tu semana' : `Ver el desglose de la semana ${w}`;
+    amt.textContent = '…'; bBruto.textContent = '…'; bDed.textContent = '…'; pill.hidden = true;
+    try {
+      const D = await cargarDesglose(w); if (mio !== turno) return;
+      amt.textContent = money(D.tot[2]); bBruto.textContent = money(D.tot[0]); bDed.textContent = '−' + money(D.tot[1]);
+      amt.classList.remove('cambia'); void amt.offsetWidth; amt.classList.add('cambia');
+      const prev = sem[sem.indexOf(w) + 1];
+      if (prev != null) {
+        const P = await cargarDesglose(prev); if (mio !== turno) return;
+        const df = round2(D.tot[2] - P.tot[2]);
+        pill.textContent = `${df >= 0 ? '+' : '−'}${money(Math.abs(df))} vs. semana ${prev}`; pill.hidden = false;
+      }
+    } catch (e) { if (mio === turno) { amt.textContent = '—'; bBruto.textContent = '—'; bDed.textContent = '—'; } }
+  }
+  DESG_PINTAR = pintar;
+  pintar(semanaSel);
+}
+let DESG_PINTAR = null;
+/* Menú desplegable de semanas con efecto cristal */
+function menuSemanas(ancla, sem, actualW, elegir) {
+  const prev = document.querySelector('.sem-menu'); if (prev) { prev.cerrar(); return; }
+  const capa = el('div', 'sem-capa'), menu = el('div', 'sem-menu'); menu.setAttribute('role', 'listbox'); menu.setAttribute('aria-label', 'Elige la semana');
+  menu.append(el('div', 'sem-menu-t', 'Elige la semana'));
+  const lista = el('div', 'sem-menu-l');
+  sem.forEach(w => {
+    const o = el('button', 'sem-op' + (w === actualW ? ' on' : '')); o.type = 'button'; o.setAttribute('role', 'option'); o.setAttribute('aria-selected', w === actualW);
+    o.innerHTML = `<b>Semana ${w}</b><span>${periodo(w) || ''}</span>` + (w === actualW ? '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : '');
+    o.addEventListener('click', () => { vibrar(); cerrar(); if (w !== actualW) elegir(w); });
+    lista.append(o);
+  });
+  menu.append(lista);
+  document.body.append(capa, menu);
+  const r = ancla.getBoundingClientRect(), anchoM = Math.min(280, window.innerWidth - 32);
+  menu.style.width = anchoM + 'px';
+  menu.style.left = Math.max(16, Math.min(window.innerWidth - anchoM - 16, r.right - anchoM)) + 'px';
+  menu.style.top = (r.bottom + 8) + 'px';
+  menu.style.maxHeight = Math.max(200, window.innerHeight - r.bottom - 110) + 'px';
+  requestAnimationFrame(() => { menu.classList.add('abierto'); capa.classList.add('abierto'); const on = lista.querySelector('.on'); if (on) on.scrollIntoView({ block: 'center' }); });
+  function cerrar() {
+    menu.classList.remove('abierto'); capa.classList.remove('abierto');
+    document.removeEventListener('keydown', tecla); window.removeEventListener('resize', cerrar);
+    setTimeout(() => { menu.remove(); capa.remove(); }, 220);
+  }
+  const tecla = e => { if (e.key === 'Escape') cerrar(); };
+  menu.cerrar = cerrar;
+  capa.addEventListener('click', cerrar); capa.addEventListener('touchmove', cerrar, { passive: true });
+  document.addEventListener('keydown', tecla); window.addEventListener('resize', cerrar);
 }
 async function abrirDesgloseSemana() {
   const d = session.data, sem = semanas(d), sel = $('#semana');
@@ -1956,7 +2029,7 @@ async function abrirDesgloseSemana() {
   abrirSub('desglose', base, DESG_DET);
   await pintarRecibo();
 }
-$('#semana').addEventListener('change', e => { semanaSel = +e.target.value; pintarRecibo(); });
+$('#semana').addEventListener('change', e => { semanaSel = +e.target.value; pintarRecibo(); if (DESG_PINTAR) DESG_PINTAR(semanaSel); });
 async function pintarRecibo() {
   const w = semanaSel, vista = $('#recibo');
   $('#recibo-tit').textContent = `Recibo · Semana ${w}`;
@@ -2433,7 +2506,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261030141023';
+const APP_VERSION = '20261030155204';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
