@@ -1796,6 +1796,7 @@ function cajaPrestamo(x, pn, i) {
   m.append(el('div', 'pre-lbl', favor ? 'Tu saldo a favor' : 'Tu saldo'));
   m.append(el('div', 'pre-amt' + (debe ? '' : ' cero'), money(debe ? x.saldo : favor ? -x.saldo : 0)));
   m.append(el('div', 'pre-meta', x.sem ? `Al cierre de la semana ${x.sem}${x.anio ? ' de ' + x.anio : ''}${periodo(x.sem) ? ' (' + periodo(x.sem) + ')' : ''}` : 'Préstamo por acuerdo de asamblea'));
+  if (x.ant != null) { const st = el('div', 'pre-stats'); const s1 = el('div', 'pre-st'); s1.append(el('span', null, 'Saldo anterior'), el('b', null, money(x.ant))); st.append(s1); m.append(st); }
   if (!debe) {
     const ok = el('div', 'pre-ok'); ok.append(el('span', null, '✓'), el('span', null, favor ? `No tienes saldo pendiente. Abonaste ${money(-x.saldo)} de más, que quedan como saldo a favor.` : 'No tienes saldo pendiente en este préstamo.')); m.append(ok);
   }
@@ -1870,6 +1871,7 @@ async function abrirAbonos(i) {
   const st = (k, v) => { const s = el('div', 'pre-st'); s.append(el('span', null, k), el('b', null, v)); return s; };
   stats.append(st('Total abonado', money(total)), st('Abonos', String(P.length)));
   if (x.ini != null && x.ini > 0) stats.append(st(x.iniLbl || 'Monto del préstamo', money(x.ini)));
+  if (x.ant != null) stats.append(st('Saldo anterior', money(x.ant)));
   if (!P.length) { panel.replaceChildren(el('div', 'aviso', 'Aún no hay abonos registrados en este préstamo.')); return; }
   const frag = [];
   let anio = null, lista = null;
@@ -2431,7 +2433,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261030135926';
+const APP_VERSION = '20261030141023';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
