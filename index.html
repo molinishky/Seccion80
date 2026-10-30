@@ -388,6 +388,8 @@ body.teclado .deco{opacity:0}
 .pre.toca{cursor:pointer;transition:transform .18s cubic-bezier(.2,.8,.2,1)}
 .pre.toca:active{transform:scale(.975)}
 .pre-ver{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:11px 14px;border-radius:12px;background:rgba(var(--ac-rgb,0,104,184),.10);color:var(--ac);font-size:14.5px;font-weight:700}
+.pre-ver.boton{border:0;width:100%;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;text-align:left;transition:transform .15s,background .15s}
+.pre-ver.boton:active{transform:scale(.97);background:rgba(var(--ac-rgb,0,104,184),.2)}
 .pre-ver-f{font-size:22px;line-height:1;font-weight:600}
 .pre-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .pre-st{flex:1 1 30%;min-width:96px;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:rgba(var(--ac-rgb,0,104,184),.08)}
@@ -1367,7 +1369,7 @@ function show(name, o = {}) {
   window.scrollTo(0, 0);
   if (name === 'fondo') renderFondo();
   if (name === 'prestamos') renderPrestamos();
-  if (name === 'desglose') renderDesglose();
+  if (name === 'desglose') { if (prev !== 'desglose') semanaSel = null; renderDesglose(); }
   if (name === 'chat') abrirChat();
   if (name === 'home') renderHome();
 }
@@ -1945,7 +1947,7 @@ async function renderDesglose() {
   if (!sem.length) { box.replaceChildren(el('div', 'aviso', 'Aún no hay desgloses de nómina disponibles para ti.')); return; }
   if (!semanaSel || !sem.includes(semanaSel)) semanaSel = sem[0];
   const base = el('div', 'sub-base');
-  const c = el('section', 'pre toca'); c.tabIndex = 0; c.setAttribute('role', 'button'); c.setAttribute('aria-label', 'Ver el desglose de la semana');
+  const c = el('section', 'pre');
   const hd = el('div', 'pre-h'); hd.append(el('b', null, 'Recibo de nómina'));
   // etiqueta de semana = botón que abre el menú de cristal
   const tag = el('button', 'pre-tag sem-btn'); tag.type = 'button'; tag.setAttribute('aria-haspopup', 'listbox');
@@ -1960,11 +1962,10 @@ async function renderDesglose() {
   const st = (k) => { const s = el('div', 'pre-st'); const b = el('b', null, '…'); s.append(el('span', null, k), b); stats.append(s); return b; };
   const bBruto = st('Salario bruto'), bDed = st('Deducciones');
   m.append(stats);
-  const ver = el('div', 'pre-ver'); const verT = el('span'); ver.append(verT, el('span', 'pre-ver-f', '›')); m.append(ver);
+  const ver = el('button', 'pre-ver boton'); ver.type = 'button'; const verT = el('span'); ver.append(verT, el('span', 'pre-ver-f', '›')); m.append(ver);
   c.append(hd, m); base.append(c);
   const abrir = () => { vibrar(); abrirDesgloseSemana(); };
-  c.addEventListener('click', e => { if (e.target.closest('.sem-btn')) return; abrir(); });
-  c.addEventListener('keydown', e => { if (e.target === c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); abrir(); } });
+  ver.addEventListener('click', abrir);
   tag.addEventListener('click', e => { e.stopPropagation(); vibrar(); menuSemanas(tag, sem, semanaSel, w => { semanaSel = w; pintar(w); }); });
   box.replaceChildren(base);
   let turno = 0;
@@ -2506,7 +2507,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261030155204';
+const APP_VERSION = '20261030160208';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
