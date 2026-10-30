@@ -2104,6 +2104,8 @@ async function enviarChat(raw) {
     bx.append(el('div', null, 'Claro. Toca el botón y se abrirá tu WhatsApp con un mensaje para el Secretario de Relaciones con tu nombre, tu IBM y lo que hemos platicado. Solo revisa y toca enviar.'), botonSecretario('para pedir orientación'));
     bot(bx); return;
   }
+  if (/escalaf|escalof/.test(q) && !/(que dice|articulo|clausula|que es un|como funciona|para que sirve)/.test(q)) return chatEscalafon(q);
+  if (/(pdf|lista|listado)/.test(q) && /(antig|zafra|reparacion|departamento)/.test(q) && !/(prima|indemniz)/.test(q)) return chatEscalafon(q);
   const legal = /(articulo|art\.|clausula|\bley\b|contrato|reglamento|que dice|lft|isr|\bsat\b|impuesto)/.test(q);
   if (!legal && /(debo|adeudo|adeudos|cuanto me falta|me falta pagar|saldo (de|del) (mi )?prestamo|prestamo.*(saldo|debo|falta|pendiente)|mis prestamos)/.test(q)) {
     const t = escribiendo(); let d; try { d = await refresh(); } catch (e) { t.remove(); bot('No pude cargar tu información. Revisa tu conexión a internet.'); return; }
@@ -2133,6 +2135,109 @@ async function enviarChat(raw) {
   { const bx = el('div', 'msg-acc'); bx.append(el('div', null, 'No encontré algo claro sobre eso. Puedo darte tu saldo del fondo de ahorro, tu desglose de nómina de cualquier semana o buscar en la Ley Federal del Trabajo, el Contrato Ley y la Ley del ISR. Prueba, por ejemplo: "¿qué dice la ley sobre la prima vacacional?" o "artículo 87".'), el('div', 'ley-nota', 'Si prefieres, envíale tu duda al Secretario de Relaciones:'), botonSecretario('con una duda')); bot(bx); }
   chips(baseChips());
 }
+/* ================= Escalafones (zafra, reparación, antigüedades) ================= */
+let escCache = null, escDe = null;
+async function cargarEscalafon() {
+  if (escDe !== session.id) { escCache = null; escDe = session.id; }   // nunca reutilizar datos de otra sesión
+  if (escCache !== null) return escCache;
+  const r = await fetch(`d/esc/${session.id}.bin?v=${(DATA.meta && DATA.meta.version) || ''}`, { cache: 'no-store' });
+  if (r.status === 404) return (escCache = false);
+  if (!r.ok) throw new Error('http ' + r.status);
+  const buf = new Uint8Array(await r.arrayBuffer());
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(0, 12) }, session.key, buf.slice(12));
+  return (escCache = JSON.parse(td.decode(plain)));
+}
+const ESC_TIT = { zafra: 'Escalafón de zafra', reparacion: 'Escalafón de reparación', antig: 'Escalafón de antigüedades' };
+const capital = s => String(s || '').toLowerCase().replace(/(^|\s|\()(\S)/g, (m, a, b) => a + b.toUpperCase()).replace(/\b(De|Del|La|Las|Los|Y|En|Para)\b/g, w => w.toLowerCase());
+function lugarDep(E, k) {
+  return E[k].map(d => { const out = []; d.puestos.forEach(p => { const t = p.trab.find(x => x.ibm === E.ibm); if (t) out.push(`departamento ${d.num}, ${capital(d.nombre)}: puesto «${capital(p.nombre.replace(/^\s*\d+\.-\s*/, ''))}», eres el número ${t.n} de ${p.trab.length}`); }); return out.join('; '); }).join('; ');
+}
+async function chatEscalafon(q) {
+  const t = escribiendo(); let E;
+  try { E = await cargarEscalafon(); } catch (e) { t.remove(); bot('No pude abrir los escalafones. Revisa tu conexión a internet.'); return; }
+  await new Promise(r => setTimeout(r, 250)); t.remove();
+  if (!E) { const bx = el('div', 'msg-acc'); bx.append(el('div', null, 'No encontré tu IBM en los escalafones de zafra, reparación ni antigüedades. Si crees que es un error, coméntaselo al Secretario de Relaciones.'), botonSecretario('sobre mi lugar en el escalafón')); bot(bx); return; }
+  let pide = ['zafra', 'reparacion', 'antig'].filter(k => (k === 'zafra' && /zafra/.test(q)) || (k === 'reparacion' && /repara/.test(q)) || (k === 'antig' && /antig/.test(q)));
+  if (!pide.length) pide = ['zafra', 'reparacion', 'antig'];
+  const bx = el('div', 'msg-acc');
+  const lin = [];
+  for (const k of pide) {
+    if (k === 'antig') { const a = E.antig[0]; if (a) { const yo = a.trab.find(x => x.ibm === E.ibm); lin.push(`Antigüedades: estás en el año de clasificación ${a.anio}, con el número ${yo.prog} del escalafón general (${a.trab.length} compañeros en ese año).`); } else lin.push('Antigüedades: no apareces en ese escalafón.'); }
+    else lin.push(E[k].length ? `${k === 'zafra' ? 'Zafra' : 'Reparación'}: ${lugarDep(E, k)}.` : `${k === 'zafra' ? 'Zafra' : 'Reparación'}: no apareces en ese escalafón.`);
+  }
+  if (pide.length > 1) bx.append(el('div', null, `Esto es lo que dicen los escalafones sobre ti (IBM ${E.ibm}):`));
+  lin.forEach(l => { const d = el('div', null, l); d.style.marginTop = '8px'; bx.append(d); });
+  const hay = pide.filter(k => k === 'antig' ? E.antig.length : E[k].length);
+  if (hay.length) {
+    bx.append(el('div', 'ley-nota', hay.length > 1 ? 'Descarga el PDF que necesites; tu renglón va resaltado:' : 'Aquí tienes el PDF con tu renglón resaltado:'));
+    hay.forEach(k => {
+      const b = el('button', 'btn-pri sm'); b.type = 'button'; b.innerHTML = ICON.dl + `<span>${k === 'antig' ? 'PDF antigüedad ' + E.antig[0].anio : k === 'zafra' ? 'PDF zafra' : 'PDF reparación'}</span>`;
+      b.style.marginTop = '8px';
+      b.onclick = async () => { b.disabled = true; try { const pdf = await buildEscalafon(k, E); await guardarPDF(pdf, `Escalafon_${k === 'antig' ? 'antiguedades_' + E.antig[0].anio : k}_IBM${E.ibm}.pdf`); } catch (e) { toast('No pude generar el PDF. Inténtalo de nuevo.'); } b.disabled = false; };
+      bx.append(b);
+    });
+  }
+  bot(bx);
+  chips(['Escalafón de zafra', 'Escalafón de reparación', 'Escalafón de antigüedad'].filter((c, i) => !(pide.length === 1 && pide[0] === ['zafra', 'reparacion', 'antig'][i])));
+}
+async function buildEscalafon(k, E) {
+  await loadPdfLib();
+  const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+  const doc = await PDFDocument.create();
+  const W = 612, H = 792, M = 40;
+  const R = await doc.embedFont(StandardFonts.Helvetica), B = await doc.embedFont(StandardFonts.HelveticaBold);
+  const AZ = rgb(0, 0.408, 0.722), NEG = rgb(0.1, 0.12, 0.16), GR = rgb(0.42, 0.45, 0.5), LIN = rgb(0.85, 0.87, 0.9), SUAVE = rgb(0.93, 0.95, 0.98), AMA = rgb(1, 0.93, 0.55);
+  const safe = s => String(s == null ? '' : s).replace(/[^\x20-\x7E\xA0-\xFF—·]/g, '?');
+  const fit = (s, f, z, w) => { s = safe(s); while (s.length > 3 && f.widthOfTextAtSize(s, z) > w) s = s.slice(0, -1); return s; };
+  let pg, y, npag = 0;
+  const hoy = new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+  const titulo = k === 'zafra' ? 'ESCALAFÓN DEPARTAMENTAL DE ZAFRA' : k === 'reparacion' ? 'ESCALAFÓN DEPARTAMENTAL DE REPARACIÓN' : 'ESCALAFÓN GENERAL DE ANTIGÜEDADES';
+  const cols = k === 'antig'
+    ? [['No.', 40], ['I.B.M.', 60], ['NOMBRE DEL TRABAJADOR', 360], ['CLASIF.', 72]]
+    : [['PROG.', 40], ['ESC. GRAL.', 54], ['CLASIF.', 44], ['AÑO ANT.', 54], ['I.B.M.', 50], ['No.', 34], ['NOMBRE DEL TRABAJADOR', 256]];
+  const nueva = sub => {
+    pg = doc.addPage([W, H]); npag++; y = H - M;
+    pg.drawRectangle({ x: 0, y: H - 6, width: W, height: 6, color: AZ });
+    pg.drawText(safe('SECCIÓN 80 · S.T.I.A.S.R.M. · INGENIO TAMAZULA, S.A. DE C.V.'), { x: M, y: y - 4, size: 8.5, font: B, color: GR }); y -= 24;
+    pg.drawText(safe(titulo), { x: M, y, size: 15, font: B, color: AZ }); y -= 18;
+    pg.drawText(fit(sub, B, 11, W - 2 * M - 190), { x: M, y, size: 11, font: B, color: NEG });
+    const ley = 'Tu renglón va resaltado · P Permanente · T Temporal'; const lw = R.widthOfTextAtSize(safe(ley), 7.5);
+    pg.drawRectangle({ x: W - M - lw - 14, y: y - 1, width: 9, height: 9, color: AMA });
+    pg.drawText(safe(ley), { x: W - M - lw, y, size: 7.5, font: R, color: GR }); y -= 22;
+    let x = M; pg.drawRectangle({ x: M, y: y - 5, width: W - 2 * M, height: 17, color: AZ });
+    cols.forEach(([t, w]) => { pg.drawText(safe(t), { x: x + 4, y, size: 7.5, font: B, color: rgb(1, 1, 1) }); x += w; }); y -= 20;
+  };
+  const pie = () => doc.getPages().forEach((p, i, all) => p.drawText(safe(`Generado desde la app Sección 80 el ${hoy} · IBM ${E.ibm} · Página ${i + 1} de ${all.length}`), { x: M, y: 24, size: 7.5, font: R, color: GR }));
+  const fila = (vals, mia) => {
+    if (y < 48) nueva(subActual + ' (continúa)');
+    if (mia) pg.drawRectangle({ x: M, y: y - 5, width: W - 2 * M, height: 15, color: AMA });
+    let x = M; vals.forEach((v, i) => { pg.drawText(fit(v, mia ? B : R, 8.5, cols[i][1] - 6), { x: x + 4, y, size: 8.5, font: mia ? B : R, color: NEG }); x += cols[i][1]; });
+    pg.drawLine({ start: { x: M, y: y - 5 }, end: { x: W - M, y: y - 5 }, thickness: .5, color: LIN }); y -= 15;
+  };
+  let subActual = '';
+  if (k === 'antig') {
+    E.antig.forEach(a => {
+      subActual = `Año de clasificación ${a.anio} · ${a.trab.length} trabajadores`; nueva(subActual);
+      a.trab.forEach(t => fila([t.prog, t.ibm, t.nombre, t.clas === 'P' ? 'P (Permanente)' : t.clas === 'T' ? 'T (Temporal)' : t.clas], t.ibm === E.ibm));
+    });
+  } else {
+    E[k].forEach(d => {
+      subActual = `Departamento No. ${d.num} · ${d.nombre}`; nueva(subActual);
+      d.puestos.forEach(p => {
+        if (y < 90) nueva(subActual + ' (continúa)');
+        pg.drawRectangle({ x: M, y: y - 6, width: W - 2 * M, height: 17, color: SUAVE });
+        pg.drawText(fit(p.nombre + (p.cat ? `  ·  Cat. ${p.cat}` : ''), B, 9, W - 2 * M - 110), { x: M + 4, y, size: 9, font: B, color: AZ });
+        const sal = `Salario $${Number(p.salario).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        pg.drawText(safe(sal), { x: W - M - 4 - R.widthOfTextAtSize(safe(sal), 8.5), y, size: 8.5, font: R, color: GR }); y -= 19;
+        p.trab.forEach(t => fila([t.prog, t.gral, t.clas, t.anio, t.ibm, t.n, t.nombre], t.ibm === E.ibm));
+        y -= 4;
+      });
+    });
+  }
+  pie();
+  return await doc.save();
+}
+
 async function chatDesglose(q, d) {
   const sem = semanas(d);
   if (!sem.length) { bot('Aún no hay desgloses de nómina disponibles para ti.'); return; }
@@ -2326,7 +2431,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261029160525';
+const APP_VERSION = '20261030102418';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
