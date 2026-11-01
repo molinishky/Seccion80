@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script>/* Halloween: hasta el último minuto del 31 de octubre de 2026 */if(Date.now()<Date.parse('2026-11-01T00:00:00-06:00'))document.documentElement.classList.add('hw');/* Día de Muertos: 1 y 2 de noviembre */else if(Date.now()<Date.parse('2026-11-03T00:00:00-06:00'))document.documentElement.classList.add('dm')</script>
+<script>/* Halloween: hasta el último minuto del 31 de octubre de 2026 */if(Date.now()<Date.parse('2026-11-01T00:00:00-06:00'))document.documentElement.classList.add('hw');/* Día de Muertos: 1 y 2 de noviembre */else if(Date.now()<Date.parse('2026-11-03T00:00:00-06:00'))document.documentElement.classList.add('dm');/* Revolución Mexicana: 16 al 20 de noviembre */else if(Date.now()>=Date.parse('2026-11-16T00:00:00-06:00')&&Date.now()<Date.parse('2026-11-21T00:00:00-06:00'))document.documentElement.classList.add('rv')</script>
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
@@ -586,6 +586,46 @@ html.dm .deco .dm-deco{display:block;left:50%;right:auto;transform:translateX(-5
 @media (prefers-color-scheme:dark){.sem-menu{box-shadow:0 18px 50px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.12)}.sem-op.on{background:rgba(59,155,234,.2)}.sem-capa.abierto{background:rgba(0,0,0,.2)}}
 .pre-amt.cambia{animation:semCambia .35s ease}
 @keyframes semCambia{from{opacity:.2;transform:translateY(4px)}}
+/* ================= Revolución Mexicana (solo con html.rv) ================= */
+html.rv #splash{background:#1a120a;overflow:hidden;transition:opacity .45s ease}
+html.rv #splash.fuera{opacity:0}
+html.rv #splash img.rv-fondo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 40%;animation:rvKen 9s ease-out forwards;filter:saturate(.9) brightness(.78)}
+@keyframes rvKen{from{transform:scale(1.12)}to{transform:scale(1)}}
+.rv-velo{position:absolute;inset:0;background:radial-gradient(55% 24% at 50% 37.5%,rgba(20,12,4,.72),rgba(20,12,4,.25) 70%,transparent),linear-gradient(0deg,rgba(15,9,3,.75),transparent 30%)}
+html.rv #splash .sp-in{position:absolute;left:50%;top:37.5%;transform:translate(-50%,-50%);z-index:3}
+
+html.rv #splash img.sp-esc{height:min(32vw,128px);filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 20px rgba(255,214,140,.85)) drop-shadow(0 12px 26px rgba(0,0,0,.6))}
+html.rv #splash .sp-barra{width:150px;background:rgba(255,255,255,.18)}
+html.rv #splash .sp-barra i{background:linear-gradient(90deg,#006847 0 33%,#F4F1E8 33% 66%,#CE1126 66%);box-shadow:0 0 10px rgba(255,255,255,.35)}
+.rv-luz{position:absolute;left:50%;top:37.5%;width:min(80vw,340px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,220,150,.45) 0%,rgba(255,180,90,.18) 38%,transparent 70%);animation:dmLuz 1.15s ease-in-out infinite}
+.rv-polvo{position:absolute;border-radius:50%;background:rgba(255,226,180,.55);filter:blur(1px);animation:rvPolvo linear infinite}
+@keyframes rvPolvo{from{transform:translate(0,0);opacity:0}15%{opacity:1}to{transform:translate(var(--dx),-60vh);opacity:0}}
+/* Inicio: guirnalda tricolor detrás del escudo */
+.rv-guirnalda{position:absolute;left:0;right:0;top:0;height:58px;z-index:0;pointer-events:none}
+.rv-guirnalda svg{width:100%;height:100%;display:block}
+html.rv .home-top{padding-top:20px}
+html.rv .home-top img{position:relative;z-index:1;filter:drop-shadow(0 0 10px rgba(255,200,120,.55)) drop-shadow(0 6px 14px rgba(0,0,0,.2));animation:hwLat 2.4s ease-in-out infinite}
+html.rv .home-top::before{content:"";position:absolute;left:50%;top:calc(50% + 10px);width:112px;height:112px;transform:translate(-50%,-50%);border-radius:50%;z-index:0;background:radial-gradient(circle,rgba(255,210,140,.40),rgba(255,170,80,.12) 45%,transparent 70%);animation:hwLuna 2.4s ease-in-out infinite;pointer-events:none}
+@media (prefers-color-scheme:dark){html.rv .home-top img{filter:drop-shadow(0 0 14px rgba(255,200,120,.7)) drop-shadow(0 6px 14px rgba(0,0,0,.25))}html.rv .home-top::before{width:150px;height:150px;background:radial-gradient(circle,rgba(255,215,150,.5),rgba(255,170,80,.16) 45%,transparent 70%)}}
+/* tarjeta de temporada */
+.rv-card{position:relative;overflow:hidden;margin-top:12px;border-radius:16px;padding:11px 110px 11px 14px;background:linear-gradient(110deg,rgba(0,104,71,.16),rgba(244,241,232,.10) 50%,rgba(206,17,38,.14));border:1px solid rgba(160,120,60,.35);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);box-shadow:0 8px 20px rgba(80,50,10,.12)}
+.rv-card b{display:block;font-size:15.5px;color:#8A5A12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rv-card p{font-size:12.5px;color:var(--mu);margin-top:2px;line-height:1.3}
+.rv-card img{position:absolute;right:0;top:0;height:100%;width:118px;object-fit:cover;object-position:40% 18%;filter:sepia(.2);-webkit-mask-image:linear-gradient(90deg,transparent,#000 40%);mask-image:linear-gradient(90deg,transparent,#000 40%)}
+@media (prefers-color-scheme:dark){.rv-card b{color:#E8C27A}}
+html.rv #s-home .saludo{padding:14px}
+html.rv #s-home .tarjetas{gap:12px;margin-top:12px}
+html.rv #s-home .tarjeta{min-height:146px;gap:10px;padding:14px}
+/* fondo de todas las pantallas: la escena quieta en lugar de las cañas */
+html.rv .deco{height:340px}
+html.rv .deco svg,html.rv .deco img:not(.rv-deco){display:none}
+html.rv .deco .rv-deco{display:block;left:50%;right:auto;transform:translateX(-50%);width:100%;height:auto;bottom:0;opacity:.14;filter:sepia(.6) saturate(.8);-webkit-mask-image:linear-gradient(0deg,#000 50%,transparent);mask-image:linear-gradient(0deg,#000 50%,transparent)}
+@media (prefers-color-scheme:dark){html.rv .deco .rv-deco{opacity:.18!important;filter:sepia(.5) saturate(.8)!important}}
+/* confeti tricolor que cae por detrás */
+.rv-confeti{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
+.rv-pz{position:absolute;top:-20px;border-radius:2px;animation:rvCae linear infinite}
+@keyframes rvCae{0%{transform:translate(0,0) rotate(0) rotateY(0)}100%{transform:translate(var(--dx),110vh) rotate(var(--r)) rotateY(720deg)}}
+@media (prefers-reduced-motion:reduce){.rv-confeti,.rv-polvo{display:none}html.rv #splash img.rv-fondo{animation:none}}
 /* ================= Subpáginas ================= */
 .sub-base,.sub-det{position:relative}
 .sub-det{margin:0 -20px;padding:0 20px}
@@ -1664,6 +1704,7 @@ function renderHome() {
   pintarFoto();
   $('#home-nombre').textContent = pn || 'Compañero';
   if (HW_CARD) HW_CARD.querySelector('b').textContent = pn ? `¡Feliz Halloween, ${pn}!` : '¡Feliz Halloween!';
+  if (RV_CARD) RV_CARD.querySelector('b').textContent = pn ? `¡Viva la Revolución, ${pn}!` : '¡Viva la Revolución Mexicana!';
   if (DM_CARD) DM_CARD.querySelector('p').textContent = `${pn ? pn + ', recordemos' : 'Recordemos'} con cariño a quienes ya no están.`;
   $('#home-ibm').textContent = `IBM ${corto(d.socio)} · Bienvenido a tu portal de la Sección 80`;
   const sem = semanas(d);
@@ -2501,7 +2542,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261030160423';
+const APP_VERSION = '20261031215832';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
@@ -2702,9 +2743,38 @@ if (DM) (() => {
   const F = el('div', 'dm-flores'); deco.after(F); flores(F, 10, 11);
 })();
 
+/* ================= Revolución Mexicana (16 al 20 de noviembre) ================= */
+const RV = document.documentElement.classList.contains('rv');
+var RV_CARD = null;
+if (RV) (() => {
+  // pantalla de carga: la imagen completa con acercamiento lento, polvo y el escudo al centro
+  const sp = $('#splash');
+  const f = el('img', 'rv-fondo'); f.src = 'rv_splash.webp'; f.alt = '';
+  sp.prepend(f, el('div', 'rv-velo'), el('div', 'rv-luz'));
+  for (let i = 0; i < 18; i++) { const p = el('div', 'rv-polvo'), t = 2 + Math.random() * 4; p.style.cssText = `left:${Math.random() * 100}%;top:${55 + Math.random() * 45}%;width:${t}px;height:${t}px;--dx:${Math.random() * 80 - 40}px;animation-duration:${4 + Math.random() * 5}s;animation-delay:${-Math.random() * 6}s`; sp.append(p); }
+  // guirnalda tricolor detrás del escudo de Inicio
+  const top = document.querySelector('.home-top'); const g = el('div', 'rv-guirnalda');
+  const n = 6, W = 390, H = 58, w = W / n; let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">`;
+  for (let i = 0; i < n; i++) { const x0 = i * w, x1 = x0 + w;
+    [['#CE1126', 34], ['#F4F1E8', 26], ['#006847', 18]].forEach(([c, d]) => { svg += `<path d="M${x0} 4 Q${x0 + w / 2} ${4 + d * 2} ${x1} 4 L${x1} 4 Q${x0 + w / 2} ${4 + (d - 8) * 2} ${x0} 4Z" fill="${c}" opacity=".92"/>`; }); }
+  for (let i = 0; i <= n; i++) svg += `<circle cx="${i * w}" cy="5" r="5" fill="#C9A227"/><circle cx="${i * w}" cy="5" r="2.2" fill="#8A5A12"/>`;
+  g.innerHTML = svg + '</svg>'; top.prepend(g);
+  // tarjeta compacta
+  RV_CARD = el('section', 'rv-card');
+  RV_CARD.innerHTML = '<b>¡Viva la Revolución Mexicana!</b><p>20 de noviembre · Honramos la lucha por los derechos laborales.</p><img src="rv_card.webp" alt="">';
+  $('#s-home .saludo').after(RV_CARD);
+  // fondo quieto y confeti tricolor por detrás de las tarjetas
+  const deco = document.querySelector('.deco'); const di = el('img', 'rv-deco'); di.src = 'rv_fondo.webp'; di.alt = ''; deco.append(di);
+  const C = el('div', 'rv-confeti'); deco.after(C);
+  const COL = ['#006847', '#F4F1E8', '#CE1126'];
+  for (let i = 0; i < 16; i++) { const p = el('div', 'rv-pz'), w2 = 6 + Math.random() * 5;
+    p.style.cssText = `left:${Math.random() * 100}%;width:${w2}px;height:${w2 * 1.6}px;background:${COL[i % 3]};box-shadow:0 0 0 .5px rgba(0,0,0,.08);--dx:${Math.random() * 100 - 50}px;--r:${Math.random() * 720 - 360}deg;animation-duration:${9 + Math.random() * 7}s;animation-delay:${-Math.random() * 14}s;opacity:${.55 + Math.random() * .35}`;
+    C.append(p); }
+})();
+
 function ocultarSplash() {
   barra(100);
-  if (!HW && !DM) { setTimeout(() => { $('#splash').hidden = true; }, 260); return; }
+  if (!HW && !DM && !RV) { setTimeout(() => { $('#splash').hidden = true; }, 260); return; }
   // en temporada la pantalla de carga se ve al menos 1.6 s y se desvanece
   const espera = Math.max(260, 1600 - (Date.now() - HW_T0));
   setTimeout(() => { const sp = $('#splash'); sp.classList.add('fuera'); setTimeout(() => { sp.hidden = true; }, 460); }, espera);
