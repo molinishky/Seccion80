@@ -5,6 +5,12 @@ import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.app.AlertDialog;
+import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.PixelCopy;
+import android.webkit.RenderProcessGoneDetail;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -33,15 +39,21 @@ import java.io.OutputStream;
 public class MainActivity extends Activity {
     static final String URL = "https://molinishky.github.io/Seccion80/";
     static final String HOST = "molinishky.github.io";
-    static final String VERSION = "1.3";
+    static final String VERSION = "1.4";
     WebView web;
     ValueCallback<Uri[]> elegir;
+    // ----- Protección contra pantalla en blanco (algunos chips gráficos no dibujan el WebView) -----
+    final Handler h = new Handler(Looper.getMainLooper());
+    SharedPreferences prefs;
+    boolean revisado = false;
     static final int FOTO = 7;
 
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
+        prefs = getSharedPreferences("s80", MODE_PRIVATE);
         web = new WebView(this);
+        if (prefs.getBoolean("software", false)) web.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         web.setBackgroundColor(getResources().getColor(R.color.fondo, getTheme()));
         setContentView(web);
         WebSettings s = web.getSettings();
@@ -58,6 +70,17 @@ public class MainActivity extends Activity {
                 Uri u = r.getUrl();
                 if (HOST.equals(u.getHost()) && u.getPath() != null && u.getPath().startsWith("/Seccion80")) return false;
                 abrirFuera(u);
+                return true;
+            }
+            @Override
+            public void onPageFinished(WebView v, String url) {
+                if (url != null && url.startsWith(URL) && !revisado) { revisado = true; h.postDelayed(() -> revisarPantalla(), 7000); }
+            }
+            @Override
+            public boolean onRenderProcessGone(WebView v, RenderProcessGoneDetail d) {
+                // el motor de la página se cayó: reabrir dibujando por software
+                prefs.edit().putBoolean("software", true).apply();
+                recreate();
                 return true;
             }
             @Override
@@ -78,7 +101,40 @@ public class MainActivity extends Activity {
                 return true;
             }
         });
-        if (b != null) web.restoreState(b); else web.loadUrl(URL);
+        if (b != null) web.restoreState(b); else web.loadUrl(prefs.getBoolean("software", false) ? URL + "?seguro=1" : URL);
+    }
+
+    /** Mira la pantalla real: si es toda de un solo color, la página no se dibujó. */
+    void revisarPantalla() {
+        if (Build.VERSION.SDK_INT < 26 || isFinishing()) return;
+        try {
+            final Bitmap bmp = Bitmap.createBitmap(72, 160, Bitmap.Config.ARGB_8888);
+            PixelCopy.request(getWindow(), bmp, res -> {
+                if (res != PixelCopy.SUCCESS) return;
+                int base = bmp.getPixel(36, 120), iguales = 0, total = 0;
+                for (int y = 0; y < 160; y += 2) for (int x = 0; x < 72; x += 2) {
+                    int c = bmp.getPixel(x, y); total++;
+                    if (Math.abs(((c >> 16) & 255) - ((base >> 16) & 255)) < 10 && Math.abs(((c >> 8) & 255) - ((base >> 8) & 255)) < 10 && Math.abs((c & 255) - (base & 255)) < 10) iguales++;
+                }
+                if (iguales >= total * 0.99) recuperar();
+            }, h);
+        } catch (Exception e) { /* sin revisión */ }
+    }
+
+    void recuperar() {
+        if (!prefs.getBoolean("software", false)) {
+            prefs.edit().putBoolean("software", true).apply();
+            web.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+            revisado = false;
+            web.loadUrl(URL + "?seguro=1");
+        } else {
+            new AlertDialog.Builder(this)
+                .setTitle("No se pudo mostrar la app")
+                .setMessage("Tu teléfono no logra mostrar la app aquí. Ábrela en Chrome; ahí funciona igual.")
+                .setPositiveButton("Abrir en Chrome", (dlg, w) -> abrirFuera(Uri.parse(URL)))
+                .setNegativeButton("Reintentar", (dlg, w) -> { prefs.edit().putBoolean("software", false).apply(); recreate(); })
+                .show();
+        }
     }
 
     String sinRed() {
