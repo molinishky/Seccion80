@@ -642,6 +642,69 @@ html.seguro .scr.debajo{filter:none!important}
 .aviso-apk b{font-size:18px}
 .aviso-apk p{font-size:14.5px;color:var(--mu);line-height:1.45}
 .aviso-apk .btn-pri,.aviso-apk .btn-sec{width:100%;justify-content:center}
+/* ================= Guía para agregar a inicio en iPhone ================= */
+.guia-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:6px;font-size:18px;padding:16px}
+.guia-btn svg{width:24px;height:24px}
+.guia-lista{align-self:stretch;margin-top:4px}
+.guia-lista summary{cursor:pointer;color:var(--azul);font-weight:600;font-size:14.5px;padding:8px 0;list-style:none;text-align:center}
+.guia-lista summary::-webkit-details-marker{display:none}
+.guia-lista[open] summary{margin-bottom:8px}
+.guia{position:fixed;z-index:41;left:50%;bottom:calc(16px + var(--sab));width:min(400px,calc(100% - 24px));transform:translate(-50%,30px);opacity:0;transition:transform .3s cubic-bezier(.2,1.1,.4,1),opacity .2s;
+  display:flex;flex-direction:column;gap:12px;padding:20px 18px 16px;border-radius:26px;background:var(--g-bg-fuerte,var(--g-bg));backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);border:1px solid var(--g-borde);box-shadow:0 24px 70px rgba(0,30,70,.32)}
+.guia.abierto{transform:translate(-50%,0);opacity:1}
+.guia-x{position:absolute;top:12px;right:12px;border:0;background:rgba(120,130,150,.15);color:var(--mu);width:32px;height:32px;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+.guia-c{text-align:center}
+.guia-c.entra{animation:guiaEntra .3s ease}
+@keyframes guiaEntra{from{opacity:0;transform:translateX(18px)}}
+.guia-n{font-size:12px;font-weight:700;color:var(--azul);text-transform:uppercase;letter-spacing:.05em}
+.guia-c h2{font-size:21px;margin:4px 0 10px}
+.guia-c p{font-size:15px;line-height:1.45;color:var(--mu);margin-top:10px}
+.guia-c p b{color:var(--tx)}
+.guia-ilus{display:flex;gap:10px;justify-content:center;align-items:flex-end}
+.guia-p{display:flex;gap:6px;justify-content:center}
+.guia-p i{width:7px;height:7px;border-radius:50%;background:var(--ln2)}
+.guia-p i.on{background:var(--azul);width:20px;border-radius:4px}
+/* mini pantallas */
+.gm-tel{width:150px;border-radius:18px;background:#F2F4F8;border:2px solid #D7DCE4;overflow:hidden;display:flex;flex-direction:column;color:#0068B8;font-size:11px;text-align:left}
+.gm-chico{width:120px}
+.gm-ipad{width:220px}
+.gm-web{height:86px;display:flex;flex-direction:column;align-items:center;gap:5px;padding-top:12px;background:#fff}
+.gm-web img{height:30px}
+.gm-web i{display:block;width:70%;height:6px;border-radius:3px;background:#E3E8EF}
+.gm-barra{display:flex;justify-content:space-around;align-items:center;padding:8px 4px;background:rgba(245,247,250,.95);border-top:1px solid #E1E5EB}
+.gm-arriba{border-top:0;border-bottom:1px solid #E1E5EB}
+.gm-compacta,.gm-arriba{justify-content:space-between;padding:8px 8px}
+.gm-url{font-size:9.5px;color:#5B6575;background:#E7EBF0;border-radius:8px;padding:5px 8px;flex:1;margin-right:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gm-ic{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;flex:none}
+.gm-ic svg{width:17px;height:17px}
+.gm-pulso{background:#0068B8;color:#fff;animation:gmPulso 1.3s ease-in-out infinite}
+@keyframes gmPulso{0%,100%{box-shadow:0 0 0 0 rgba(0,104,184,.55)}50%{box-shadow:0 0 0 8px rgba(0,104,184,0)}}
+.gm-hoja{width:190px;background:#DDE2EA}
+.gm-sheet{margin-top:26px;background:#F7F8FA;border-radius:14px 14px 0 0;padding:6px 8px 10px;display:flex;flex-direction:column;gap:5px;color:#1F2430}
+.gm-tira{width:30px;height:4px;border-radius:2px;background:#C5CBD5;margin:2px auto 4px}
+.gm-op{display:flex;align-items:center;gap:6px;background:#fff;border-radius:9px;padding:6px 8px;font-size:11px}
+.gm-op .gm-ic{width:20px;height:20px;color:#1F2430}
+.gm-marca{outline:2.5px solid #0068B8;animation:gmPulso 1.3s ease-in-out infinite;color:#0068B8}
+.gm-marca .gm-ic{color:#0068B8}
+.gm-mas{justify-content:center;color:#0068B8;font-weight:600;background:none}
+.gm-agregar{width:210px;background:#F2F4F8;color:#1F2430;padding-bottom:10px}
+.gm-cab{display:flex;justify-content:space-between;align-items:center;padding:10px 10px;font-size:10.5px;background:#fff;border-bottom:1px solid #E1E5EB}
+.gm-cab span{color:#0068B8}
+.gm-marca-t{font-weight:700;border-radius:8px;padding:3px 6px;animation:gmPulso 1.3s ease-in-out infinite;background:#0068B8;color:#fff!important}
+.gm-fila{display:flex;align-items:center;gap:8px;margin:8px 10px 0;background:#fff;border-radius:10px;padding:8px;font-size:11px}
+.gm-fila img{width:30px;height:30px;border-radius:7px}
+.gm-fila small{display:block;color:#5B6575;font-size:9px}
+.gm-sw{justify-content:space-between}
+.gm-switch{width:28px;height:16px;border-radius:8px;background:#34C759;position:relative}
+.gm-switch::after{content:"";position:absolute;right:2px;top:2px;width:12px;height:12px;border-radius:50%;background:#fff}
+@media (prefers-color-scheme:dark){.gm-tel{border-color:#2A3446}}
+/* flecha a la barra real de Safari */
+.guia-flecha{position:fixed;z-index:42;left:50%;bottom:calc(8px + var(--sab));transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;color:#fff;cursor:pointer;animation:guiaRebota 1s ease-in-out infinite}
+.guia-flecha span{background:#0068B8;color:#fff;font-weight:700;font-size:14px;padding:8px 14px;border-radius:999px;box-shadow:0 8px 20px rgba(0,58,110,.35);white-space:nowrap}
+.guia-flecha svg{color:#0068B8;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}
+.guia-flecha.arriba{bottom:auto;top:calc(8px + var(--sat));left:auto;right:16px;transform:none;flex-direction:column-reverse}
+.guia-flecha.arriba svg{transform:rotate(180deg)}
+@keyframes guiaRebota{50%{translate:0 8px}}
 /* ================= Subpáginas ================= */
 .sub-base,.sub-det{position:relative}
 .sub-det{margin:0 -20px;padding:0 20px}
@@ -2554,13 +2617,72 @@ function pedirInstalarIOS() {
   paso('Toca <b>Ver más</b> ' + MAS + ' para abrir la lista completa.');
   paso('Elige <b>Agregar a Inicio</b> ' + PL + '.');
   paso('Deja activado <b>Abrir como app web</b> y toca <b>Agregar</b> arriba a la derecha. Después abre la app desde el icono <b>Sección 80</b>.');
-  w.append(im, fr, el('h1', null, 'Instala la app en tu ' + disp), el('p', null, 'Para usar la app de la Sección 80 agrégala a tu pantalla de inicio. Así se abre como una app, sin la barra del navegador, y tus datos quedan más protegidos.'), pasos);
+  const btnGuia = el('button', 'btn-pri guia-btn'); btnGuia.type = 'button';
+  btnGuia.innerHTML = PL.replace(/#0068B8/g, '#FFFFFF') + '<span>Agregar a inicio</span>';
+  btnGuia.onclick = () => { vibrar(); guiaInstalarIOS(ipad, enOtraApp); };
+  const det = el('details', 'guia-lista'); const sm = el('summary', null, 'Ver los pasos escritos'); det.append(sm, pasos);
+  w.append(im, fr, el('h1', null, 'Instala la app en tu ' + disp), el('p', null, 'Para usar la app de la Sección 80 agrégala a tu pantalla de inicio. Así se abre como una app, sin la barra del navegador, y tus datos quedan más protegidos.'), btnGuia, det);
   const flecha = el('div', 'flecha-abajo'); flecha.setAttribute('aria-hidden', 'true'); if (ipad) flecha.hidden = true;
   flecha.innerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#0068B8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v15"/><path d="M6 13l6 6 6-6"/></svg>';
   const seguir = el('button', 'link', 'Continuar desde el navegador'); seguir.type = 'button'; seguir.onclick = () => continuarNavegador(w);
   w.append(seguir, flecha);
   document.querySelector('.app').append(w);
 }
+
+/* ----- Guía visual para agregar a inicio en iPhone/iPad (Apple no permite instalar con un botón) ----- */
+function guiaInstalarIOS(ipad, enOtraApp) {
+  const SH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7.5 7.5L12 3l4.5 4.5"/><path d="M7 11H5.5A1.5 1.5 0 0 0 4 12.5v7A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5H17"/></svg>';
+  const PL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
+  const ic = (s, cls) => `<span class="gm-ic ${cls || ''}">${s}</span>`;
+  const barraIphone = `<div class="gm-tel"><div class="gm-web"><img src="escudo.png" alt=""><i></i><i></i><i></i></div>
+      <div class="gm-barra">${ic('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>')}${ic('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>')}${ic(SH, 'gm-pulso')}${ic('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/></svg>')}${ic('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="7" width="12" height="12" rx="2"/><path d="M8 4h10a2 2 0 0 1 2 2v10"/></svg>')}</div></div>`;
+  const barraIOS26 = `<div class="gm-tel gm-chico"><div class="gm-web"><img src="escudo.png" alt=""><i></i><i></i></div>
+      <div class="gm-barra gm-compacta"><span class="gm-url">molinishky.github.io</span>${ic('<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>', 'gm-pulso')}</div></div>`;
+  const barraIpad = `<div class="gm-tel gm-ipad"><div class="gm-barra gm-arriba"><span class="gm-url">molinishky.github.io</span>${ic(SH, 'gm-pulso')}${ic('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>')}</div><div class="gm-web"><img src="escudo.png" alt=""><i></i><i></i></div></div>`;
+  const hoja = `<div class="gm-tel gm-hoja"><div class="gm-sheet"><div class="gm-tira"></div>
+      <div class="gm-op">${ic('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>')}Copiar</div>
+      <div class="gm-op">${ic('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17l-5.5 3 1-6.2L3 9.5l6.2-.9L12 3l2.8 5.6 6.2.9-4.5 4.3 1 6.2z"/></svg>')}Agregar a favoritos</div>
+      <div class="gm-op gm-marca">${ic(PL)}<b>Agregar a Inicio</b></div>
+      <div class="gm-op gm-mas">Ver más ⌄</div></div></div>`;
+  const agregar = `<div class="gm-tel gm-agregar"><div class="gm-cab"><span>Cancelar</span><b>Agregar a Inicio</b><span class="gm-marca-t">Agregar</span></div>
+      <div class="gm-fila"><img src="icono-180.png" alt=""><div><b>Sección 80</b><small>molinishky.github.io</small></div></div>
+      <div class="gm-fila gm-sw">Abrir como app web <span class="gm-switch"></span></div></div>`;
+  const pasos = [];
+  if (enOtraApp) pasos.push({ t: 'Ábrela en Safari', d: 'Esta página se abrió dentro de otra app. Toca el menú (··· o la brújula) y elige <b>Abrir en Safari</b>. Después vuelve a tocar «Agregar a inicio».', h: barraIOS26 });
+  pasos.push(ipad
+    ? { t: 'Toca Compartir', d: 'Arriba a la derecha de Safari toca el botón <b>Compartir</b>.', h: barraIpad }
+    : { t: 'Toca Compartir', d: 'Abajo en Safari toca el botón <b>Compartir</b>. Si tu Safari solo muestra <b>···</b>, tócalo y luego <b>Compartir</b>.', h: barraIphone + barraIOS26 });
+  pasos.push({ t: 'Elige «Agregar a Inicio»', d: 'En la lista que se abre, desliza hacia arriba (o toca <b>Ver más</b>) y toca <b>Agregar a Inicio</b>.', h: hoja });
+  pasos.push({ t: 'Toca «Agregar»', d: 'Deja activado <b>Abrir como app web</b> y toca <b>Agregar</b>, arriba a la derecha. ¡Listo! Abre la app desde el icono <b>Sección 80</b>.', h: agregar });
+  const capa = el('div', 'sem-capa'), g = el('div', 'guia'); g.setAttribute('role', 'dialog'); g.setAttribute('aria-modal', 'true');
+  const cuerpo = el('div', 'guia-c'), puntos = el('div', 'guia-p'), sig = el('button', 'btn-pri'), cerrarB = el('button', 'guia-x'); sig.type = cerrarB.type = 'button';
+  cerrarB.setAttribute('aria-label', 'Cerrar'); cerrarB.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  g.append(cerrarB, cuerpo, puntos, sig); document.body.append(capa, g);
+  let i = 0;
+  const pintar = () => {
+    const p = pasos[i];
+    cuerpo.innerHTML = `<div class="guia-n">Paso ${i + 1} de ${pasos.length}</div><h2>${p.t}</h2><div class="guia-ilus">${p.h}</div><p>${p.d}</p>`;
+    cuerpo.classList.remove('entra'); void cuerpo.offsetWidth; cuerpo.classList.add('entra');
+    puntos.innerHTML = pasos.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('');
+    sig.textContent = i < pasos.length - 1 ? 'Siguiente' : 'Entendido, empezar';
+  };
+  const cerrar = (mostrarFlecha) => {
+    capa.classList.remove('abierto'); g.classList.remove('abierto'); setTimeout(() => { capa.remove(); g.remove(); }, 250);
+    if (mostrarFlecha) {
+      const f = el('div', 'guia-flecha' + (ipad ? ' arriba' : ''));
+      f.innerHTML = `<span>${ipad ? 'Toca Compartir aquí arriba' : 'Toca Compartir (o ···) aquí abajo'}</span><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v15"/><path d="M6 13l6 6 6-6"/></svg>`;
+      document.body.append(f); setTimeout(() => f.remove(), 15000); f.onclick = () => f.remove();
+    }
+  };
+  sig.onclick = () => { vibrar(); if (i < pasos.length - 1) { i++; pintar(); } else cerrar(true); };
+  cerrarB.onclick = () => cerrar(false); capa.onclick = () => cerrar(false);
+  // deslizar entre pasos
+  let x0 = null; g.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+  g.addEventListener('touchend', e => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (dx < -50 && i < pasos.length - 1) { i++; pintar(); } else if (dx > 50 && i > 0) { i--; pintar(); } }, { passive: true });
+  pintar(); requestAnimationFrame(() => { capa.classList.add('abierto'); g.classList.add('abierto'); });
+}
+window.__guiaIOS = guiaInstalarIOS;
 
 /* ================= Android en el navegador: instalar con un toque ================= */
 let promptInstalar = null;
@@ -2614,7 +2736,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261103212934';
+const APP_VERSION = '20261104100240';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
