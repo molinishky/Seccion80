@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>/* Modo seguro: si la app no terminó de abrir la vez anterior (p. ej. el chip gráfico falló), se abre sin efectos de cristal pesados */try{var _h=document.documentElement,_q=location.search;if(/[?&]normal=1/.test(_q)){localStorage.removeItem('s80_seguro');localStorage.removeItem('s80_arranque')}if(/[?&]seguro=1/.test(_q))localStorage.setItem('s80_seguro','1');if(localStorage.getItem('s80_seguro')==='1'||localStorage.getItem('s80_arranque')==='1'){_h.classList.add('seguro');localStorage.setItem('s80_seguro','1')}localStorage.setItem('s80_arranque','1')}catch(e){}</script>
 <script>/* Halloween: hasta el último minuto del 31 de octubre de 2026 */if(Date.now()<Date.parse('2026-11-01T00:00:00-06:00'))document.documentElement.classList.add('hw');/* Día de Muertos: 1 y 2 de noviembre */else if(Date.now()<Date.parse('2026-11-03T00:00:00-06:00'))document.documentElement.classList.add('dm');/* Revolución Mexicana: 16 al 20 de noviembre */else if(Date.now()>=Date.parse('2026-11-16T00:00:00-06:00')&&Date.now()<Date.parse('2026-11-21T00:00:00-06:00'))document.documentElement.classList.add('rv')</script>
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
@@ -626,6 +627,11 @@ html.rv .deco .rv-deco{display:block;left:50%;right:auto;transform:translateX(-5
 .rv-pz{position:absolute;top:-20px;border-radius:2px;animation:rvCae linear infinite}
 @keyframes rvCae{0%{transform:translate(0,0) rotate(0) rotateY(0)}100%{transform:translate(var(--dx),110vh) rotate(var(--r)) rotateY(720deg)}}
 @media (prefers-reduced-motion:reduce){.rv-confeti,.rv-polvo{display:none}html.rv #splash img.rv-fondo{animation:none}}
+/* ================= Modo seguro (teléfonos cuyo chip gráfico falla con el cristal) ================= */
+html.seguro *,html.seguro *::before,html.seguro *::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html.seguro{--g-bg:rgba(255,255,255,.94);--g-bg-fuerte:rgba(255,255,255,.97)}
+@media (prefers-color-scheme:dark){html.seguro{--g-bg:rgba(24,34,52,.95);--g-bg-fuerte:rgba(24,34,52,.98)}}
+html.seguro .scr.debajo{filter:none!important}
 /* ================= Subpáginas ================= */
 .sub-base,.sub-det{position:relative}
 .sub-det{margin:0 -20px;padding:0 20px}
@@ -1581,7 +1587,10 @@ window.addEventListener('resize', () => marcarBurbuja(actual));
 })();
 
 /* ================= Lente (refracción) en Android / Chrome ================= */
-const LENTE_OK = (() => { const ua = navigator.userAgent || ''; return /Chrome\/\d+/.test(ua) && !/iPhone|iPad|iPod|CriOS|Edg\//.test(ua) && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); })();
+// Chip gráfico: los Adreno (Honor X9c, Poco X6…) se bloquean con la refracción SVG del cristal
+const GPU = (() => { try { const g = document.createElement('canvas').getContext('webgl'); const x = g && g.getExtension('WEBGL_debug_renderer_info'); return x ? String(g.getParameter(x.UNMASKED_RENDERER_WEBGL)) : ''; } catch (e) { return ''; } })();
+const MODO_SEGURO = document.documentElement.classList.contains('seguro');
+const LENTE_OK = (() => { const ua = navigator.userAgent || ''; return /Chrome\/\d+/.test(ua) && !/iPhone|iPad|iPod|CriOS|Edg\//.test(ua) && !/adreno/i.test(GPU) && !MODO_SEGURO && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); })();
 if (LENTE_OK) document.documentElement.classList.add('lente');
 let lenteTam = '';
 function ajustarLente(w, h) {
@@ -2542,7 +2551,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261031215832';
+const APP_VERSION = '20261103184143';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
@@ -2772,6 +2781,8 @@ if (RV) (() => {
     C.append(p); }
 })();
 
+// La app terminó de abrir: se quita la marca de arranque (si no se quitara, la próxima vez abre en modo seguro)
+requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(() => { try { localStorage.removeItem('s80_arranque'); } catch (e) {} }, 2500)));
 function ocultarSplash() {
   barra(100);
   if (!HW && !DM && !RV) { setTimeout(() => { $('#splash').hidden = true; }, 260); return; }
