@@ -1600,7 +1600,8 @@ window.addEventListener('resize', () => marcarBurbuja(actual));
 // Chip gráfico: los Adreno (Honor X9c, Poco X6…) se bloquean con la refracción SVG del cristal
 const GPU = (() => { try { const g = document.createElement('canvas').getContext('webgl'); const x = g && g.getExtension('WEBGL_debug_renderer_info'); return x ? String(g.getParameter(x.UNMASKED_RENDERER_WEBGL)) : ''; } catch (e) { return ''; } })();
 const MODO_SEGURO = document.documentElement.classList.contains('seguro');
-const LENTE_OK = (() => { const ua = navigator.userAgent || ''; return /Chrome\/\d+/.test(ua) && !/iPhone|iPad|iPod|CriOS|Edg\//.test(ua) && !/adreno/i.test(GPU) && !MODO_SEGURO && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); })();
+// Refracción SVG apagada en todos: en varios Android (Honor X9c, Poco X6, Galaxy Note 20) dejaba la pantalla sin dibujar
+const LENTE_OK = false && (() => { const ua = navigator.userAgent || ''; return /Chrome\/\d+/.test(ua) && !/iPhone|iPad|iPod|CriOS|Edg\//.test(ua) && !/adreno/i.test(GPU) && !MODO_SEGURO && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); })();
 if (LENTE_OK) document.documentElement.classList.add('lente');
 let lenteTam = '';
 function ajustarLente(w, h) {
@@ -2582,7 +2583,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261103192650';
+const APP_VERSION = '20261103194535';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
