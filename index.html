@@ -638,6 +638,7 @@ html.seguro .scr.debajo{filter:none!important}
   background:var(--g-bg-fuerte,var(--g-bg));backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);border:1px solid var(--g-borde);box-shadow:0 20px 60px rgba(0,30,70,.28)}
 .aviso-apk.abierto{transform:translate(-50%,-50%);opacity:1}
 .aviso-apk img{height:58px}
+.aviso-ver{display:inline-block;padding:7px 14px;border-radius:999px;background:rgba(0,104,184,.12);color:var(--azul);font-size:13.5px;font-weight:700;white-space:pre-wrap;margin:2px auto 8px}
 .aviso-apk b{font-size:18px}
 .aviso-apk p{font-size:14.5px;color:var(--mu);line-height:1.45}
 .aviso-apk .btn-pri,.aviso-apk .btn-sec{width:100%;justify-content:center}
@@ -2448,6 +2449,7 @@ function registrarAcceso() {
 
 /* ================= Versión del APK ================= */
 const APK_MIN = '1.3';
+const APK_ULTIMA = '1.4';   // versión más reciente publicada
 const APK_URL = 'https://github.com/molinishky/Seccion80/releases/download/apk-latest/Seccion80.apk';
 function apkVersion() {
   if (!window.AndroidApp) return null;
@@ -2468,12 +2470,11 @@ function pedirActualizar() {
   const pasos = el('ol', 'pasos');
   ['Toca «Descargar nueva versión».', 'Abre el archivo Seccion80.apk que se descargó.', 'Toca «Actualizar» o «Instalar». No pierdes nada: tu IBM y tu foto se conservan.'].forEach(t => pasos.append(el('li', null, t)));
   const a = el('a', 'btn-pri'); a.href = APK_URL; a.innerHTML = ICON.dl + '<span>Descargar nueva versión</span>';
-  w.append(im, fr, el('h1', null, 'Actualiza tu app'), el('p', null, 'Esta versión de la app de la Sección 80 ya no funciona. Instala la nueva versión para seguir consultando tu fondo, tus nóminas y tus préstamos.'), pasos, a);
+  w.append(im, fr, el('h1', null, 'Actualiza tu app'), el('div', 'aviso-ver', `Tu versión: ${apkVersion() || '—'}  ·  Más reciente: ${APK_ULTIMA}`), el('p', null, 'Esta versión de la app de la Sección 80 ya no funciona. Instala la nueva versión para seguir consultando tu fondo, tus nóminas y tus préstamos.'), pasos, a);
   document.querySelector('.app').append(w);
 }
 
 /* ----- Aviso (se puede cerrar) cuando hay una APK más nueva ----- */
-const APK_ULTIMA = '1.4';
 const verMenor = (v, w) => { const a = String(v).split('.').map(Number), b = String(w).split('.').map(Number); for (let i = 0; i < Math.max(a.length, b.length); i++) { if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) < (b[i] || 0); } return false; };
 let avisoApkMostrado = false;
 function avisoApk() {
@@ -2485,7 +2486,7 @@ function avisoApk() {
   const im = el('img'); im.src = 'escudo.png'; im.alt = '';
   const dl = el('a', 'btn-pri'); dl.href = APK_URL; dl.innerHTML = ICON.dl + '<span>Descargar</span>';
   const no = el('button', 'btn-sec', 'Ahora no'); no.type = 'button';
-  caja.append(im, el('b', null, 'Hay una nueva versión de la app'), el('p', null, `Tienes la versión ${v}. La ${APK_ULTIMA} funciona en más teléfonos. Descárgala e instálala encima: no pierdes nada, tu IBM y tu foto se conservan.`), dl, no);
+  caja.append(im, el('b', null, 'Hay una nueva versión de la app'), el('div', 'aviso-ver', `Tu versión: ${v}  ·  Más reciente: ${APK_ULTIMA}`), el('p', null, 'La nueva versión funciona en más teléfonos. Descárgala e instálala encima: no pierdes nada, tu IBM y tu foto se conservan.'), dl, no);
   document.body.append(capa, caja);
   requestAnimationFrame(() => { capa.classList.add('abierto'); caja.classList.add('abierto'); });
   const cerrar = () => { try { localStorage.setItem('s80_aviso_apk', String(Date.now())); } catch (e) {} capa.classList.remove('abierto'); caja.classList.remove('abierto'); setTimeout(() => { capa.remove(); caja.remove(); }, 250); };
@@ -2581,7 +2582,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261103185410';
+const APP_VERSION = '20261103192650';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
