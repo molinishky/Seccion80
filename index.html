@@ -632,6 +632,15 @@ html.seguro *,html.seguro *::before,html.seguro *::after{backdrop-filter:none!im
 html.seguro{--g-bg:rgba(255,255,255,.94);--g-bg-fuerte:rgba(255,255,255,.97)}
 @media (prefers-color-scheme:dark){html.seguro{--g-bg:rgba(24,34,52,.95);--g-bg-fuerte:rgba(24,34,52,.98)}}
 html.seguro .scr.debajo{filter:none!important}
+/* ================= Aviso de nueva APK ================= */
+.aviso-apk{position:fixed;z-index:41;left:50%;top:50%;width:min(340px,calc(100% - 40px));transform:translate(-50%,-46%) scale(.94);opacity:0;transition:transform .25s cubic-bezier(.2,1.2,.4,1),opacity .2s;
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:22px 20px 16px;border-radius:22px;
+  background:var(--g-bg-fuerte,var(--g-bg));backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);border:1px solid var(--g-borde);box-shadow:0 20px 60px rgba(0,30,70,.28)}
+.aviso-apk.abierto{transform:translate(-50%,-50%);opacity:1}
+.aviso-apk img{height:58px}
+.aviso-apk b{font-size:18px}
+.aviso-apk p{font-size:14.5px;color:var(--mu);line-height:1.45}
+.aviso-apk .btn-pri,.aviso-apk .btn-sec{width:100%;justify-content:center}
 /* ================= Subpáginas ================= */
 .sub-base,.sub-det{position:relative}
 .sub-det{margin:0 -20px;padding:0 20px}
@@ -1710,6 +1719,7 @@ const periodo = w => (DATA && DATA.meta && DATA.meta.periodos && DATA.meta.perio
 /* ================= Inicio ================= */
 function renderHome() {
   const d = session.data, pn = primerNombre(d);
+  setTimeout(avisoApk, 900);
   pintarFoto();
   $('#home-nombre').textContent = pn || 'Compañero';
   if (HW_CARD) HW_CARD.querySelector('b').textContent = pn ? `¡Feliz Halloween, ${pn}!` : '¡Feliz Halloween!';
@@ -2462,6 +2472,26 @@ function pedirActualizar() {
   document.querySelector('.app').append(w);
 }
 
+/* ----- Aviso (se puede cerrar) cuando hay una APK más nueva ----- */
+const APK_ULTIMA = '1.4';
+const verMenor = (v, w) => { const a = String(v).split('.').map(Number), b = String(w).split('.').map(Number); for (let i = 0; i < Math.max(a.length, b.length); i++) { if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) < (b[i] || 0); } return false; };
+let avisoApkMostrado = false;
+function avisoApk() {
+  const v = apkVersion(); if (!v || avisoApkMostrado || !verMenor(v, APK_ULTIMA)) return;
+  let ult = 0; try { ult = +localStorage.getItem('s80_aviso_apk') || 0; } catch (e) {}
+  if (Date.now() - ult < 3 * 864e5) return;            // si dijo "Ahora no", se vuelve a mostrar en 3 días
+  avisoApkMostrado = true;
+  const capa = el('div', 'sem-capa'), caja = el('div', 'aviso-apk'); caja.setAttribute('role', 'dialog'); caja.setAttribute('aria-modal', 'true');
+  const im = el('img'); im.src = 'escudo.png'; im.alt = '';
+  const dl = el('a', 'btn-pri'); dl.href = APK_URL; dl.innerHTML = ICON.dl + '<span>Descargar</span>';
+  const no = el('button', 'btn-sec', 'Ahora no'); no.type = 'button';
+  caja.append(im, el('b', null, 'Hay una nueva versión de la app'), el('p', null, `Tienes la versión ${v}. La ${APK_ULTIMA} funciona en más teléfonos. Descárgala e instálala encima: no pierdes nada, tu IBM y tu foto se conservan.`), dl, no);
+  document.body.append(capa, caja);
+  requestAnimationFrame(() => { capa.classList.add('abierto'); caja.classList.add('abierto'); });
+  const cerrar = () => { try { localStorage.setItem('s80_aviso_apk', String(Date.now())); } catch (e) {} capa.classList.remove('abierto'); caja.classList.remove('abierto'); setTimeout(() => { capa.remove(); caja.remove(); }, 250); };
+  no.addEventListener('click', cerrar); capa.addEventListener('click', cerrar); dl.addEventListener('click', () => setTimeout(cerrar, 300));
+}
+
 /* ================= iPhone: instalar en la pantalla de inicio ================= */
 function iosEnNavegador() {
   const ua = navigator.userAgent || '';
@@ -2551,7 +2581,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261103184143';
+const APP_VERSION = '20261103185410';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
