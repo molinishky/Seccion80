@@ -2440,11 +2440,41 @@ function dispositivo() {
   if (/Android/.test(ua)) return [inst ? 'Android (icono)' : 'Android (navegador)', ''];
   return ['Computadora', ''];
 }
-function registrarAcceso() {
+/* ----- Marca, modelo y sistema del teléfono (para vigilar en qué equipos falla la app) ----- */
+const MARCAS = [[/^SM-|SAMSUNG|Galaxy/i, 'Samsung'], [/^(Redmi|POCO|Mi |MI |M2\d|2\d{3}[0-9A-Z]{4,}|22\d{2}|23\d{3}|24\d{3})/i, 'Xiaomi'], [/^(moto|motorola|XT\d)/i, 'Motorola'],
+  [/^Pixel/i, 'Google'], [/^(HONOR|[A-Z]{3}-N[A-Z]\d|ALI-|BVL-|CMA-|RKY-|VNE-|LLY-|CRT-|ALT-)/, 'Honor'], [/^(HUAWEI|[A-Z]{3}-L[A-Z]\d)/, 'Huawei'], [/^CPH\d/i, 'OPPO'], [/^RMX\d/i, 'Realme'],
+  [/^(V2\d{3}|vivo)/i, 'vivo'], [/^TECNO/i, 'Tecno'], [/^Infinix/i, 'Infinix'], [/^(ZTE|A7\d{3}|Z\d{4})/i, 'ZTE'], [/^LM-/i, 'LG'], [/^Nokia/i, 'Nokia'], [/^(OnePlus|[A-Z]{2}\d{4}$)/i, 'OnePlus'], [/^(itel|ITEL)/, 'itel'], [/^(Lenovo|TB-)/i, 'Lenovo']];
+function iPhonePorPantalla() {
+  const w = Math.min(screen.width, screen.height), h = Math.max(screen.width, screen.height), r = window.devicePixelRatio || 1, k = `${w}x${h}@${Math.round(r)}`;
+  return ({ '320x568@2': 'iPhone SE (1.ª gen) / 5s', '375x667@2': 'iPhone 6 / 7 / 8 / SE', '414x736@3': 'iPhone 6 / 7 / 8 Plus', '375x812@3': 'iPhone X / XS / 11 Pro / 12-13 mini',
+    '414x896@2': 'iPhone XR / 11', '414x896@3': 'iPhone XS Max / 11 Pro Max', '390x844@3': 'iPhone 12 / 13 / 14', '428x926@3': 'iPhone 12-13 Pro Max / 14 Plus',
+    '393x852@3': 'iPhone 14 Pro / 15 / 16', '430x932@3': 'iPhone 14-15 Pro Max / 15-16 Plus', '402x874@3': 'iPhone 16 Pro / 17', '440x956@3': 'iPhone 16-17 Pro Max', '420x912@3': 'iPhone Air' })[k] || `iPhone (pantalla ${k})`;
+}
+async function infoEquipo() {
+  const ua = navigator.userAgent || '';
+  if (/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) {
+    const v = (ua.match(/OS (\d+)[_.](\d+)/) || []).slice(1).join('.');
+    return { marca: 'Apple', modelo: /iPad|Macintosh/.test(ua) ? 'iPad' : iPhonePorPantalla(), sistema: 'iOS ' + (v || '?') };
+  }
+  const and = ua.match(/Android ([\d.]+)/), chrome = (ua.match(/Chrome\/(\d+)/) || [])[1];
+  if (and) {
+    let modelo = ((ua.match(/Android [\d.]+; ([^;)]+?)(?: Build\/|\))/) || [])[1] || '').trim();
+    if ((!modelo || modelo === 'K') && navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+      try { const hv = await navigator.userAgentData.getHighEntropyValues(['model']); if (hv.model) modelo = hv.model; } catch (e) {}
+    }
+    if (modelo === 'K') modelo = '';
+    const m = MARCAS.find(([re]) => re.test(modelo));
+    return { marca: m ? m[1] : (modelo ? 'Otra' : '?'), modelo: modelo || '?', sistema: `Android ${and[1]}${/; wv\)/.test(ua) ? ' · WebView ' : ' · Chrome '}${chrome || '?'}` };
+  }
+  return { marca: '—', modelo: /Windows/.test(ua) ? 'Windows' : /Mac/.test(ua) ? 'Mac' : /Linux/.test(ua) ? 'Linux' : 'Computadora', sistema: chrome ? 'Chrome ' + chrome : (/Firefox\/(\d+)/.test(ua) ? 'Firefox' : /Safari/.test(ua) ? 'Safari' : '?') };
+}
+window.__infoEquipo = infoEquipo;
+async function registrarAcceso() {
   if (accesoRegistrado || !session || !DATA || !DATA.meta || !DATA.meta.registro) return;
   accesoRegistrado = true;
   const [disp, ver] = dispositivo(), d = session.data;
-  const cuerpo = JSON.stringify({ ibm: corto(d.socio), socio: d.socio, nombre: nombreCompleto(d), disp, ver });
+  let eq = {}; try { eq = await infoEquipo(); } catch (e) {}
+  const cuerpo = JSON.stringify({ ibm: corto(d.socio), socio: d.socio, nombre: nombreCompleto(d), disp, ver, marca: eq.marca || '', modelo: eq.modelo || '', sistema: eq.sistema || '' });
   try { fetch(DATA.meta.registro, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: cuerpo, keepalive: true }).catch(() => {}); } catch (e) {}
 }
 
@@ -2584,7 +2614,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261103202437';
+const APP_VERSION = '20261103212934';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
