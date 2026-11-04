@@ -17,15 +17,26 @@ jobs:
       - name: Compilar
         working-directory: android
         run: gradle assembleRelease --no-daemon
-      - name: Renombrar
-        run: cp android/app/build/outputs/apk/release/app-release.apk Seccion80.apk
+      - name: Renombrar con la versión
+        id: ver
+        run: |
+          V=$(grep -oP "versionName '\K[^']+" android/app/build.gradle)
+          echo "v=$V" >> "$GITHUB_OUTPUT"
+          cp android/app/build/outputs/apk/release/app-release.apk "Seccion80-v$V.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk Seccion80.apk
+      - name: Quitar versiones anteriores del release
+        env: { GH_TOKEN: '${{ github.token }}', GH_REPO: '${{ github.repository }}' }
+        run: |
+          gh release view apk-latest --json assets -q '.assets[].name' 2>/dev/null | grep -E '^Seccion80-v.*\.apk$' | grep -v "^Seccion80-v${{ steps.ver.outputs.v }}\.apk$" | while read a; do gh release delete-asset apk-latest "$a" -y; done || true
       - uses: actions/upload-artifact@v4
-        with: { name: Seccion80-apk, path: Seccion80.apk }
+        with: { name: Seccion80-apk, path: 'Seccion80-v*.apk' }
       - name: Publicar en Releases
         uses: softprops/action-gh-release@v2
         with:
           tag_name: apk-latest
           name: Sección 80 para Android
-          body: Descarga Seccion80.apk e instálala en tu teléfono Android.
-          files: Seccion80.apk
+          body: "Versión ${{ steps.ver.outputs.v }}. Descarga Seccion80-v${{ steps.ver.outputs.v }}.apk e instálala en tu teléfono Android."
+          files: |
+            Seccion80-v${{ steps.ver.outputs.v }}.apk
+            Seccion80.apk
           make_latest: true
