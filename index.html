@@ -3036,7 +3036,7 @@ if (NV) (() => {
   const colocar = () => {
     const w = sp.clientWidth || innerWidth, h = sp.clientHeight || innerHeight;
     const k = Math.max(w / 720, h / 1280);           // el video cubre la pantalla, pegado arriba
-    const bx = (w - 720 * k) / 2 + 374 * k, by = 100 * k; // centro del moño en el video
+    const bx = (w - 720 * k) / 2 + 352 * k, by = 100 * k; // alineado con el centro del árbol (estrella), a la altura del moño
     const eh = Math.max(76, Math.min(130, 150 * k));
     const img = sin.querySelector('img'); img.style.height = eh + 'px';
     sin.style.left = bx + 'px'; sin.style.top = (by - eh / 2) + 'px';
