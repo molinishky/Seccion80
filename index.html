@@ -657,7 +657,8 @@ html.nv #splash.fuera{opacity:0}
 .nv-velo{position:absolute;inset:0;background:linear-gradient(180deg,#000 0,transparent 5%),linear-gradient(0deg,rgba(0,0,0,.45),transparent 22%)}
 html.nv #splash .sp-in{position:absolute;left:50%;top:6%;transform:translateX(-50%);z-index:3;gap:18px}
 html.nv #splash img.sp-esc{height:96px;filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 18px rgba(255,215,120,.85)) drop-shadow(0 10px 22px rgba(0,0,0,.55))}
-html.nv #splash .sp-barra{width:140px;background:rgba(255,255,255,.2)}
+html.nv #splash .sp-barra{width:1px;height:1px;opacity:0;position:absolute;overflow:hidden} /* la carga se ve como la luz del árbol */
+#splash canvas.nv-luz{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
 html.nv #splash .sp-barra i{background:linear-gradient(90deg,#1E7A3C,#E8C25A 55%,#D21F2C);box-shadow:0 0 10px rgba(255,214,120,.5)}
 /* Inicio: guirnalda con el escudo en lugar del moño */
 .home-top img.nv-guirnalda{position:absolute;left:-3.9%;width:104%;max-width:none;top:0;height:auto;filter:none;animation:none;z-index:0;pointer-events:none;-webkit-mask-image:linear-gradient(180deg,#000 72%,transparent);mask-image:linear-gradient(180deg,#000 72%,transparent)}
@@ -3041,6 +3042,43 @@ if (NV) (() => {
     sin.style.left = bx + 'px'; sin.style.top = (by - eh / 2) + 'px';
   };
   colocar(); addEventListener('resize', colocar);
+  // barra de carga: una luz que recorre la espiral del árbol (sincronizada con el giro del video)
+  const cv = el('canvas', 'nv-luz'); sin.before(cv);
+  const vid = sp.querySelector('video.nv-fondo'), ctx = cv.getContext('2d'), TAU = Math.PI * 2;
+  let cur = 0, ult = performance.now();
+  const punto = (s, phi) => { // misma geometría que el árbol del video (720×1280)
+    const th = TAU * 5 * s + phi, r = 205 * Math.pow(s, 0.95);
+    return [352 + r * Math.cos(th), 560 + s * 440 + r * Math.sin(th) * 0.16, (Math.sin(th) + 1) / 2];
+  };
+  const pintar = now => {
+    if (sp.hidden) { setTimeout(() => { ult = performance.now(); requestAnimationFrame(pintar); }, 400); return; }
+    const dpr = Math.min(2, devicePixelRatio || 1), w = sp.clientWidth, h = sp.clientHeight;
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    const meta = (parseFloat(document.getElementById('sp-fill').style.width) || 0) / 100;
+    cur = Math.min(meta, cur + (now - ult) / 1400); ult = now; // recorre el árbol en ~1.4 s como mínimo
+    const k = Math.max(w / 720, h / 1280), ox = (w - 720 * k) / 2;
+    const phi = TAU * ((vid && vid.currentTime) || 0) / 24;
+    ctx.setTransform(dpr * k, 0, 0, dpr * k, dpr * ox, 0); ctx.clearRect(-ox / k, 0, w / k, h / k);
+    ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+    const fin = 0.015 + cur * 0.985; let prev = [352, 522, 1];
+    for (let s = 0.015; s <= fin; s += 0.0025) {
+      const q = punto(s, phi), a = 0.25 + 0.75 * q[2];
+      ctx.strokeStyle = `rgba(255,200,110,${0.16 * a})`; ctx.lineWidth = 12;
+      ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(q[0], q[1]); ctx.stroke();
+      ctx.strokeStyle = `rgba(255,236,190,${0.85 * a})`; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(q[0], q[1]); ctx.stroke();
+      prev = q;
+    }
+    // la luz que va al frente
+    const [hx, hy] = cur > 0 ? prev : [352, 522], pul = 1 + 0.15 * Math.sin(now / 90);
+    const g = ctx.createRadialGradient(hx, hy, 0, hx, hy, 34 * pul);
+    g.addColorStop(0, 'rgba(255,255,240,1)'); g.addColorStop(0.25, 'rgba(255,220,140,.75)'); g.addColorStop(1, 'rgba(255,170,60,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(hx, hy, 34 * pul, 0, TAU); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,250,225,.9)'; ctx.lineWidth = 2; const L = 20 * pul;
+    ctx.beginPath(); ctx.moveTo(hx - L, hy); ctx.lineTo(hx + L, hy); ctx.moveTo(hx, hy - L); ctx.lineTo(hx, hy + L); ctx.stroke();
+    requestAnimationFrame(pintar);
+  };
+  requestAnimationFrame(pintar);
   // Inicio: guirnalda detrás del escudo (el escudo queda donde iba el moño)
   const top = document.querySelector('.home-top'); const g = el('img', 'nv-guirnalda'); g.src = 'nv_guirnalda.webp'; g.alt = '';
   top.prepend(g);
