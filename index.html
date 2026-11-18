@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>/* Modo seguro: si la app no terminó de abrir la vez anterior (p. ej. el chip gráfico falló), se abre sin efectos de cristal pesados */try{var _h=document.documentElement,_q=location.search;if(/[?&]normal=1/.test(_q)){localStorage.removeItem('s80_seguro');localStorage.removeItem('s80_arranque')}if(/[?&]seguro=1/.test(_q))localStorage.setItem('s80_seguro','1');if(localStorage.getItem('s80_seguro')==='1'||localStorage.getItem('s80_arranque')==='1'){_h.classList.add('seguro');localStorage.setItem('s80_seguro','1')}localStorage.setItem('s80_arranque','1')}catch(e){}</script>
-<script>/* Temporadas: Halloween hasta el 31 oct · Día de Muertos 1-2 nov · Revolución 16-20 nov · Navidad 14-27 dic 2026 · Año Nuevo 28 dic-3 ene. Para ver una temporada como demostración: ?temporada=hw|dm|rv|nv|an|nm (nm = fondo normal) */(function(){var T=Date.now(),D=function(x){return Date.parse(x+'T00:00:00-06:00')},t='';if(T<D('2026-11-01'))t='hw';else if(T<D('2026-11-03'))t='dm';else if(T>=D('2026-11-16')&&T<D('2026-11-21'))t='rv';else if(T>=D('2026-12-14')&&T<D('2026-12-28'))t='nv';else if(T>=D('2026-12-28')&&T<D('2027-01-04'))t='an';var q=/[?&]temporada=(hw|dm|rv|nv|an|nm)\b/.exec(location.search);if(q)t=q[1];if(!t)t='nm';if(t)document.documentElement.classList.add(t);if(t==='rv'||t==='nv'||t==='an'||t==='nm')document.addEventListener('DOMContentLoaded',function(){var m=document.querySelector('meta[name=theme-color][media*=dark]');if(m)m.content='#000000'})})()</script>
+<script>/* Temporadas: Halloween hasta el 31 oct · Día de Muertos 1-2 nov · Revolución 16-20 nov · Navidad 14-27 dic 2026 · Año Nuevo 28 dic-3 ene · Aniversario del STIASRM 4-10 ene (fondo normal + tarjeta). Para ver una temporada como demostración: ?temporada=hw|dm|rv|nv|an|nm|aniv (nm = fondo normal) */(function(){var T=Date.now(),D=function(x){return Date.parse(x+'T00:00:00-06:00')},t='';if(T<D('2026-11-01'))t='hw';else if(T<D('2026-11-03'))t='dm';else if(T>=D('2026-11-16')&&T<D('2026-11-21'))t='rv';else if(T>=D('2026-12-14')&&T<D('2026-12-28'))t='nv';else if(T>=D('2026-12-28')&&T<D('2027-01-04'))t='an';var ani=T>=D('2027-01-04')&&T<D('2027-01-11');var q=/[?&]temporada=(hw|dm|rv|nv|an|nm|aniv)\b/.exec(location.search);if(q){t=q[1];ani=t==='aniv';if(ani)t='nm'}if(!t)t='nm';if(ani)document.documentElement.classList.add('aniv');if(t)document.documentElement.classList.add(t);if(t==='rv'||t==='nv'||t==='an'||t==='nm')document.addEventListener('DOMContentLoaded',function(){var m=document.querySelector('meta[name=theme-color][media*=dark]');if(m)m.content='#000000'})})()</script>
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
@@ -666,6 +666,42 @@ html.nm .deco::after{background:linear-gradient(180deg,rgba(var(--rv-velo),1) 0%
 .nm-esc{position:absolute;top:-60px;height:auto;animation:nmCae linear infinite;filter:drop-shadow(0 2px 4px rgba(0,0,0,.18))}
 @keyframes nmCae{0%{transform:translate(0,0) rotate(var(--r0))}100%{transform:translate(var(--dx),calc(100vh + 120px)) rotate(var(--r1))}}
 @media (prefers-reduced-motion:reduce){.nm-lluvia{display:none}}
+/* ================= Inicio en una sola pantalla: se compacta por pasos si no cabe (sobre todo con tarjeta de temporada) ================= */
+html.fit1 #s-home .tarjetas{gap:10px;margin-top:12px}
+html.fit1 #s-home .tarjetas .tarjeta{min-height:0;padding:13px;gap:8px}
+html.fit1 #s-home .tarjeta .circ{width:46px;height:46px}
+html.fit1 #s-home .tarjeta .circ svg{width:24px;height:24px}
+html.fit1 #s-home .tarjeta b{font-size:16px}
+html.fit1 #s-home .tarjeta span.sub{font-size:12.5px;line-height:1.35}
+html.fit2 #s-home .home-top{padding-top:12px}
+html.fit2 #s-home .home-top img:not(.nv-guirnalda){height:60px}
+html.fit2 #s-home .home-top+.franjas{margin-top:8px}
+html.fit2 #s-home .pad{padding-top:12px}
+html.fit2 #s-home .saludo{padding:11px 14px;gap:12px}
+html.fit2 #s-home .avatar,html.fit2 #s-home .avatar img{width:50px;height:50px}
+html.fit2 #s-home .saludo h2{font-size:20px}
+html.fit2 #s-home .saludo p{font-size:12.5px}
+html.fit2 #s-home :is(.hw-card,.dm-card,.rv-card,.nv-card,.an-card,.aniv-card){margin-top:10px;padding-top:9px;padding-bottom:9px}
+html.fit3 #s-home .tarjeta span.sub{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+html.fit3 #s-home .tarjeta .circ{width:40px;height:40px}
+html.fit3 #s-home .tarjeta .circ svg{width:21px;height:21px}
+html.fit3 #s-home .tarjeta b{font-size:15px}
+html.fit3 #s-home .tarjetas .tarjeta{padding:11px;gap:6px}
+html.fit3 #s-home :is(.hw-card,.dm-card,.rv-card,.nv-card,.an-card,.aniv-card) p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+html.fit4 #s-home .tarjeta span.sub{display:none}
+html.fit4 #s-home .home-top img:not(.nv-guirnalda){height:50px}
+html.fit4 #s-home .home-top{padding-top:8px}
+/* ================= Aniversario del STIASRM (4 al 10 de enero, con el fondo normal) ================= */
+.aniv-card{position:relative;overflow:hidden;margin-top:12px;border-radius:16px;padding:12px 104px 12px 14px;background:var(--rv-caja);backdrop-filter:var(--rv-blur);-webkit-backdrop-filter:var(--rv-blur);border:1px solid var(--g-borde);box-shadow:0 8px 20px rgba(0,40,90,.10)}
+.aniv-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,#E53935 0 25%,#FDD835 25% 50%,#0068B8 50% 75%,#2E9E4B 75%)}
+.aniv-card b{display:block;font-size:15.5px;color:#0068B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aniv-card p{font-size:12.5px;color:var(--mu);margin-top:2px;line-height:1.3}
+.aniv-num{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:6px}
+.aniv-num img{height:44px;width:auto;filter:drop-shadow(0 2px 6px rgba(0,0,0,.18))}
+.aniv-num span{display:flex;flex-direction:column;align-items:center;line-height:1}
+.aniv-num strong{font-size:30px;font-weight:900;letter-spacing:-.03em;background:linear-gradient(180deg,#D9A92A,#8A6408);-webkit-background-clip:text;background-clip:text;color:transparent}
+.aniv-num small{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--mu);margin-top:1px}
+@media (prefers-color-scheme:dark){.aniv-card b{color:#5AA9F0}.aniv-num strong{background:linear-gradient(180deg,#FFE08A,#C9A227);-webkit-background-clip:text;background-clip:text}}
 /* ================= Año Nuevo (solo con html.an) ================= */
 html.an .deco .an-deco{filter:none!important;object-position:50% 45%}
 html.an #splash{background:#000;overflow:hidden;transition:opacity .45s ease}
@@ -1550,6 +1586,7 @@ function show(name, o = {}) {
   SCREENS.forEach(s => { $('#s-' + s).hidden = s !== name; });
   $('#nav').hidden = name === 'login';
   document.body.classList.toggle('en-chat', name === 'chat');
+  if (name === 'home') requestAnimationFrame(() => { if (typeof ajustarInicio === 'function') ajustarInicio(); });
   document.querySelectorAll('#nav .tab').forEach(t => {
     const on = t.dataset.go === name;
     t.classList.toggle('on', on);
@@ -2830,7 +2867,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261118014722';
+const APP_VERSION = '20261118020342';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
@@ -3179,6 +3216,27 @@ if (document.documentElement.classList.contains('nm')) (() => {
 (() => {
   const s = el('div', 'firma', 'by Molinishky'); s.setAttribute('aria-hidden', 'true'); $('#splash').append(s); })();
 
+/* ================= Aniversario del STIASRM (8 de enero de 1937) · del 4 al 10 de enero ================= */
+var ANIV_CARD = null;
+if (document.documentElement.classList.contains('aniv')) (() => {
+  const hoy = new Date(), anios = (hoy.getMonth() === 0 ? hoy.getFullYear() : hoy.getFullYear() + 1) - 1937;   // en enero, los de este año; en la demostración, los del próximo 8 de enero
+  ANIV_CARD = el('section', 'aniv-card');
+  ANIV_CARD.innerHTML = `<b>¡${anios} años del Sindicato!</b><p>8 de enero de 1937 · Fundación del Sindicato Nacional Azucarero (STIASRM).</p><div class="aniv-num" aria-hidden="true"><img src="escudo.png" alt=""><span><strong>${anios}</strong><small>AÑOS</small></span></div>`;
+  $('#s-home .saludo').after(ANIV_CARD);
+})();
+
+/* ================= Inicio en una sola pantalla ================= */
+// Si las tarjetas de Inicio quedan debajo del menú, se compacta por pasos (fit1 → fit4) hasta que todo quepa.
+function ajustarInicio() {
+  const home = $('#s-home'), nav = $('#nav'); if (!home || home.hidden || !nav || nav.hidden) return;
+  const R = document.documentElement, ult = home.querySelector('.tarjetas .tarjeta:last-child'); if (!ult) return;
+  const limite = () => nav.getBoundingClientRect().top - 10, fondo = () => ult.getBoundingClientRect().bottom + window.scrollY;
+  R.classList.remove('fit1', 'fit2', 'fit3', 'fit4');
+  for (const c of ['fit1', 'fit2', 'fit3', 'fit4']) { if (fondo() <= limite()) break; R.classList.add(c); }
+}
+addEventListener('resize', () => requestAnimationFrame(ajustarInicio));
+if (window.ResizeObserver) new ResizeObserver(() => requestAnimationFrame(ajustarInicio)).observe($('#home-caja'));
+
 /* ================= Tarjeta de temporada: al tocarla, un breve resumen de lo que significa el día ================= */
 const TEMP_INFO = {
   hw: ['Halloween · 31 de octubre', [
@@ -3196,13 +3254,18 @@ const TEMP_INFO = {
     'El 31 de diciembre, la Nochevieja, despedimos el año en familia. En México es tradición comer 12 uvas con las 12 campanadas de medianoche, pidiendo un deseo por cada mes del año que empieza.',
     'El 1 de enero comienza el año nuevo: un buen momento para agradecer lo que logramos juntos y proponernos metas para el que viene.',
     'La Ley Federal del Trabajo (art. 74) marca el 1 de enero como día de descanso obligatorio. Si te toca trabajarlo, el artículo 75 dice que se paga doble, además de tu salario del día.']],
+  aniv: ['Aniversario del Sindicato · 8 de enero', [
+    'El 8 de enero de 1937 se constituyó el Sindicato de Trabajadores de la Industria Azucarera y Similares de la República Mexicana (STIASRM), con el registro número 1313 ante la Secretaría del Trabajo y Previsión Social.',
+    'Es un sindicato nacional de industria, organizado en secciones —como nuestra Sección 80 del Ingenio Tamazula— y pertenece a la CTM (Confederación de Trabajadores de México).',
+    'Agrupa a los trabajadores de ingenios, fábricas de alta fructosa, plantas de bagazo, destilerías de ron y alcohol, y trapiches de panela y piloncillo: desde la preparación de las tierras para la caña hasta la carga y el transporte del azúcar, además de los jubilados.',
+    'Sus estatutos lo comprometen con los principios de la Revolución Mexicana, sin distinción de raza, nacionalidad ni religión. Gracias a todos los que con su trabajo y unidad lo han sostenido por generaciones.']],
   rv: ['Revolución Mexicana · 20 de noviembre', [
     'El 20 de noviembre de 1910 comenzó la Revolución, con el llamado de Francisco I. Madero (Plan de San Luis) a levantarse contra la reelección de Porfirio Díaz, después de más de 30 años en el poder.',
     'Lucharon personajes como Francisco Villa, Emiliano Zapata, Venustiano Carranza y Álvaro Obregón, por la tierra, la justicia y mejores condiciones de vida.',
     'De ella nació la Constitución de 1917. Su artículo 123 nos dio derechos que hoy tenemos como trabajadores: jornada máxima de 8 horas, salario mínimo, derecho a formar sindicatos y a la huelga.',
     'La Ley Federal del Trabajo (art. 74) lo marca como día de descanso obligatorio el tercer lunes de noviembre.']]
 };
-[[typeof HW_CARD !== 'undefined' && HW_CARD, 'hw'], [typeof DM_CARD !== 'undefined' && DM_CARD, 'dm'], [RV_CARD, 'rv'], [NV_CARD, 'nv'], [AN_CARD, 'an']].forEach(([card, k]) => {
+[[typeof HW_CARD !== 'undefined' && HW_CARD, 'hw'], [typeof DM_CARD !== 'undefined' && DM_CARD, 'dm'], [RV_CARD, 'rv'], [NV_CARD, 'nv'], [AN_CARD, 'an'], [ANIV_CARD, 'aniv']].forEach(([card, k]) => {
   if (!card) return;
   const [titulo, parrafos] = TEMP_INFO[k];
   card.classList.add('temp-toca'); card.setAttribute('role', 'button'); card.tabIndex = 0; card.setAttribute('aria-label', titulo + '. Toca para saber qué se celebra.');
