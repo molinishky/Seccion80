@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>/* Modo seguro: si la app no terminó de abrir la vez anterior (p. ej. el chip gráfico falló), se abre sin efectos de cristal pesados */try{var _h=document.documentElement,_q=location.search;if(/[?&]normal=1/.test(_q)){localStorage.removeItem('s80_seguro');localStorage.removeItem('s80_arranque')}if(/[?&]seguro=1/.test(_q))localStorage.setItem('s80_seguro','1');if(localStorage.getItem('s80_seguro')==='1'||localStorage.getItem('s80_arranque')==='1'){_h.classList.add('seguro');localStorage.setItem('s80_seguro','1')}localStorage.setItem('s80_arranque','1')}catch(e){}</script>
-<script>/* Halloween: hasta el último minuto del 31 de octubre de 2026 */if(Date.now()<Date.parse('2026-11-01T00:00:00-06:00'))document.documentElement.classList.add('hw');/* Día de Muertos: 1 y 2 de noviembre */else if(Date.now()<Date.parse('2026-11-03T00:00:00-06:00'))document.documentElement.classList.add('dm');/* Revolución Mexicana: 16 al 20 de noviembre */else if(Date.now()>=Date.parse('2026-11-16T00:00:00-06:00')&&Date.now()<Date.parse('2026-11-21T00:00:00-06:00'))document.documentElement.classList.add('rv')</script>
+<script>/* Halloween: hasta el último minuto del 31 de octubre de 2026 */if(Date.now()<Date.parse('2026-11-01T00:00:00-06:00'))document.documentElement.classList.add('hw');/* Día de Muertos: 1 y 2 de noviembre */else if(Date.now()<Date.parse('2026-11-03T00:00:00-06:00'))document.documentElement.classList.add('dm');/* Revolución Mexicana: 16 al 20 de noviembre */else if(Date.now()>=Date.parse('2026-11-16T00:00:00-06:00')&&Date.now()<Date.parse('2026-11-21T00:00:00-06:00')){document.documentElement.classList.add('rv');document.addEventListener('DOMContentLoaded',function(){var m=document.querySelector('meta[name=theme-color][media*=dark]');if(m)m.content='#000000'})}</script>
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
@@ -588,11 +588,11 @@ html.dm .deco .dm-deco{display:block;left:50%;right:auto;transform:translateX(-5
 .pre-amt.cambia{animation:semCambia .35s ease}
 @keyframes semCambia{from{opacity:.2;transform:translateY(4px)}}
 /* ================= Revolución Mexicana (solo con html.rv) ================= */
-html.rv #splash{background:#1a120a;overflow:hidden;transition:opacity .45s ease}
+html.rv #splash{background:#000;overflow:hidden;transition:opacity .45s ease}
 html.rv #splash.fuera{opacity:0}
 html.rv #splash img.rv-fondo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 40%;animation:rvKen 9s ease-out forwards;filter:saturate(.9) brightness(.78)}
 @keyframes rvKen{from{transform:scale(1.12)}to{transform:scale(1)}}
-.rv-velo{position:absolute;inset:0;background:radial-gradient(55% 24% at 50% 37.5%,rgba(20,12,4,.72),rgba(20,12,4,.25) 70%,transparent),linear-gradient(0deg,rgba(15,9,3,.75),transparent 30%)}
+.rv-velo{position:absolute;inset:0;background:linear-gradient(180deg,#000 0,rgba(0,0,0,.55) 9%,transparent 22%),radial-gradient(55% 24% at 50% 37.5%,rgba(20,12,4,.72),rgba(20,12,4,.25) 70%,transparent),linear-gradient(0deg,rgba(15,9,3,.75),transparent 30%)}
 html.rv #splash .sp-in{position:absolute;left:50%;top:37.5%;transform:translate(-50%,-50%);z-index:3}
 
 html.rv #splash img.sp-esc{height:min(32vw,128px);filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 20px rgba(255,214,140,.85)) drop-shadow(0 12px 26px rgba(0,0,0,.6))}
@@ -617,11 +617,14 @@ html.rv .home-top::before{content:"";position:absolute;left:50%;top:calc(50% + 1
 html.rv #s-home .saludo{padding:14px}
 html.rv #s-home .tarjetas{gap:12px;margin-top:12px}
 html.rv #s-home .tarjeta{min-height:146px;gap:10px;padding:14px}
-/* fondo de todas las pantallas: la escena quieta en lugar de las cañas */
-html.rv .deco{height:340px}
+/* fondo de todas las pantallas: la escena completa a pantalla entera, con degradado (negro en modo oscuro, blanco en modo día) */
+html.rv{--fondo:#FFFFFF;--rv-velo:255,255,255}
+@media (prefers-color-scheme:dark){html.rv{--fondo:#000000;--rv-velo:0,0,0}}
+html.rv .deco{top:0;bottom:0;height:auto;background:var(--fondo)}
 html.rv .deco svg,html.rv .deco img:not(.rv-deco){display:none}
-html.rv .deco .rv-deco{display:block;left:50%;right:auto;transform:translateX(-50%);width:100%;height:auto;bottom:0;opacity:.14;filter:sepia(.6) saturate(.8);-webkit-mask-image:linear-gradient(0deg,#000 50%,transparent);mask-image:linear-gradient(0deg,#000 50%,transparent)}
-@media (prefers-color-scheme:dark){html.rv .deco .rv-deco{opacity:.18!important;filter:sepia(.5) saturate(.8)!important}}
+html.rv .deco .rv-deco{display:block;position:absolute;inset:0;left:0;right:0;transform:none;width:100%;height:100%;object-fit:cover;object-position:50% 62%;opacity:1!important;filter:sepia(.35) saturate(.8)!important;-webkit-mask-image:none;mask-image:none}
+html.rv .deco::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(var(--rv-velo),1) 0%,rgba(var(--rv-velo),.94) 16%,rgba(var(--rv-velo),.82) 48%,rgba(var(--rv-velo),.62) 100%)}
+@media (prefers-color-scheme:dark){html.rv .deco::after{background:linear-gradient(180deg,rgba(var(--rv-velo),1) 0%,rgba(var(--rv-velo),.9) 16%,rgba(var(--rv-velo),.72) 48%,rgba(var(--rv-velo),.48) 100%)}}
 /* confeti tricolor que cae por detrás */
 .rv-confeti{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
 .rv-pz{position:absolute;top:-20px;border-radius:2px;animation:rvCae linear infinite}
@@ -2736,7 +2739,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261115202155';
+const APP_VERSION = '20261117192305';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
@@ -2958,7 +2961,7 @@ if (RV) (() => {
   RV_CARD.innerHTML = '<b>¡Viva la Revolución Mexicana!</b><p>20 de noviembre · Honramos la lucha por los derechos laborales.</p><img src="rv_card.webp" alt="">';
   $('#s-home .saludo').after(RV_CARD);
   // fondo quieto y confeti tricolor por detrás de las tarjetas
-  const deco = document.querySelector('.deco'); const di = el('img', 'rv-deco'); di.src = 'rv_fondo.webp'; di.alt = ''; deco.append(di);
+  const deco = document.querySelector('.deco'); const di = el('img', 'rv-deco'); di.src = 'rv_splash.webp'; di.alt = ''; deco.append(di);
   const C = el('div', 'rv-confeti'); deco.after(C);
   const COL = ['#006847', '#F4F1E8', '#CE1126'];
   for (let i = 0; i < 16; i++) { const p = el('div', 'rv-pz'), w2 = 6 + Math.random() * 5;
