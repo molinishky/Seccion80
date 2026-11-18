@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>/* Modo seguro: si la app no terminó de abrir la vez anterior (p. ej. el chip gráfico falló), se abre sin efectos de cristal pesados */try{var _h=document.documentElement,_q=location.search;if(/[?&]normal=1/.test(_q)){localStorage.removeItem('s80_seguro');localStorage.removeItem('s80_arranque')}if(/[?&]seguro=1/.test(_q))localStorage.setItem('s80_seguro','1');if(localStorage.getItem('s80_seguro')==='1'||localStorage.getItem('s80_arranque')==='1'){_h.classList.add('seguro');localStorage.setItem('s80_seguro','1')}localStorage.setItem('s80_arranque','1')}catch(e){}</script>
-<script>/* Temporadas: Halloween hasta el 31 oct · Día de Muertos 1-2 nov · Revolución 16-20 nov · Navidad 14-27 dic 2026. Para ver una temporada como demostración: ?temporada=hw|dm|rv|nv */(function(){var T=Date.now(),D=function(x){return Date.parse(x+'T00:00:00-06:00')},t='';if(T<D('2026-11-01'))t='hw';else if(T<D('2026-11-03'))t='dm';else if(T>=D('2026-11-16')&&T<D('2026-11-21'))t='rv';else if(T>=D('2026-12-14')&&T<D('2026-12-28'))t='nv';var q=/[?&]temporada=(hw|dm|rv|nv)\b/.exec(location.search);if(q)t=q[1];if(t)document.documentElement.classList.add(t);if(t==='rv'||t==='nv')document.addEventListener('DOMContentLoaded',function(){var m=document.querySelector('meta[name=theme-color][media*=dark]');if(m)m.content='#000000'})})()</script>
+<script>/* Temporadas: Halloween hasta el 31 oct · Día de Muertos 1-2 nov · Revolución 16-20 nov · Navidad 14-27 dic 2026 · Año Nuevo 28 dic-3 ene. Para ver una temporada como demostración: ?temporada=hw|dm|rv|nv|an */(function(){var T=Date.now(),D=function(x){return Date.parse(x+'T00:00:00-06:00')},t='';if(T<D('2026-11-01'))t='hw';else if(T<D('2026-11-03'))t='dm';else if(T>=D('2026-11-16')&&T<D('2026-11-21'))t='rv';else if(T>=D('2026-12-14')&&T<D('2026-12-28'))t='nv';else if(T>=D('2026-12-28')&&T<D('2027-01-04'))t='an';var q=/[?&]temporada=(hw|dm|rv|nv|an)\b/.exec(location.search);if(q)t=q[1];if(t)document.documentElement.classList.add(t);if(t==='rv'||t==='nv'||t==='an')document.addEventListener('DOMContentLoaded',function(){var m=document.querySelector('meta[name=theme-color][media*=dark]');if(m)m.content='#000000'})})()</script>
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
@@ -618,23 +618,23 @@ html.rv #s-home .saludo{padding:14px}
 html.rv #s-home .tarjetas{gap:12px;margin-top:12px}
 html.rv #s-home .tarjeta{min-height:146px;gap:10px;padding:14px}
 /* fondo de todas las pantallas: la escena completa a pantalla entera, con degradado (negro en modo oscuro, blanco en modo día) */
-:is(html.rv,html.nv){--fondo:#FFFFFF;--rv-velo:255,255,255}
-@media (prefers-color-scheme:dark){:is(html.rv,html.nv){--fondo:#000000;--rv-velo:0,0,0}}
-:is(html.rv,html.nv) .deco{top:0;bottom:0;height:auto;background:var(--fondo)}
-:is(html.rv,html.nv) .deco svg,:is(html.rv,html.nv) .deco img:not(.rv-deco){display:none}
-.deco video.nv-deco{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%}
-:is(html.rv,html.nv) .deco :is(.rv-deco,.nv-deco){display:block;position:absolute;inset:0;left:0;right:0;transform:none;width:100%;height:100%;object-fit:cover;object-position:50% 62%;opacity:1!important;filter:sepia(.35) saturate(.8)!important;-webkit-mask-image:none;mask-image:none}
-:is(html.rv,html.nv) .deco::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(var(--rv-velo),1) 0%,rgba(var(--rv-velo),.94) 16%,rgba(var(--rv-velo),.82) 48%,rgba(var(--rv-velo),.62) 100%)}
-@media (prefers-color-scheme:dark){:is(html.rv,html.nv) .deco::after{background:linear-gradient(180deg,rgba(var(--rv-velo),1) 0%,rgba(var(--rv-velo),.9) 16%,rgba(var(--rv-velo),.72) 48%,rgba(var(--rv-velo),.48) 100%)}}
+:is(html.rv,html.nv,html.an){--fondo:#FFFFFF;--rv-velo:255,255,255}
+@media (prefers-color-scheme:dark){:is(html.rv,html.nv,html.an){--fondo:#000000;--rv-velo:0,0,0}}
+:is(html.rv,html.nv,html.an) .deco{top:0;bottom:0;height:auto;background:var(--fondo)}
+:is(html.rv,html.nv,html.an) .deco svg,:is(html.rv,html.nv,html.an) .deco img:not(.rv-deco){display:none}
+.deco video:is(.nv-deco,.an-deco){position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%}
+:is(html.rv,html.nv,html.an) .deco :is(.rv-deco,.nv-deco,.an-deco){display:block;position:absolute;inset:0;left:0;right:0;transform:none;width:100%;height:100%;object-fit:cover;object-position:50% 62%;opacity:1!important;filter:sepia(.35) saturate(.8)!important;-webkit-mask-image:none;mask-image:none}
+:is(html.rv,html.nv,html.an) .deco::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(var(--rv-velo),1) 0%,rgba(var(--rv-velo),.94) 16%,rgba(var(--rv-velo),.82) 48%,rgba(var(--rv-velo),.62) 100%)}
+@media (prefers-color-scheme:dark){:is(html.rv,html.nv,html.an) .deco::after{background:linear-gradient(180deg,rgba(var(--rv-velo),1) 0%,rgba(var(--rv-velo),.9) 16%,rgba(var(--rv-velo),.72) 48%,rgba(var(--rv-velo),.48) 100%)}}
 html.nv .deco .nv-deco{filter:none!important;object-position:50% 50%}
 /* recuadros: todos con la misma transparencia (inicio y dentro de cada opción); el confeti se ve por detrás con blur suave */
-:is(html.rv,html.nv){--rv-caja:rgba(255,255,255,.40);--rv-blur:blur(8px) saturate(170%)}
-@media (prefers-color-scheme:dark){:is(html.rv,html.nv){--rv-caja:rgba(22,28,40,.46)}}
-:is(html.rv,html.nv) :is(.tarjeta,.panel,.recibo,.pre,.cargando,.aviso,.ley,.pasos,.saldo.vacio,.saludo,.vidrio){background:var(--rv-caja);backdrop-filter:var(--rv-blur);-webkit-backdrop-filter:var(--rv-blur)}
-:is(html.rv,html.nv) .rv-card{backdrop-filter:var(--rv-blur);-webkit-backdrop-filter:var(--rv-blur)}
-:is(html.rv,html.nv) .recibo-h{background:linear-gradient(180deg,rgba(0,104,184,.12),rgba(0,104,184,.05))}
-:is(html.rv,html.nv) .rec-tot{background:rgba(255,255,255,.18)}
-@media (prefers-color-scheme:dark){:is(html.rv,html.nv) .recibo-h{background:linear-gradient(180deg,rgba(59,155,234,.18),rgba(59,155,234,.07))}:is(html.rv,html.nv) .rec-tot{background:rgba(0,0,0,.18)}}
+:is(html.rv,html.nv,html.an){--rv-caja:rgba(255,255,255,.40);--rv-blur:blur(8px) saturate(170%)}
+@media (prefers-color-scheme:dark){:is(html.rv,html.nv,html.an){--rv-caja:rgba(22,28,40,.46)}}
+:is(html.rv,html.nv,html.an) :is(.tarjeta,.panel,.recibo,.pre,.cargando,.aviso,.ley,.pasos,.saldo.vacio,.saludo,.vidrio){background:var(--rv-caja);backdrop-filter:var(--rv-blur);-webkit-backdrop-filter:var(--rv-blur)}
+:is(html.rv,html.nv,html.an) .rv-card{backdrop-filter:var(--rv-blur);-webkit-backdrop-filter:var(--rv-blur)}
+:is(html.rv,html.nv,html.an) .recibo-h{background:linear-gradient(180deg,rgba(0,104,184,.12),rgba(0,104,184,.05))}
+:is(html.rv,html.nv,html.an) .rec-tot{background:rgba(255,255,255,.18)}
+@media (prefers-color-scheme:dark){:is(html.rv,html.nv,html.an) .recibo-h{background:linear-gradient(180deg,rgba(59,155,234,.18),rgba(59,155,234,.07))}:is(html.rv,html.nv,html.an) .rec-tot{background:rgba(0,0,0,.18)}}
 html.seguro.rv{--rv-caja:var(--g-bg)}
 /* tarjeta de temporada que se puede tocar y su resumen */
 .temp-toca{cursor:pointer;transition:transform .15s}
@@ -642,14 +642,40 @@ html.seguro.rv{--rv-caja:var(--g-bg)}
 .hoja .temp-info{max-height:55vh;overflow:auto;margin:4px 2px 14px;display:flex;flex-direction:column;gap:10px}
 .hoja .temp-info p{font-size:15px;line-height:1.45;color:var(--tx);text-align:left;margin:0}
 /* hojas y menús: el mismo vidrio negro (noche) / blanco (día) que los recuadros */
-:is(html.rv,html.nv) :is(.hoja,.sem-menu){background:var(--rv-caja);backdrop-filter:var(--rv-blur);-webkit-backdrop-filter:var(--rv-blur);border-color:var(--g-borde)}
-:is(html.rv,html.nv) .hoja-fondo{background:rgba(0,0,0,.14)}
-@media (prefers-color-scheme:dark){:is(html.rv,html.nv) .hoja-fondo{background:rgba(0,0,0,.35)}}
+:is(html.rv,html.nv,html.an) :is(.hoja,.sem-menu){background:var(--rv-caja);backdrop-filter:var(--rv-blur);-webkit-backdrop-filter:var(--rv-blur);border-color:var(--g-borde)}
+:is(html.rv,html.nv,html.an) .hoja-fondo{background:rgba(0,0,0,.14)}
+@media (prefers-color-scheme:dark){:is(html.rv,html.nv,html.an) .hoja-fondo{background:rgba(0,0,0,.35)}}
 /* confeti tricolor que cae por detrás */
 .rv-confeti{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
 .rv-pz{position:absolute;top:-20px;border-radius:2px;animation:rvCae linear infinite}
 @keyframes rvCae{0%{transform:translate(0,0) rotate(0) rotateY(0)}100%{transform:translate(var(--dx),110vh) rotate(var(--r)) rotateY(720deg)}}
 @media (prefers-reduced-motion:reduce){.rv-confeti,.rv-polvo{display:none}html.rv #splash img.rv-fondo{animation:none}}
+/* ================= Año Nuevo (solo con html.an) ================= */
+html.an .deco .an-deco{filter:none!important;object-position:50% 45%}
+html.an #splash{background:#000;overflow:hidden;transition:opacity .45s ease}
+html.an #splash.fuera{opacity:0}
+#splash video.an-fondo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%}
+.an-velo{position:absolute;inset:0;background:radial-gradient(52% 22% at 50% 37.5%,rgba(0,0,0,.55),rgba(0,0,0,.15) 70%,transparent),linear-gradient(180deg,#000 0,transparent 6%),linear-gradient(0deg,rgba(0,0,0,.5),transparent 26%)}
+.an-luz{position:absolute;left:50%;top:37.5%;width:min(80vw,340px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,224,150,.40) 0%,rgba(255,190,90,.14) 38%,transparent 70%);animation:dmLuz 1.15s ease-in-out infinite}
+html.an #splash .sp-in{position:absolute;left:50%;top:37.5%;transform:translate(-50%,-50%);z-index:3}
+html.an #splash img.sp-esc{height:min(32vw,128px);filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 20px rgba(255,215,120,.85)) drop-shadow(0 12px 26px rgba(0,0,0,.6));animation:latido 1.15s ease-in-out infinite}
+html.an #splash .sp-barra{width:150px;background:rgba(255,255,255,.16)}
+html.an #splash .sp-barra i{background:linear-gradient(90deg,#C9A227,#FFE08A,#C9A227);box-shadow:0 0 10px rgba(255,214,120,.6)}
+.an-anio{position:absolute;left:0;right:0;top:calc(37.5% + min(16vw,64px) + 58px);text-align:center;z-index:3;color:#FFE7A8;font-weight:800;letter-spacing:.32em;font-size:13px;text-shadow:0 0 12px rgba(255,200,90,.7),0 2px 8px rgba(0,0,0,.6);opacity:0;animation:anAparece 1s .5s ease forwards}
+@keyframes anAparece{to{opacity:.95}}
+html.an .home-top{padding-top:22px}
+html.an .home-top img{position:relative;z-index:1;filter:drop-shadow(0 0 2px rgba(255,255,255,.7)) drop-shadow(0 0 12px rgba(255,214,120,.7)) drop-shadow(0 6px 14px rgba(0,0,0,.25));animation:hwLat 2.4s ease-in-out infinite}
+html.an .home-top+.franjas{position:relative;z-index:1}
+html.an .home-top #salir{z-index:2;background:var(--rv-caja);backdrop-filter:var(--rv-blur);-webkit-backdrop-filter:var(--rv-blur);border-radius:50%}
+.an-card{position:relative;overflow:hidden;margin-top:12px;border-radius:16px;padding:11px 96px 11px 14px;background:linear-gradient(110deg,rgba(201,162,39,.18),rgba(255,255,255,.08) 55%,rgba(201,162,39,.14));border:1px solid rgba(201,162,39,.45);box-shadow:0 8px 20px rgba(60,40,0,.12);backdrop-filter:var(--rv-blur);-webkit-backdrop-filter:var(--rv-blur)}
+.an-card b{display:block;font-size:15.5px;color:#8A6A10;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.an-card p{font-size:12.5px;color:var(--mu);margin-top:2px;line-height:1.3}
+.an-card i{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-style:normal;font-weight:900;font-size:30px;letter-spacing:-.02em;background:linear-gradient(180deg,#D9A92A,#8A6408);-webkit-background-clip:text;background-clip:text;color:transparent}
+@media (prefers-color-scheme:dark){.an-card b{color:#F2D27A}.an-card i{background:linear-gradient(180deg,#FFE08A,#C9A227);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 8px rgba(255,200,90,.35))}}
+html.an #s-home .saludo{padding:14px}
+html.an #s-home .tarjetas{gap:12px;margin-top:12px}
+html.an #s-home .tarjeta{min-height:146px;gap:10px;padding:14px}
+@media (prefers-reduced-motion:reduce){html.an #splash img.sp-esc,.an-luz{animation:none}}
 /* ================= Navidad (solo con html.nv) ================= */
 html.nv #splash{background:#000;overflow:hidden;transition:opacity .45s ease}
 html.nv #splash.fuera{opacity:0}
@@ -1837,6 +1863,7 @@ function renderHome() {
   pintarFoto();
   $('#home-nombre').textContent = pn || 'Compañero';
   if (HW_CARD) HW_CARD.querySelector('b').textContent = pn ? `¡Feliz Halloween, ${pn}!` : '¡Feliz Halloween!';
+  if (AN_CARD) AN_CARD.querySelector('b').textContent = pn ? `¡Feliz Año Nuevo, ${pn}!` : '¡Feliz Año Nuevo!';
   if (RV_CARD) RV_CARD.querySelector('b').textContent = pn ? `¡Viva la Revolución, ${pn}!` : '¡Viva la Revolución Mexicana!';
   if (NV_CARD) NV_CARD.querySelector('b').textContent = pn ? `¡Feliz Navidad, ${pn}!` : '¡Feliz Navidad!';
   if (DM_CARD) DM_CARD.querySelector('p').textContent = `${pn ? pn + ', recordemos' : 'Recordemos'} con cariño a quienes ya no están.`;
@@ -2787,7 +2814,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261117192305';
+const APP_VERSION = '20261118005015';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
@@ -3094,6 +3121,31 @@ if (NV) (() => {
   document.querySelector('.deco').append(nvVideo('nv-deco'));
 })();
 
+/* ================= Año Nuevo (28 de diciembre al 3 de enero) ================= */
+const AN = document.documentElement.classList.contains('an');
+var AN_CARD = null;
+function anVideo(cls, hd) {
+  const v = document.createElement('video'); v.className = cls;
+  v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true; v.preload = 'auto';
+  ['muted', 'playsinline', 'webkit-playsinline', 'loop', 'autoplay'].forEach(a => v.setAttribute(a, ''));
+  v.setAttribute('aria-hidden', 'true'); v.poster = hd ? 'an_poster_hd.webp' : 'an_poster.webp'; v.src = hd ? 'an_splash.mp4' : 'an_fondo.mp4';   // bucle sin corte (cruce de 1.5 s); la carga en 1080p
+  const go = () => { const p = v.play(); if (p && p.catch) p.catch(() => {}); };
+  v.addEventListener('canplay', go, { once: true }); go();
+  return v;
+}
+if (AN) (() => {
+  // pantalla de carga: fuegos artificiales en bucle y el escudo al centro
+  const sp = $('#splash');
+  sp.prepend(anVideo('an-fondo', true), el('div', 'an-velo'), el('div', 'an-luz'));
+  sp.append(el('div', 'an-anio', 'FELIZ 2027'));
+  // tarjeta de temporada
+  AN_CARD = el('section', 'an-card');
+  AN_CARD.innerHTML = '<b>¡Feliz Año Nuevo!</b><p>Gracias a Dios por un año más de trabajo y unidad. Salud y bienestar para tu familia.</p><i aria-hidden="true">2027</i>';
+  $('#s-home .saludo').after(AN_CARD);
+  // fondo de todas las pantallas: el mismo video, con los desvanecidos de siempre
+  document.querySelector('.deco').append(anVideo('an-deco'));
+})();
+
 /* ================= Tarjeta de temporada: al tocarla, un breve resumen de lo que significa el día ================= */
 const TEMP_INFO = {
   hw: ['Halloween · 31 de octubre', [
@@ -3107,13 +3159,17 @@ const TEMP_INFO = {
     'En Navidad se celebra el nacimiento de Jesús. La noche del 24, la Nochebuena, las familias se reúnen a cenar y convivir; el 25 es el día de Navidad.',
     'En México la temporada empieza con las Posadas, del 16 al 24 de diciembre, que recuerdan el camino de María y José buscando dónde quedarse: hay villancicos, piñatas, ponche y aguinaldos de dulces.',
     'La Ley Federal del Trabajo (art. 74) marca el 25 de diciembre como día de descanso obligatorio, y el artículo 87 dice que el aguinaldo, de al menos 15 días de salario, se paga antes del 20 de diciembre.']],
+  an: ['Año Nuevo · 1 de enero', [
+    'El 31 de diciembre, la Nochevieja, despedimos el año en familia. En México es tradición comer 12 uvas con las 12 campanadas de medianoche, pidiendo un deseo por cada mes del año que empieza.',
+    'El 1 de enero comienza el año nuevo: un buen momento para agradecer lo que logramos juntos y proponernos metas para el que viene.',
+    'La Ley Federal del Trabajo (art. 74) marca el 1 de enero como día de descanso obligatorio. Si te toca trabajarlo, el artículo 75 dice que se paga doble, además de tu salario del día.']],
   rv: ['Revolución Mexicana · 20 de noviembre', [
     'El 20 de noviembre de 1910 comenzó la Revolución, con el llamado de Francisco I. Madero (Plan de San Luis) a levantarse contra la reelección de Porfirio Díaz, después de más de 30 años en el poder.',
     'Lucharon personajes como Francisco Villa, Emiliano Zapata, Venustiano Carranza y Álvaro Obregón, por la tierra, la justicia y mejores condiciones de vida.',
     'De ella nació la Constitución de 1917. Su artículo 123 nos dio derechos que hoy tenemos como trabajadores: jornada máxima de 8 horas, salario mínimo, derecho a formar sindicatos y a la huelga.',
     'La Ley Federal del Trabajo (art. 74) lo marca como día de descanso obligatorio el tercer lunes de noviembre.']]
 };
-[[typeof HW_CARD !== 'undefined' && HW_CARD, 'hw'], [typeof DM_CARD !== 'undefined' && DM_CARD, 'dm'], [RV_CARD, 'rv'], [NV_CARD, 'nv']].forEach(([card, k]) => {
+[[typeof HW_CARD !== 'undefined' && HW_CARD, 'hw'], [typeof DM_CARD !== 'undefined' && DM_CARD, 'dm'], [RV_CARD, 'rv'], [NV_CARD, 'nv'], [AN_CARD, 'an']].forEach(([card, k]) => {
   if (!card) return;
   const [titulo, parrafos] = TEMP_INFO[k];
   card.classList.add('temp-toca'); card.setAttribute('role', 'button'); card.tabIndex = 0; card.setAttribute('aria-label', titulo + '. Toca para saber qué se celebra.');
@@ -3130,7 +3186,7 @@ const TEMP_INFO = {
 requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(() => { try { localStorage.removeItem('s80_arranque'); } catch (e) {} }, 2500)));
 function ocultarSplash() {
   barra(100);
-  if (!HW && !DM && !RV && !NV) { setTimeout(() => { $('#splash').hidden = true; }, 260); return; }
+  if (!HW && !DM && !RV && !NV && !AN) { setTimeout(() => { $('#splash').hidden = true; }, 260); return; }
   // en temporada la pantalla de carga se ve al menos 1.6 s y se desvanece
   const espera = Math.max(260, 1600 - (Date.now() - HW_T0));
   setTimeout(() => { const sp = $('#splash'); sp.classList.add('fuera'); setTimeout(() => { sp.hidden = true; const v = sp.querySelector('video'); if (v) v.pause(); }, 460); }, espera);
