@@ -634,6 +634,11 @@ html.rv .recibo-h{background:linear-gradient(180deg,rgba(0,104,184,.12),rgba(0,1
 html.rv .rec-tot{background:rgba(255,255,255,.18)}
 @media (prefers-color-scheme:dark){html.rv .recibo-h{background:linear-gradient(180deg,rgba(59,155,234,.18),rgba(59,155,234,.07))}html.rv .rec-tot{background:rgba(0,0,0,.18)}}
 html.seguro.rv{--rv-caja:var(--g-bg)}
+/* tarjeta de temporada que se puede tocar y su resumen */
+.temp-toca{cursor:pointer;transition:transform .15s}
+.temp-toca:active{transform:scale(.98)}
+.hoja .temp-info{max-height:55vh;overflow:auto;margin:4px 2px 14px;display:flex;flex-direction:column;gap:10px}
+.hoja .temp-info p{font-size:15px;line-height:1.45;color:var(--tx);text-align:left;margin:0}
 /* confeti tricolor que cae por detrás */
 .rv-confeti{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
 .rv-pz{position:absolute;top:-20px;border-radius:2px;animation:rvCae linear infinite}
@@ -1825,6 +1830,7 @@ function hoja(titulo, texto, botones) {
   botones.forEach(([t, cls, fn]) => { const b = el('button', cls, t); b.type = 'button'; b.onclick = () => { f.remove(); fn && fn(); }; bs.append(b); });
   h.append(bs); f.append(h); f.addEventListener('click', e => { if (e.target === f) f.remove(); });
   document.body.append(f); bs.firstChild && bs.firstChild.focus();
+  return h;
 }
 $('#foto-btn').addEventListener('click', () => {
   if (!canStore()) { toast('Este teléfono no permite guardar la foto.'); return; }
@@ -2977,6 +2983,34 @@ if (RV) (() => {
     p.style.cssText = `left:${Math.random() * 100}%;width:${w2}px;height:${w2 * 1.6}px;background:${COL[i % 3]};box-shadow:0 0 0 .5px rgba(0,0,0,.08);--dx:${Math.random() * 100 - 50}px;--r:${Math.random() * 720 - 360}deg;animation-duration:${9 + Math.random() * 7}s;animation-delay:${-Math.random() * 14}s;opacity:${.55 + Math.random() * .35}`;
     C.append(p); }
 })();
+
+/* ================= Tarjeta de temporada: al tocarla, un breve resumen de lo que significa el día ================= */
+const TEMP_INFO = {
+  hw: ['Halloween · 31 de octubre', [
+    'Viene de una antigua fiesta celta llamada Samhain, que marcaba el fin de la cosecha y el inicio del invierno; se creía que esa noche se abría el paso entre el mundo de los vivos y el de los muertos.',
+    'Llegó a México por la influencia de Estados Unidos: los niños se disfrazan y salen a pedir dulces. Es la víspera de nuestro Día de Muertos.']],
+  dm: ['Día de Muertos · 1 y 2 de noviembre', [
+    'Es una de las tradiciones más importantes de México, con raíces prehispánicas y católicas. Se cree que las almas de nuestros seres queridos regresan a visitarnos.',
+    'El 1 de noviembre se recuerda a los niños (los «angelitos») y el 2 de noviembre a los adultos. Se ponen ofrendas con cempasúchil, velas, pan de muerto, papel picado, fotos y la comida que les gustaba.',
+    'La UNESCO la reconoce como Patrimonio Cultural Inmaterial de la Humanidad.']],
+  rv: ['Revolución Mexicana · 20 de noviembre', [
+    'El 20 de noviembre de 1910 comenzó la Revolución, con el llamado de Francisco I. Madero (Plan de San Luis) a levantarse contra la reelección de Porfirio Díaz, después de más de 30 años en el poder.',
+    'Lucharon personajes como Francisco Villa, Emiliano Zapata, Venustiano Carranza y Álvaro Obregón, por la tierra, la justicia y mejores condiciones de vida.',
+    'De ella nació la Constitución de 1917. Su artículo 123 nos dio derechos que hoy tenemos como trabajadores: jornada máxima de 8 horas, salario mínimo, derecho a formar sindicatos y a la huelga.',
+    'La Ley Federal del Trabajo (art. 74) lo marca como día de descanso obligatorio el tercer lunes de noviembre.']]
+};
+[[typeof HW_CARD !== 'undefined' && HW_CARD, 'hw'], [typeof DM_CARD !== 'undefined' && DM_CARD, 'dm'], [RV_CARD, 'rv']].forEach(([card, k]) => {
+  if (!card) return;
+  const [titulo, parrafos] = TEMP_INFO[k];
+  card.classList.add('temp-toca'); card.setAttribute('role', 'button'); card.tabIndex = 0; card.setAttribute('aria-label', titulo + '. Toca para saber qué se celebra.');
+  const abrir = () => {
+    const h = hoja(titulo, null, [['Cerrar', 'btn-pri sm', null]]);
+    const c = el('div', 'temp-info'); parrafos.forEach(t => c.append(el('p', null, t)));
+    h.insertBefore(c, h.querySelector('.btns'));
+  };
+  card.addEventListener('click', abrir);
+  card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
+});
 
 // La app terminó de abrir: se quita la marca de arranque (si no se quitara, la próxima vez abre en modo seguro)
 requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(() => { try { localStorage.removeItem('s80_arranque'); } catch (e) {} }, 2500)));
