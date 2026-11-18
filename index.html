@@ -639,6 +639,10 @@ html.seguro.rv{--rv-caja:var(--g-bg)}
 .temp-toca:active{transform:scale(.98)}
 .hoja .temp-info{max-height:55vh;overflow:auto;margin:4px 2px 14px;display:flex;flex-direction:column;gap:10px}
 .hoja .temp-info p{font-size:15px;line-height:1.45;color:var(--tx);text-align:left;margin:0}
+/* hojas y menús: el mismo vidrio negro (noche) / blanco (día) que los recuadros */
+html.rv :is(.hoja,.sem-menu){background:var(--rv-caja);backdrop-filter:var(--rv-blur);-webkit-backdrop-filter:var(--rv-blur);border-color:var(--g-borde)}
+html.rv .hoja-fondo{background:rgba(0,0,0,.14)}
+@media (prefers-color-scheme:dark){html.rv .hoja-fondo{background:rgba(0,0,0,.35)}}
 /* confeti tricolor que cae por detrás */
 .rv-confeti{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
 .rv-pz{position:absolute;top:-20px;border-radius:2px;animation:rvCae linear infinite}
