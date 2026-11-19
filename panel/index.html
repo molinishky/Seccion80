@@ -421,7 +421,7 @@ async function revisar(archivos) {
       if (tipoSel === 'nomina') {
         const { texto, paginas } = await textoPDF(buf, [1]); const m = /PERIODO\s*=\s*(\d+)/.exec(texto), p = /del\s+\d+\s+al\s+\d+\s+de\s+\w+/i.exec(texto);
         if (!m) throw new Error('No encontré "PERIODO = …": ¿es la verificación de nómina?');
-        const w = +m[1], ya = app.nomina && w <= app.nomina;
+        const w = +m[1], ya = app.nomina === w;
         partes.push(tarjetaArchivo(f, paginas + ' páginas'), hallazgos([['Semana', w + (p ? ' · ' + p[0] : '')], ['¿Ya estaba publicada?', ya ? 'Sí, se reemplaza' : 'No, es nueva', ya ? 'rev' : 'ok']]));
         listos.push({ ruta: `entrada/nomina/${f.name}`, buf, titulo: `Nómina semana ${w}` });
       } else if (tipoSel === 'fondo') {
