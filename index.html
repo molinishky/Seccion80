@@ -691,6 +691,30 @@ html.fit3 #s-home :is(.hw-card,.dm-card,.rv-card,.nv-card,.an-card,.aniv-card) p
 html.fit4 #s-home .tarjeta span.sub{display:none}
 html.fit4 #s-home .home-top img:not(.nv-guirnalda){height:50px}
 html.fit4 #s-home .home-top{padding-top:8px}
+/* ================= Cumpleaños: escena solo para la persona (víspera y mero día) ================= */
+html.cm body .deco.deco{top:0!important;bottom:0!important;height:auto!important;background:var(--fondo,#fff)}
+html.cm body .deco.deco>:not(.cm-deco){display:none!important}
+html.cm body .deco.deco img.cm-deco{display:block!important;opacity:1!important;filter:none!important;right:auto;bottom:auto;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 40%}
+html.cm body .deco.deco::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.82) 0%,rgba(255,255,255,.42) 22%,rgba(255,255,255,.16) 60%,rgba(255,255,255,.1) 100%)}
+@media (prefers-color-scheme:dark){html.cm body .deco.deco::after{background:linear-gradient(180deg,rgba(0,0,0,.84) 0%,rgba(0,0,0,.45) 22%,rgba(0,0,0,.22) 60%,rgba(0,0,0,.2) 100%)}}
+html.cm :is(.nm-lluvia,.rv-confeti,.dm-flores,.hw-hojas){display:none!important}
+html.cm{--rv-caja:rgba(255,255,255,.55);--rv-blur:blur(10px) saturate(170%)}
+@media (prefers-color-scheme:dark){html.cm{--rv-caja:rgba(22,28,40,.55)}}
+html.cm :is(.tarjeta,.panel,.recibo,.pre,.cargando,.aviso,.ley,.pasos,.saldo.vacio,.saludo){background:var(--rv-caja);backdrop-filter:var(--rv-blur);-webkit-backdrop-filter:var(--rv-blur)}
+.cm-confeti{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
+.cm-pz{position:absolute;top:-14px;animation:cmCae linear infinite}
+@keyframes cmCae{0%{transform:translate(0,0) rotate(0) rotateY(0)}100%{transform:translate(var(--dx),calc(100vh + 30px)) rotate(var(--r)) rotateY(720deg)}}
+@media (prefers-reduced-motion:reduce){.cm-confeti{display:none}}
+.cumple-card{position:relative;overflow:hidden;margin-top:12px;border-radius:16px;padding:12px 96px 12px 14px;min-height:76px;background:linear-gradient(110deg,rgba(255,236,190,.78),rgba(255,255,255,.62) 55%,rgba(255,214,226,.7));backdrop-filter:blur(10px) saturate(160%);-webkit-backdrop-filter:blur(10px) saturate(160%);border:1px solid rgba(201,162,39,.5);box-shadow:0 8px 22px rgba(150,100,20,.16)}
+.cumple-card b{display:block;font-size:15.5px;line-height:1.25;color:#9A6A08}
+.cumple-card p{font-size:12.5px;color:var(--mu);margin-top:2px;line-height:1.3}
+.cumple-pastel{position:absolute;right:8px;top:50%;width:84px;height:84px;transform:translateY(-50%);filter:drop-shadow(0 4px 8px rgba(120,80,10,.25));animation:cmFlota 3s ease-in-out infinite}
+@keyframes cmFlota{0%,100%{transform:translateY(-50%)}50%{transform:translateY(calc(-50% - 3px))}}
+@media (prefers-color-scheme:dark){.cumple-card{background:linear-gradient(110deg,rgba(201,162,39,.26),rgba(22,28,40,.55) 55%,rgba(176,36,90,.22))}.cumple-card b{color:#F2D27A}}
+@media (prefers-reduced-motion:reduce){.cumple-pastel{animation:none}}
+html.fit2 #s-home .cumple-card{margin-top:10px;padding-top:9px;padding-bottom:9px;min-height:66px}
+html.fit2 #s-home .cumple-pastel{width:70px;height:70px}
+html.fit3 #s-home .cumple-card p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 /* ================= Aniversario del STIASRM (4 al 10 de enero, con el fondo normal) ================= */
 .aniv-card{position:relative;overflow:hidden;margin-top:12px;border-radius:16px;padding:12px 104px 12px 14px;background:var(--rv-caja);backdrop-filter:var(--rv-blur);-webkit-backdrop-filter:var(--rv-blur);border:1px solid var(--g-borde);box-shadow:0 8px 20px rgba(0,40,90,.10)}
 .aniv-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,#E53935 0 25%,#FDD835 25% 50%,#0068B8 50% 75%,#2E9E4B 75%)}
@@ -1892,7 +1916,7 @@ async function refresh() {
 }
 function salir() {
   accesoRegistrado = false;
-  session = null; dCache = {};
+  session = null; dCache = {}; if (typeof escenaCumple === 'function') escenaCumple(false);
   ibmIn.value = ultimo(); pinIn.value = ''; loginMsg.textContent = '';
   revisarIBM(); show('login');
 }
@@ -1915,6 +1939,7 @@ function renderHome() {
   setTimeout(avisoApk, 900);
   pintarFoto();
   $('#home-nombre').textContent = pn || 'Compañero';
+  tarjetaCumple(d, pn);
   if (HW_CARD) HW_CARD.querySelector('b').textContent = pn ? `¡Feliz Halloween, ${pn}!` : '¡Feliz Halloween!';
   if (AN_CARD) AN_CARD.querySelector('b').textContent = pn ? `¡Feliz Año Nuevo, ${pn}!` : '¡Feliz Año Nuevo!';
   if (RV_CARD) RV_CARD.querySelector('b').textContent = pn ? `¡Viva la Revolución, ${pn}!` : '¡Viva la Revolución Mexicana!';
@@ -2867,7 +2892,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261118020342';
+const APP_VERSION = '20261118191432';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
@@ -3224,6 +3249,35 @@ if (document.documentElement.classList.contains('aniv')) (() => {
   ANIV_CARD.innerHTML = `<b>¡${anios} años del Sindicato!</b><p>8 de enero de 1937 · Fundación del Sindicato Nacional Azucarero (STIASRM).</p><div class="aniv-num" aria-hidden="true"><img src="escudo.png" alt=""><span><strong>${anios}</strong><small>AÑOS</small></span></div>`;
   $('#s-home .saludo').after(ANIV_CARD);
 })();
+
+/* ================= Cumpleaños: la víspera y el mero día, solo para esa persona (mes-día cifrado en su cuenta, sacado de la CURP) ================= */
+function mdMX(dias = 0) { const t = new Date(Date.now() + dias * 864e5); try { const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mexico_City', month: '2-digit', day: '2-digit' }).formatToParts(t); return p.find(x => x.type === 'month').value + '-' + p.find(x => x.type === 'day').value; } catch (e) { return String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); } }
+const PASTEL = `<svg class="cumple-pastel" viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="oro" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF1B8"/><stop offset=".35" stop-color="#E7B84A"/><stop offset=".7" stop-color="#B9852A"/><stop offset="1" stop-color="#F5D27A"/></linearGradient><linearGradient id="oroV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F8DB86"/><stop offset="1" stop-color="#B07A22"/></linearGradient><radialGradient id="glo" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#FFF6D2"/><stop offset=".3" stop-color="#EBC160"/><stop offset=".75" stop-color="#B8842B"/><stop offset="1" stop-color="#8A5E18"/></radialGradient><linearGradient id="crema" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#EDE6DA"/><stop offset=".45" stop-color="#FFFDF8"/><stop offset="1" stop-color="#E2D8C8"/></linearGradient></defs><g stroke="#C9A04A" stroke-width=".6" opacity=".8"><path d="M30 34 L50 62M44 24 L54 62M60 20 L60 62M76 24 L66 62M90 34 L70 62"/></g><ellipse cx="30" cy="27" rx="11" ry="13" fill="url(#glo)"/><ellipse cx="44" cy="17" rx="11" ry="13" fill="url(#glo)"/><ellipse cx="60" cy="13" rx="11.5" ry="13.5" fill="url(#glo)"/><ellipse cx="76" cy="17" rx="11" ry="13" fill="url(#glo)"/><ellipse cx="90" cy="27" rx="11" ry="13" fill="url(#glo)"/><g fill="#FFFBEA" opacity=".75"><ellipse cx="26" cy="21" rx="3" ry="4.5"/><ellipse cx="40" cy="11" rx="3" ry="4.5"/><ellipse cx="56" cy="7" rx="3" ry="4.5"/><ellipse cx="72" cy="11" rx="3" ry="4.5"/><ellipse cx="86" cy="21" rx="3" ry="4.5"/></g><ellipse cx="60" cy="112" rx="46" ry="5" fill="url(#oroV)"/><rect x="14" y="106" width="92" height="6" rx="3" fill="url(#oro)"/><rect x="20" y="82" width="80" height="26" rx="4" fill="url(#crema)"/><path d="M20 84h80v4c-3 0-3 9-6 9s-3-7-6-7-3 11-6 11-3-8-6-8-3 6-6 6-3-10-6-10-3 8-6 8-3-6-6-6-3 9-6 9-3-7-6-7-3 5-6 5-3-8-6-8-2 6-4 6z" fill="url(#oro)"/><rect x="34" y="60" width="52" height="24" rx="3" fill="url(#crema)"/><path d="M34 62h52v3c-2 0-2 7-5 7s-2-5-5-5-2 8-5 8-2-6-5-6-2 5-5 5-2-7-5-7-2 6-5 6-2-4-5-4-2 6-5 6-2-5-4-5z" fill="url(#oro)"/><g fill="url(#glo)"><circle cx="38" cy="82" r="3"/><circle cx="46" cy="81" r="2.4"/><circle cx="54" cy="82.5" r="3.2"/><circle cx="66" cy="82" r="2.6"/><circle cx="74" cy="81.5" r="3"/><circle cx="82" cy="82.5" r="2.4"/><circle cx="50" cy="59" r="2.6"/><circle cx="60" cy="58.5" r="3"/><circle cx="70" cy="59" r="2.6"/></g></svg>`;
+function escenaCumple(on) {
+  const R = document.documentElement; R.classList.toggle('cm', on);
+  const deco = document.querySelector('.deco');
+  if (on && !deco.querySelector('.cm-deco')) {
+    const f = el('img', 'cm-deco'); f.src = 'cm_globos.webp'; f.alt = ''; deco.append(f);
+    if (!MODO_SEGURO) { const C = el('div', 'cm-confeti'); deco.after(C);
+      const COL = ['#E53935', '#FDD835', '#1E88E5', '#2E9E4B', '#FF7AB6', '#FFFFFF', '#E7B84A'];
+      for (let i = 0; i < 34; i++) { const p = el('i', 'cm-pz'), w = 4 + Math.random() * 6, r = Math.random() < .35;
+        p.style.cssText = `left:${Math.random() * 100}%;width:${w}px;height:${r ? w : w * 1.7}px;border-radius:${r ? '50%' : '1.5px'};background:${COL[i % COL.length]};--dx:${Math.round(Math.random() * 90 - 45)}px;--r:${Math.round(Math.random() * 900 - 450)}deg;animation-duration:${7 + Math.random() * 7}s;animation-delay:${(-Math.random() * 14).toFixed(2)}s;opacity:${(.65 + Math.random() * .35).toFixed(2)}`;
+        C.append(p); } }
+  }
+}
+function tarjetaCumple(d, pn) {
+  const prev = document.querySelector('#s-home .cumple-card'); if (prev) prev.remove();
+  let c = d && d.cumple; const hoy = mdMX(0), man = mdMX(1);
+  if (c === '02-29' && !(new Date().getFullYear() % 4 === 0)) c = '02-28';   // los del 29 de febrero lo celebran el 28 en años no bisiestos
+  const es = c && c === hoy, vispera = c && c === man;
+  escenaCumple(!!(es || vispera));
+  if (!es && !vispera) return;
+  const k = el('section', 'cumple-card' + (vispera ? ' vispera' : ''));
+  k.innerHTML = (es
+    ? `<b>¡Feliz cumpleaños${pn ? ', ' + pn : ''}!</b><p>Toda la Sección 80 te desea un gran día junto a tu familia.</p>`
+    : `<b>¡Mañana es tu cumpleaños${pn ? ', ' + pn : ''}!</b><p>La Sección 80 ya se prepara para celebrarte.</p>`) + PASTEL;
+  $('#s-home .saludo').after(k);
+}
 
 /* ================= Inicio en una sola pantalla ================= */
 // Si las tarjetas de Inicio quedan debajo del menú, se compacta por pasos (fit1 → fit4) hasta que todo quepa.
