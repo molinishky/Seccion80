@@ -378,7 +378,7 @@ function elegirTipo(t) {
   $('#subir-t').textContent = 'Subir ' + TIPOS[t].nombre.toLowerCase();
   $('#subir-ayuda').textContent = TIPOS[t].ayuda;
   $('#soltar-p').textContent = TIPOS[t].ext.join(', ').toUpperCase().replace(/\./g, '') + ' · también puedes arrastrarlo aquí';
-  $('#archivo').accept = TIPOS[t].ext.join(',');
+  $('#archivo').accept = TIPOS[t].ext.join(',') + (/xls/.test(TIPOS[t].ext.join()) ? ',application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel' : '');
   $('#revision').hidden = true; $('#revision').replaceChildren(); $('#subir-btn').disabled = true;
 }
 document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => elegirTipo(c.dataset.t)));
@@ -411,6 +411,8 @@ function hallazgos(filas) {
 async function revisar(archivos) {
   const box = $('#revision'); box.replaceChildren(); box.hidden = false; listos = []; $('#subir-btn').disabled = true;
   const T = TIPOS[tipoSel], app = (estado && estado.app) || {};
+  // "PRESTAMO ECONOMICO 25-26 xlsx" (sin punto) se corrige a ".xlsx"
+  archivos = archivos.map(f => /[ _-](xlsx|xls|pdf)$/i.test(f.name) && !/\.(xlsx|xls|pdf)$/i.test(f.name) ? new File([f], f.name.replace(/[ _-](xlsx|xls|pdf)$/i, '.$1').replace(/\.(\w+)$/, (m, e) => '.' + e.toLowerCase()), { type: f.type }) : f);
   const malos = archivos.filter(f => !T.ext.some(x => f.name.toLowerCase().endsWith(x)));
   if (malos.length) { box.append(el('p', 'err', `${malos.map(f => f.name).join(', ')} no es ${T.ext.join(' o ')}.`)); return; }
   box.append(el('p', 'nota', 'Revisando…'));
