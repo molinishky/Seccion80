@@ -2892,7 +2892,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261118191432';
+const APP_VERSION = '20261118200144';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
@@ -3275,7 +3275,7 @@ function tarjetaCumple(d, pn) {
   const k = el('section', 'cumple-card' + (vispera ? ' vispera' : ''));
   k.innerHTML = (es
     ? `<b>¡Feliz cumpleaños${pn ? ', ' + pn : ''}!</b><p>Toda la Sección 80 te desea un gran día junto a tu familia.</p>`
-    : `<b>¡Mañana es tu cumpleaños${pn ? ', ' + pn : ''}!</b><p>La Sección 80 ya se prepara para celebrarte.</p>`) + PASTEL;
+    : `<b>¡Mañana es tu cumpleaños${pn ? ', ' + pn : ''}!</b><p>Toda la Sección 80 te desea que mañana sea un gran día junto a tu familia.</p>`) + PASTEL;
   $('#s-home .saludo').after(k);
 }
 
