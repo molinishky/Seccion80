@@ -583,7 +583,11 @@ html.dm .deco .dm-deco{display:block;left:50%;right:auto;transform:translateX(-5
 .est-ctrl{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--sab) + 16px);width:calc(100% - 32px);z-index:12;display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:440px;user-select:none;-webkit-user-select:none;touch-action:none}
 body.jugando #nav,body.jugando .home-top,body.jugando #sinred{display:none!important}
 body.jugando .scr{padding-bottom:calc(var(--sab) + 96px)}
-body.jugando .sdk:not(.est){padding-bottom:calc(var(--sab) + 12px)}
+body.jugando .sdk:not(.est){padding-bottom:calc(var(--sab) + 12px);display:flex;flex-direction:column;min-height:calc(100dvh - var(--sat) - var(--sab) - 64px)}
+body.jugando .scr:has(.sdk:not(.est)){padding-bottom:calc(var(--sab) + 8px)}
+body.jugando .sdk:not(.est) .sdk-zona-tab{margin-top:auto;width:100%}
+body.jugando .sdk:not(.est) .sdk-herr{margin-top:auto;width:100%}
+body.jugando .sdk:not(.est) .sdk-nums{width:100%}
 body.jugando .sdk:not(.est) .sdk-tab,body.jugando .sdk:not(.est) .sdk-zona-tab,body.jugando .sdk:not(.est) .sdk-herr,body.jugando .sdk:not(.est) .sdk-nums{max-width:480px}
 body.jugando .sdk:not(.est) .sdk-nums button{aspect-ratio:.72;font-size:24px}
 body.jugando .est .sdk-cab{margin-top:8px}
@@ -3004,7 +3008,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261119145604';
+const APP_VERSION = '20261119153429';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
