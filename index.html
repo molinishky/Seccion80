@@ -568,6 +568,28 @@ html.dm .deco .dm-deco{display:block;left:50%;right:auto;transform:translateX(-5
 @keyframes sdkFade{from{opacity:0}}
 @keyframes sdkSube{from{transform:translateY(20px) scale(.9);opacity:0}}
 .sdk-zona-tab{position:relative;max-width:420px;margin:0 auto}
+.est-juego{display:flex;justify-content:center;max-width:460px;margin:0 auto}
+.est-zona{position:relative;display:inline-block}
+.est-cv{display:block;border-radius:14px;background:var(--g-bg);backdrop-filter:var(--g-blur);-webkit-backdrop-filter:var(--g-blur);border:1px solid var(--g-borde);box-shadow:var(--g-sombra,0 8px 24px rgba(0,58,110,.12));touch-action:none}
+.est-lado{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr 1fr;gap:6px;max-width:460px;margin:0 auto 10px}
+.est-caja{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:6px 4px;border-radius:12px;background:var(--g-bg);backdrop-filter:var(--g-blur);-webkit-backdrop-filter:var(--g-blur);border:1px solid var(--g-borde);min-width:0}
+.est-caja span{font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}
+.est-caja b{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--azul);max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.est-nx{width:100%;max-width:60px;height:auto;aspect-ratio:3/2}
+.est-pausa{position:absolute;inset:0;display:grid;place-content:center;gap:4px;text-align:center;border-radius:14px;background:rgba(0,20,50,.28);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:#fff}
+.est-pausa b{font-size:22px}.est-pausa[hidden]{display:none}
+.est .sdk-fin{border-radius:14px}
+.est-btn-p{border:0;background:none;color:var(--azul);width:40px;height:40px;display:grid;place-items:center;cursor:pointer}.est-btn-p svg{width:24px;height:24px}
+.est-ctrl{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--sab) + 16px);width:calc(100% - 32px);z-index:12;display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:440px;user-select:none;-webkit-user-select:none;touch-action:none}
+body.jugando #nav,body.jugando .home-top,body.jugando #sinred{display:none!important}
+body.jugando .scr{padding-bottom:calc(var(--sab) + 96px)}
+body.jugando .est .sdk-cab{margin-top:8px}
+.est-juego{max-width:460px!important}
+.est-ctrl button{height:64px;border-radius:16px;border:1px solid var(--g-borde);background:var(--g-bg);backdrop-filter:var(--g-blur);-webkit-backdrop-filter:var(--g-blur);color:var(--azul);display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.est-ctrl button svg{width:26px;height:26px}
+.est-ctrl button:active{transform:scale(.92)}
+.est-ctrl .est-pri{background:var(--azul);color:#fff;border-color:var(--azul)}
+.est-ctrl .est-sec{color:var(--verde)}
 @media (prefers-color-scheme:dark){.sdk-tab{--sdk-linea:rgba(140,190,255,.55);--sdk-fina:rgba(140,190,255,.14)}.sdk-c.zona{background:rgba(59,155,234,.10)}.sdk-c.igual{background:rgba(59,155,234,.22)}.sdk-c.sel{background:rgba(59,155,234,.38)}.sdk-c.mal{color:#FF6B5E}}
 .home-top img.toque{animation:sdkToque .25s ease}
 @keyframes sdkToque{50%{transform:scale(.9)}}
@@ -1678,7 +1700,7 @@ document.addEventListener('click', e => {
 
 /* ================= Gestos (siguen al dedo, como en iOS) ================= */
 (() => {
-  const NO = '.chips, .ley-ops, input, select, textarea, #nav, .rec-lista-scroll';
+  const NO = '.chips, .ley-ops, input, select, textarea, #nav, .rec-lista-scroll, .est-cv, .est-ctrl';
   const CURVA = 'cubic-bezier(.22,.9,.25,1)';
   let g = null, raf = 0, animando = false;
   const ptr = $('#ptr'), HOME = $('#s-home');
@@ -2978,7 +3000,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261119192353';
+const APP_VERSION = '20261119145141';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
@@ -3108,10 +3130,173 @@ function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.sty
   esc.addEventListener('click', () => {
     const t = Date.now(); toques = toques.filter(x => t - x < 700); toques.push(t);
     esc.classList.remove('toque'); void esc.offsetWidth; esc.classList.add('toque');
-    if (toques.length >= 3) { toques = []; vibrar(); abrirSudoku(); }
+    if (toques.length >= 3) { toques = []; vibrar(); elegirJuego(); }
   });
   window.__abrirSudoku = abrirSudoku;
+  // 3 toques al escudo: elegir juego
+  function elegirJuego() {
+    if (SUB.home) return;
+    hoja('Juegos', 'Elige uno. Tus récords se guardan solo en este teléfono.', [
+      ['Sudoku', 'btn-pri sm', abrirSudoku],
+      ['Estiba (bloques)', 'btn-pri sm', () => window.__abrirEstiba && window.__abrirEstiba()],
+      ['Cancelar', 'link', null]]);
+  }
 })();
+/* ================= Estiba: juego de bloques que caen (original de la Sección 80) ================= */
+(() => {
+  const C = 10, F = 20, REC = 's80_estiba_rec', ALM = 's80_estiba';
+  // piezas (4 bloques cada una) con los colores del escudo
+  const P = [
+    { m: [[0, 1], [1, 1], [2, 1], [3, 1]], c: '#0068B8' }, { m: [[1, 0], [2, 0], [1, 1], [2, 1]], c: '#F2C200' },
+    { m: [[1, 0], [0, 1], [1, 1], [2, 1]], c: '#E53935' }, { m: [[1, 0], [2, 0], [0, 1], [1, 1]], c: '#2E9E4B' },
+    { m: [[0, 0], [1, 0], [1, 1], [2, 1]], c: '#F57C00' }, { m: [[0, 0], [0, 1], [1, 1], [2, 1]], c: '#3B9BEA' },
+    { m: [[2, 0], [0, 1], [1, 1], [2, 1]], c: '#8D5A2B' }];
+  let G = null, vista = null, cv = null, cx = null, nx = null, bucle = null, ult = 0, acum = 0;
+  const leerRec = () => { try { return +localStorage.getItem(REC) || 0; } catch (e) { return 0; } };
+  let bolsa = [];
+  const sacar = () => { if (!bolsa.length) bolsa = [0, 1, 2, 3, 4, 5, 6].sort(() => Math.random() - .5); const k = bolsa.pop(); return { k, b: P[k].m.map(p => p.slice()), x: 3, y: k === 0 ? -1 : 0 }; };
+  const choca = (b, x, y) => b.some(([i, j]) => { const X = x + i, Y = y + j; return X < 0 || X >= C || Y >= F || (Y >= 0 && G.t[Y][X]); });
+  const salvar = () => { try { if (G && !G.fin) localStorage.setItem(ALM, JSON.stringify(G)); else localStorage.removeItem(ALM); } catch (e) {} };
+  function nuevo() { G = { t: Array.from({ length: F }, () => Array(C).fill(0)), p: sacar(), sig: sacar(), pts: 0, lin: 0, niv: 1, fin: false, pausa: false }; acum = 0; salvar(); pintar(); }
+  const vel = () => Math.max(90, 800 - (G.niv - 1) * 70);
+  function girar() {
+    if (!G || G.fin || G.pausa || G.p.k === 1) return;
+    const n = G.p.k === 0 ? 4 : 3, b = G.p.b.map(([i, j]) => [n - 1 - j, i]);
+    for (const dx of [0, -1, 1, -2, 2]) if (!choca(b, G.p.x + dx, G.p.y)) { G.p.b = b; G.p.x += dx; vibrar(); pintar(); return; }
+  }
+  function mover(dx) { if (!G || G.fin || G.pausa) return; if (!choca(G.p.b, G.p.x + dx, G.p.y)) { G.p.x += dx; pintar(); } }
+  function bajar(suave) {
+    if (!G || G.fin || G.pausa) return false;
+    if (!choca(G.p.b, G.p.x, G.p.y + 1)) { G.p.y++; if (suave) G.pts += 1; pintar(); return true; }
+    fijar(); return false;
+  }
+  function soltar() { if (!G || G.fin || G.pausa) return; let n = 0; while (!choca(G.p.b, G.p.x, G.p.y + 1)) { G.p.y++; n++; } G.pts += n * 2; vibrar(); fijar(); }
+  function fijar() {
+    G.p.b.forEach(([i, j]) => { const Y = G.p.y + j; if (Y >= 0) G.t[Y][G.p.x + i] = P[G.p.k].c; });
+    if (G.p.b.some(([, j]) => G.p.y + j < 0)) return terminar();
+    let n = 0; for (let y = F - 1; y >= 0; y--) if (G.t[y].every(Boolean)) { G.t.splice(y, 1); G.t.unshift(Array(C).fill(0)); n++; y++; }
+    if (n) { G.pts += [0, 100, 300, 500, 800][n] * G.niv; G.lin += n; G.niv = 1 + Math.floor(G.lin / 10); try { navigator.vibrate && navigator.vibrate(n > 1 ? [20, 40, 20] : 20); } catch (e) {} }
+    G.p = G.sig; G.sig = sacar();
+    if (choca(G.p.b, G.p.x, G.p.y)) return terminar();
+    salvar(); pintar();
+  }
+  function terminar() {
+    G.fin = true; salvar(); const r = leerRec(), nuevoRec = G.pts > r; if (nuevoRec) try { localStorage.setItem(REC, G.pts); } catch (e) {}
+    pintar();
+    const f = el('div', 'sdk-fin'), caja = el('div');
+    caja.innerHTML = `<b>Fin del juego</b><p><strong>${G.pts.toLocaleString('es-MX')}</strong> puntos · ${G.lin} líneas<br>${nuevoRec ? '¡Nuevo récord!' : r ? 'Tu récord: ' + r.toLocaleString('es-MX') : ''}</p><button type="button">Jugar otra vez</button>`;
+    caja.querySelector('button').addEventListener('click', () => { f.remove(); nuevo(); });
+    f.append(caja); vista.querySelector('.est-zona').append(f);
+  }
+  function bloque(g, x, y, s, c, fantasma) {
+    const r = Math.max(2, s * .18);
+    g.beginPath(); g.roundRect(x + 1, y + 1, s - 2, s - 2, r);
+    if (fantasma) { g.strokeStyle = c; g.globalAlpha = .45; g.lineWidth = 1.5; g.stroke(); g.globalAlpha = 1; return; }
+    const gr = g.createLinearGradient(x, y, x, y + s); gr.addColorStop(0, c); gr.addColorStop(1, c + 'CC');
+    g.fillStyle = gr; g.fill();
+    g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.roundRect(x + 3, y + 3, s - 6, Math.max(2, s * .22), r * .6); g.fill();
+  }
+  function pintar() {
+    if (!cv || !G) return;
+    const s = cv.width / C, osc = matchMedia('(prefers-color-scheme: dark)').matches;
+    cx.clearRect(0, 0, cv.width, cv.height);
+    cx.strokeStyle = osc ? 'rgba(140,190,255,.08)' : 'rgba(0,58,110,.07)'; cx.lineWidth = 1;
+    for (let i = 1; i < C; i++) { cx.beginPath(); cx.moveTo(i * s, 0); cx.lineTo(i * s, cv.height); cx.stroke(); }
+    for (let j = 1; j < F; j++) { cx.beginPath(); cx.moveTo(0, j * s); cx.lineTo(cv.width, j * s); cx.stroke(); }
+    G.t.forEach((f, y) => f.forEach((c, x) => c && bloque(cx, x * s, y * s, s, c)));
+    if (!G.fin) {
+      let gy = G.p.y; while (!choca(G.p.b, G.p.x, gy + 1)) gy++;
+      G.p.b.forEach(([i, j]) => gy + j >= 0 && bloque(cx, (G.p.x + i) * s, (gy + j) * s, s, P[G.p.k].c, true));
+      G.p.b.forEach(([i, j]) => G.p.y + j >= 0 && bloque(cx, (G.p.x + i) * s, (G.p.y + j) * s, s, P[G.p.k].c));
+    }
+    const ns = nx.width / 4.5; nx.getContext('2d').clearRect(0, 0, nx.width, nx.height);
+    const xs = G.sig.b.map(p => p[0]), ys = G.sig.b.map(p => p[1]), w = Math.max(...xs) - Math.min(...xs) + 1, h = Math.max(...ys) - Math.min(...ys) + 1;
+    G.sig.b.forEach(([i, j]) => bloque(nx.getContext('2d'), (nx.width - w * ns) / 2 + (i - Math.min(...xs)) * ns, (nx.height - h * ns) / 2 + (j - Math.min(...ys)) * ns, ns, P[G.sig.k].c));
+    vista.querySelector('.est-pts').textContent = G.pts.toLocaleString('es-MX');
+    vista.querySelector('.est-lin').textContent = G.lin;
+    vista.querySelector('.est-niv').textContent = G.niv;
+    vista.querySelector('.est-rec').textContent = Math.max(leerRec(), G.pts).toLocaleString('es-MX');
+    vista.querySelector('[data-e=pausa]').innerHTML = G.pausa ? ICO.play : ICO.pausa;
+    vista.querySelector('.est-pausa').hidden = !G.pausa || G.fin;
+  }
+  const ICO = {
+    izq: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+    der: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+    girar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>',
+    abajo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg>',
+    caer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5l6 6 6-6M6 11l6 6 6-6M5 21h14"/></svg>',
+    pausa: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>' };
+  function construir() {
+    const v = el('div', 'pad sdk est');
+    v.innerHTML = `<div class="sdk-cab"><button type="button" class="sdk-salir" aria-label="Salir de Estiba"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><h2>Estiba</h2><button type="button" class="est-btn-p" data-e="pausa" aria-label="Pausa"></button></div>
+      <div class="est-lado">
+        <div class="est-caja est-sig"><span>Sigue</span><canvas class="est-nx" width="120" height="80"></canvas></div>
+        <div class="est-caja"><span>Puntos</span><b class="est-pts">0</b></div>
+        <div class="est-caja"><span>Líneas</span><b class="est-lin">0</b></div>
+        <div class="est-caja"><span>Nivel</span><b class="est-niv">1</b></div>
+        <div class="est-caja"><span>Récord</span><b class="est-rec">0</b></div>
+      </div>
+      <div class="est-juego"><div class="est-zona"><canvas class="est-cv" aria-label="Tablero de Estiba"></canvas><div class="est-pausa" hidden><b>En pausa</b><span>Toca ▶ arriba para seguir</span></div></div></div>
+      <div class="est-ctrl">
+        <button type="button" data-e="izq" aria-label="Izquierda">${ICO.izq}</button><button type="button" data-e="abajo" aria-label="Bajar">${ICO.abajo}</button><button type="button" data-e="der" aria-label="Derecha">${ICO.der}</button>
+        <button type="button" data-e="caer" class="est-sec" aria-label="Soltar hasta abajo">${ICO.caer}</button><button type="button" data-e="girar" class="est-pri" aria-label="Girar">${ICO.girar}</button>
+      </div>`;
+    cv = v.querySelector('.est-cv'); cx = cv.getContext('2d'); nx = v.querySelector('.est-nx');
+    v.querySelector('.sdk-salir').addEventListener('click', () => { vibrar(); cerrarSub('home'); });
+    // botones: se pueden mantener presionados (izquierda, derecha y bajar se repiten)
+    v.querySelectorAll('.est-ctrl button, [data-e=pausa]').forEach(b => {
+      let rep = null, ini = null; const e = b.dataset.e;
+      const una = () => { if (e === 'izq') mover(-1); else if (e === 'der') mover(1); else if (e === 'abajo') bajar(true); else if (e === 'girar') girar(); else if (e === 'caer') soltar(); else if (e === 'pausa') { if (G && !G.fin) { G.pausa = !G.pausa; salvar(); vibrar(); pintar(); } } };
+      b.addEventListener('pointerdown', ev => { ev.preventDefault(); una(); if (['izq', 'der', 'abajo'].includes(e)) ini = setTimeout(() => { rep = setInterval(una, e === 'abajo' ? 45 : 70); }, 200); });
+      const alto = () => { clearTimeout(ini); clearInterval(rep); }; b.addEventListener('pointerup', alto); b.addEventListener('pointerleave', alto); b.addEventListener('pointercancel', alto);
+    });
+    // gestos sobre el tablero: tocar = girar, deslizar a los lados = mover, deslizar abajo = soltar
+    let g0 = null;
+    cv.addEventListener('pointerdown', e => { g0 = { x: e.clientX, y: e.clientY, mx: 0, t: Date.now() }; cv.setPointerCapture(e.pointerId); });
+    cv.addEventListener('pointermove', e => { if (!g0) return; const s = cv.getBoundingClientRect().width / C, dx = Math.round((e.clientX - g0.x) / s); while (g0.mx < dx) { mover(1); g0.mx++; } while (g0.mx > dx) { mover(-1); g0.mx--; } });
+    cv.addEventListener('pointerup', e => { if (!g0) return; const dy = e.clientY - g0.y, dx = e.clientX - g0.x; if (dy > 60 && Math.abs(dy) > Math.abs(dx) * 1.5) soltar(); else if (Math.abs(dx) < 8 && Math.abs(dy) < 8 && Date.now() - g0.t < 300) girar(); g0 = null; });
+    return v;
+  }
+  function medir() {
+    if (!cv) return;
+    const zona = vista.querySelector('.est-zona'), ctrl = document.querySelector('body > .est-ctrl') || vista.querySelector('.est-ctrl'), ancho = vista.querySelector('.est-juego').clientWidth;
+    const sab = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab')) || 0;
+    const alto = Math.max(240, window.innerHeight - zona.getBoundingClientRect().top - window.scrollY * 0 - (ctrl.offsetHeight || 64) - 16 - sab - 16);
+    const s = Math.floor(Math.min(ancho / C, alto / F)), r = window.devicePixelRatio || 1;
+    cv.style.width = s * C + 'px'; cv.style.height = s * F + 'px'; cv.width = s * C * r; cv.height = s * F * r;
+    pintar();
+  }
+  function paso(t) {
+    if (!vista || !vista.isConnected) { bucle = null; salir(); return; }
+    bucle = requestAnimationFrame(paso);
+    if (!G || G.fin || G.pausa || document.hidden) { ult = t; return; }
+    acum += t - (ult || t); ult = t;
+    if (acum >= vel()) { acum = 0; bajar(false); }
+  }
+  // al salir (flecha, deslizar a la derecha o botón atrás) la partida queda guardada
+  function salir() { if (G && !G.fin) { G.pausa = true; salvar(); } document.body.classList.remove('jugando'); document.querySelectorAll('body > .est-ctrl').forEach(x => x.remove()); }
+  function abrirEstiba() {
+    const base = $('#home-caja > .pad'); if (!base || SUB.home) return;
+    document.body.classList.add('jugando');
+    vista = construir(); abrirSub('home', base, vista);
+    document.querySelectorAll('body > .est-ctrl').forEach(x => x.remove()); document.body.append(vista.querySelector('.est-ctrl'));
+    let g = null; try { g = JSON.parse(localStorage.getItem(ALM) || 'null'); } catch (e) {}
+    if (g && !g.fin && g.t && g.p) { G = g; G.pausa = true; acum = 0; } else nuevo();   // partida guardada: sigue en pausa hasta tocar ▶
+    requestAnimationFrame(() => requestAnimationFrame(medir));
+    if (!bucle) bucle = requestAnimationFrame(paso);
+    try { history.pushState({ s: 'home', sub: 1 }, ''); } catch (e) {}
+  }
+  addEventListener('resize', () => { if (vista && vista.isConnected) medir(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && G && !G.fin && vista && vista.isConnected) { G.pausa = true; salvar(); pintar(); } });
+  document.addEventListener('keydown', e => {
+    if (!vista || !vista.isConnected || !G) return;
+    const k = { ArrowLeft: () => mover(-1), ArrowRight: () => mover(1), ArrowDown: () => bajar(true), ArrowUp: girar, ' ': soltar, p: () => { G.pausa = !G.pausa; pintar(); } }[e.key];
+    if (k) { e.preventDefault(); k(); }
+  });
+  window.__abrirEstiba = abrirEstiba;
+})();
+
 
 /* ================= Halloween (se apaga solo después del 31 de octubre) ================= */
 const HW = document.documentElement.classList.contains('hw');
