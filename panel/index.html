@@ -102,7 +102,10 @@ a{color:var(--azul)}
 .lista .it p{font-size:12.5px;color:var(--ambar);margin-top:3px}
 .titulo-sec{font-size:13px;font-weight:700;color:var(--mu);letter-spacing:.4px;margin-top:6px}
 .campo{display:flex;align-items:center;gap:10px;background:var(--caja);border:1.5px solid rgba(0,104,184,.45);border-radius:14px;padding:0 14px;height:54px}
-.campo input{border:0;outline:0;flex:1;background:transparent;font-size:15px;min-width:0}
+.campo input{border:0;outline:0;flex:1;background:transparent;font-size:16px;min-width:0}
+/* iOS hace zoom si un campo tiene letra menor a 16px */
+input,select,textarea{font-size:16px}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .err{color:var(--rojo);font-size:13px;min-height:18px;text-align:center}
 nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + var(--sab));width:calc(100% - 24px);max-width:496px;height:70px;border-radius:30px;background:var(--caja);backdrop-filter:blur(14px) saturate(180%);-webkit-backdrop-filter:blur(14px) saturate(180%);border:1px solid var(--borde);box-shadow:0 10px 30px rgba(0,58,110,.16);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;padding:0 6px;z-index:5}
 nav button{height:58px;border:0;background:transparent;border-radius:24px;color:var(--mu);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600;cursor:pointer}
