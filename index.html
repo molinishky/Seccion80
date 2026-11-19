@@ -1976,6 +1976,16 @@ function primerNombre(d) {
   if (b && b.nm) return titulo(b.nm);
   return d.orden === 'nomina' ? '' : titulo((d.nombre || '').split(' ')[0]);
 }
+// Saludo: primer nombre y primer apellido ("Edgar Eduardo Molina Macias" -> "Edgar Molina"); respeta "de la", "del", etc.
+function nombreCorto(nombre, orden) {
+  const P = new Set(['DE', 'DEL', 'LA', 'LAS', 'LOS', 'Y', 'SAN', 'SANTA', 'MC', 'VDA', 'VIUDA']);
+  const t = String(nombre || '').trim().toUpperCase().split(/\s+/).filter(Boolean), u = []; let a = [];
+  for (const w of t) { a.push(w); if (!P.has(w)) { u.push(a.join(' ')); a = []; } }
+  if (a.length) { if (u.length) u[u.length - 1] += ' ' + a.join(' '); else u.push(a.join(' ')); }
+  if (!u.length) return '';
+  const r = u.length === 1 ? [u[0]] : orden === 'nomina' ? [u[2] || u[1], u[0]] : [u[0], u.length === 2 ? u[1] : u[u.length - 2]];
+  return r.join(' ').toLowerCase().replace(/(^|\s)\S/g, m => m.toUpperCase()).replace(/\b(De|Del|La|Las|Los|Y)\b(?=\s)/g, m => m.toLowerCase());
+}
 const semanas = d => (d.desgloses || []).slice().sort((a, b) => b - a);
 const periodo = w => (DATA && DATA.meta && DATA.meta.periodos && DATA.meta.periodos[w]) || '';
 // Ciclos de la fábrica (zafra / reparación). Clave de semana: 2026 = número tal cual; 2027+ = año*100+semana.
@@ -1992,7 +2002,7 @@ function renderHome() {
   const d = session.data, pn = primerNombre(d);
   setTimeout(avisoApk, 900);
   pintarFoto();
-  $('#home-nombre').textContent = pn || 'Compañero';
+  $('#home-nombre').textContent = nombreCorto(d.nombre, d.orden) || pn || 'Compañero';
   tarjetaCumple(d, pn);
   if (HW_CARD) HW_CARD.querySelector('b').textContent = pn ? `¡Feliz Halloween, ${pn}!` : '¡Feliz Halloween!';
   if (AN_CARD) AN_CARD.querySelector('b').textContent = pn ? `¡Feliz Año Nuevo, ${pn}!` : '¡Feliz Año Nuevo!';
@@ -2968,7 +2978,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261119001231';
+const APP_VERSION = '20261119003608';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {

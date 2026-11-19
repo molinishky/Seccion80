@@ -105,6 +105,8 @@ a{color:var(--azul)}
 /* iOS hace zoom si un campo tiene letra menor a 16px */
 input,select,textarea{font-size:16px}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.pin-num{font-size:44px;font-weight:800;letter-spacing:10px;color:var(--azul);font-variant-numeric:tabular-nums;margin:4px 0 2px;padding-left:10px}
+.pin-nom{font-size:17px;font-weight:700}.pin-ibm{font-size:13px;color:var(--mu)}
 .err{color:var(--rojo);font-size:13px;min-height:18px;text-align:center}
 nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + var(--sab));width:calc(100% - 24px);max-width:496px;height:70px;border-radius:30px;background:var(--caja);backdrop-filter:blur(14px) saturate(180%);-webkit-backdrop-filter:blur(14px) saturate(180%);border:1px solid var(--borde);box-shadow:0 10px 30px rgba(0,58,110,.16);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;padding:0 6px;z-index:5}
 nav button{height:58px;border:0;background:transparent;border-radius:24px;color:var(--mu);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600;cursor:pointer}
@@ -215,12 +217,26 @@ html,body{overflow-x:hidden}
   </div>
 </main>
 
+<!-- ============ BUSCAR PIN ============ -->
+<main id="s-pin" class="app" hidden>
+  <div class="top-s"><button class="ico" data-ir="inicio" aria-label="Regresar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><h1>Buscar PIN</h1><img src="../escudo.png" alt="" aria-hidden="true"></div>
+  <div class="franjas"><i></i><i></i><i></i><i></i></div>
+  <div class="pila">
+    <form id="f-pin" autocomplete="off" class="pila" style="margin-top:0">
+      <label for="buscar-ibm" style="font-size:13px;font-weight:700">IBM del trabajador</label>
+      <div class="campo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--azul)" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="buscar-ibm" inputmode="numeric" placeholder="Ej. 1234" enterkeyhint="search"></div>
+    </form>
+    <section class="vidrio" id="pin-res" style="padding:18px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center" hidden></section>
+    <p class="nota">Solo lo ven los administradores. Los PIN se leen del repositorio privado y no se guardan en este equipo.</p>
+  </div>
+</main>
+
 <nav id="nav" hidden aria-label="Navegación del panel">
   <button data-ir="inicio"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</button>
   <button data-ir="subir"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>Subir</button>
   <button data-ir="historial"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Historial</button>
   <button data-abrir="https://docs.google.com/spreadsheets/d/1-y1xNYYhvKu5geP-YPffe8oO2X3rII5D5XxIRdPp-J8"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Accesos</button>
-  <button data-abrir="https://molinishky.github.io/Seccion80/"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>Ver app</button>
+  <button data-ir="pin"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L20 3M16 7l3 3M14 9l2 2"/></svg>PIN</button>
 </nav>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -246,7 +262,7 @@ const el = (t, c, x) => { const e = document.createElement(t); if (c) e.classNam
 const dinero = n => '$' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fecha = s => { try { return new Date(s).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return s; } };
 let llave = null, guardada = null, socio = null, pinMem = null, intentos = 0, espera = 0, estado = null, tipoSel = 'nomina', listos = [], ultimoEnvio = null;
-try { guardada = JSON.parse(localStorage.getItem(LLAVE) || 'null'); } catch (e) { guardada = null; }
+try { guardada = Object.keys(localStorage).some(k => k.startsWith(LLAVE)) ? { c: 1 } : null; } catch (e) { guardada = null; }   // solo para mostrar «Olvidar»; la llave real se toma por IBM al entrar
 if (guardada && !guardada.c) guardada = null; // llave vieja sin cerrar: se vuelve a pedir
 if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
@@ -270,8 +286,8 @@ async function subirArchivo(ruta, buf, msg) {
 async function corridas() { const r = await gh(`/repos/${REPO}/actions/workflows/actualizar.yml/runs?per_page=5&t=${Date.now()}`); return (await r.json()).workflow_runs || []; }
 
 /* ======================= Pantallas ======================= */
-const PANT = ['entrar', 'llave', 'inicio', 'subir', 'proceso', 'historial'];
-const ORDEN = { entrar: 0, llave: 0, inicio: 0, subir: 1, historial: 2, proceso: 2 };
+const PANT = ['entrar', 'llave', 'inicio', 'subir', 'proceso', 'historial', 'pin'];
+const ORDEN = { entrar: 0, llave: 0, inicio: 0, subir: 1, historial: 2, proceso: 2, pin: 4 };
 const NAV = $('#nav'), BURB = el('span', 'burbuja'); NAV.prepend(BURB);
 const TABS = [...NAV.querySelectorAll('button')];
 let actual = null;
@@ -291,6 +307,7 @@ function ir(p, dir) {
   window.scrollTo(0, 0);
   if (p === 'inicio') cargarInicio();
   if (p === 'historial') cargarHistorial();
+  if (p === 'pin') setTimeout(() => $('#buscar-ibm').focus(), 300);
 }
 window.addEventListener('resize', () => marcarBurbuja(actual, true));
 function irA(p) { if (p === 'subir') elegirTipo('auto'); ir(p); }
@@ -325,7 +342,7 @@ document.addEventListener('click', e => {
 })();
 // Deslizar la pantalla a los lados para cambiar de sección (como en la app)
 (() => {
-  const SECC = ['inicio', 'subir', 'historial'];
+  const SECC = ['inicio', 'subir', 'historial', 'pin'];
   let g = null;
   const vecino = (p, lado) => { if (p === 'proceso') return lado < 0 ? 'inicio' : null; const i = SECC.indexOf(p); return i < 0 ? null : SECC[i + lado] || null; };
   document.addEventListener('touchstart', e => {
@@ -369,6 +386,17 @@ async function cerrar(soc, pin, texto) {
   return { n: ITER, s: b64(salt), i: b64(iv), c: b64(c) };
 }
 const titulo = x => String(x || '').toLowerCase().replace(/(^|\s)\S/g, m => m.toUpperCase());
+// Primer nombre y primer apellido ("Edgar Eduardo Molina Macias" -> "Edgar Molina"); respeta "de la", "del", etc.
+function nombreCorto(nombre, orden) {
+  const P = new Set(['DE', 'DEL', 'LA', 'LAS', 'LOS', 'Y', 'SAN', 'SANTA', 'MC', 'VDA', 'VIUDA']);
+  const t = String(nombre || '').trim().toUpperCase().split(/\s+/).filter(Boolean), u = []; let a = [];
+  for (const w of t) { a.push(w); if (!P.has(w)) { u.push(a.join(' ')); a = []; } }
+  if (a.length) { if (u.length) u[u.length - 1] += ' ' + a.join(' '); else u.push(a.join(' ')); }
+  if (!u.length) return '';
+  const r = u.length === 1 ? [u[0]] : orden === 'nomina' ? [u[2] || u[1], u[0]] : [u[0], u.length === 2 ? u[1] : u[u.length - 2]];
+  return r.join(' ').toLowerCase().replace(/(^|\s)\S/g, m => m.toUpperCase()).replace(/\b(De|Del|La|Las|Los|Y)\b(?=\s)/g, m => m.toLowerCase());
+}
+const llaveDe = soc => { try { const v = localStorage.getItem(LLAVE + '_' + soc) || (soc === '15059' ? localStorage.getItem(LLAVE) : null); const j = v && JSON.parse(v); return j && j.c ? j : null; } catch (e) { return null; } };
 function pantallaEntrar() { $('#olvidar').hidden = !guardada; $('#pin').value = ''; ir('entrar'); }
 $('#f-entrar').addEventListener('submit', async e => {
   e.preventDefault(); const err = $('#entrar-err'), btn = $('#entrar-btn'); err.textContent = '';
@@ -378,6 +406,7 @@ $('#f-entrar').addEventListener('submit', async e => {
   if (!ADMIN.includes(soc)) { err.textContent = 'Este panel es solo para el administrador.'; return; }
   btn.disabled = true; btn.textContent = 'Revisando…';
   try {
+    guardada = llaveDe(soc);
     if (guardada) {
       // Con la llave ya guardada, el PIN correcto es el que la abre.
       llave = await abrir(soc, pin, guardada);
@@ -386,7 +415,7 @@ $('#f-entrar').addEventListener('submit', async e => {
       const id = [...new Uint8Array(await crypto.subtle.digest('SHA-256', te.encode('fondo-id:v1:' + soc)))].map(x => x.toString(16).padStart(2, '0')).join('').slice(0, 40);
       const blob = D.cuentas && D.cuentas[id]; if (!blob) throw new Error('pin');
       const datos = JSON.parse(await abrir(soc, pin, blob));
-      try { localStorage.setItem('s80_panel_nombre', titulo(datos.nombre || blob.nm || '')); } catch (x) {}
+      try { localStorage.setItem('s80_panel_nombre_' + soc, nombreCorto(datos.nombre, datos.orden) || blob.nm || ''); } catch (x) {}
     }
     socio = soc; pinMem = pin; intentos = 0;
     try { localStorage.setItem('s80_panel_ibm', $('#ibm').value.trim()); } catch (x) {}
@@ -399,8 +428,8 @@ $('#f-entrar').addEventListener('submit', async e => {
   }
   btn.disabled = false; btn.textContent = 'Entrar';
 });
-$('#olvidar').addEventListener('click', () => { if (!confirm('¿Olvidar la llave de GitHub en este equipo? Tendrás que pegarla otra vez.')) return; try { localStorage.removeItem(LLAVE); } catch (x) {} guardada = null; $('#olvidar').hidden = true; });
-function pintarNombre() { let n = ''; try { n = localStorage.getItem('s80_panel_nombre') || ''; } catch (x) {} $('#quien').textContent = n || 'Administrador'; }
+$('#olvidar').addEventListener('click', () => { if (!confirm('¿Olvidar las llaves de GitHub guardadas en este equipo? Cada administrador tendrá que pegar la suya otra vez.')) return; try { Object.keys(localStorage).filter(k => k.startsWith(LLAVE)).forEach(k => localStorage.removeItem(k)); } catch (x) {} guardada = null; $('#olvidar').hidden = true; });
+function pintarNombre() { let n = ''; try { n = localStorage.getItem('s80_panel_nombre_' + socio) || nombreCorto(localStorage.getItem('s80_panel_nombre') || '') || ''; } catch (x) {} $('#quien').textContent = n || 'Administrador'; }
 
 /* ======================= Llave (una vez por equipo) ======================= */
 $('#f-llave').addEventListener('submit', async e => {
@@ -411,12 +440,12 @@ $('#f-llave').addEventListener('submit', async e => {
   try {
     await gh(`/repos/${REPO}`);
     guardada = await cerrar(socio, pinMem, v);
-    try { localStorage.setItem(LLAVE, JSON.stringify(guardada)); } catch (x) {}
+    try { localStorage.setItem(LLAVE + '_' + socio, JSON.stringify(guardada)); } catch (x) {}
     $('#llave').value = ''; ir('inicio');
   } catch (err) { llave = null; $('#llave-err').textContent = err.message; }
   $('#llave-btn').disabled = false; $('#llave-btn').textContent = 'Guardar y entrar';
 });
-$('#salir').addEventListener('click', () => { llave = null; socio = null; pinMem = null; pantallaEntrar(); });
+$('#salir').addEventListener('click', () => { llave = null; socio = null; pinMem = null; PINS = null; pantallaEntrar(); });
 
 /* ======================= Inicio ======================= */
 function pintarAviso(nodo, clase, t, p) { nodo.className = 'vidrio aviso ' + clase; nodo.querySelector('b').textContent = t; nodo.querySelector('p').textContent = p; nodo.hidden = false; }
@@ -603,6 +632,23 @@ async function cargarHistorial() {
   try { const h = (await leerJSON('estado/historial.json')) || []; l.replaceChildren(...(h.length ? h.map(renglon) : [el('p', 'nota', 'Todavía no hay movimientos.')])); }
   catch (e) { l.replaceChildren(el('p', 'err', e.message)); }
 }
+
+/* ======================= Buscar PIN ======================= */
+let PINS = null;   // se lee del repositorio privado y vive solo en memoria
+async function buscarPin() {
+  const box = $('#pin-res'), v = $('#buscar-ibm').value.trim(); if (!v) { box.hidden = true; return; }
+  const soc = normSocio(v); box.hidden = false;
+  try {
+    if (!PINS) { box.replaceChildren(el('p', 'nota', 'Buscando…')); PINS = await leerJSON('pins_all.json'); }
+    const x = (PINS || []).find(p => String(p.socio) === soc);
+    if (!x) { box.replaceChildren(el('p', 'err', `No encontré el IBM ${v}.`)); return; }
+    const num = el('div', 'pin-num', x.pin), cp = el('button', 'btn sec', 'Copiar PIN'); cp.type = 'button'; cp.style.marginTop = '8px';
+    cp.onclick = async () => { try { await navigator.clipboard.writeText(String(x.pin)); cp.textContent = 'Copiado ✓'; setTimeout(() => cp.textContent = 'Copiar PIN', 1500); } catch (e) {} };
+    box.replaceChildren(el('div', 'pin-nom', titulo(x.nombre)), el('div', 'pin-ibm', `IBM ${soc.replace(/^1/, '').replace(/^0+/, '')}`), num, cp);
+  } catch (e) { box.replaceChildren(el('p', 'err', e.message)); }
+}
+$('#f-pin').addEventListener('submit', e => { e.preventDefault(); $('#buscar-ibm').blur(); buscarPin(); });
+let tPin; $('#buscar-ibm').addEventListener('input', () => { clearTimeout(tPin); tPin = setTimeout(buscarPin, 350); });
 
 /* ======================= Arranque ======================= */
 elegirTipo('auto');
