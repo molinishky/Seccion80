@@ -583,6 +583,9 @@ html.dm .deco .dm-deco{display:block;left:50%;right:auto;transform:translateX(-5
 .est-ctrl{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--sab) + 16px);width:calc(100% - 32px);z-index:12;display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:440px;user-select:none;-webkit-user-select:none;touch-action:none}
 body.jugando #nav,body.jugando .home-top,body.jugando #sinred{display:none!important}
 body.jugando .scr{padding-bottom:calc(var(--sab) + 96px)}
+body.jugando .sdk:not(.est){padding-bottom:calc(var(--sab) + 12px)}
+body.jugando .sdk:not(.est) .sdk-tab,body.jugando .sdk:not(.est) .sdk-zona-tab,body.jugando .sdk:not(.est) .sdk-herr,body.jugando .sdk:not(.est) .sdk-nums{max-width:480px}
+body.jugando .sdk:not(.est) .sdk-nums button{aspect-ratio:.72;font-size:24px}
 body.jugando .est .sdk-cab{margin-top:8px}
 .est-juego{max-width:460px!important}
 .est-ctrl button{height:64px;border-radius:16px;border:1px solid var(--g-borde);background:var(--g-bg);backdrop-filter:var(--g-blur);-webkit-backdrop-filter:var(--g-blur);color:var(--azul);display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -2211,6 +2214,7 @@ function abrirSub(pantalla, base, det) {
 }
 function cerrarSub(pantalla, sinAnim) {
   const s = SUB[pantalla]; if (!s) return false;
+  if (s.det.classList.contains('sdk')) document.body.classList.remove('jugando');   // al salir de un juego vuelve la barra
   SUB[pantalla] = null;
   if (s.det.dataset.fijo) s.det.hidden = true; else s.det.remove();
   s.base.hidden = false;
@@ -3000,7 +3004,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261119145141';
+const APP_VERSION = '20261119145604';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
@@ -3120,6 +3124,7 @@ function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.sty
     vista = construir();
     J = leer(ALM); if (!J || J.fin || !J.sol) { J = nuevoTablero((J && NIVEL[J.nivel]) ? J.nivel : 'facil'); salvar(); }
     sel = -1; lapiz = false;
+    document.body.classList.add('jugando');   // sin barra de abajo para que el tablero se vea más grande
     abrirSub('home', base, vista); pintar(); arrancar();
     try { history.pushState({ s: 'home', sub: 1 }, ''); } catch (e) {}
   }
