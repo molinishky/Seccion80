@@ -1,0 +1,17 @@
+{
+  "name": "panel-seccion80",
+  "productName": "Panel Sección 80",
+  "version": "1.0.0",
+  "description": "Panel de administración de la app Sección 80",
+  "author": "Sección 80",
+  "main": "main.js",
+  "scripts": { "dist": "electron-builder --win portable --x64 --publish never" },
+  "devDependencies": { "electron": "33.2.1", "electron-builder": "25.1.8" },
+  "build": {
+    "appId": "mx.seccion80.panel",
+    "productName": "Panel Sección 80",
+    "files": ["main.js", "icono.png"],
+    "win": { "target": "portable", "icon": "icono.png" },
+    "portable": { "artifactName": "Panel-Seccion80-v${version}.exe" }
+  }
+}

@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<title>Panel Sección 80</title>
+<link rel="icon" href="../icono-192.png">
+<link rel="apple-touch-icon" href="../icono-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --azul:#0068B8;--azul-cl:rgba(0,104,184,.12);--verde:#1E8A3C;--verde-ok:#1B7A35;--rojo:#C62828;--ambar:#9A5B00;
+  --tx:#1F2430;--mu:#5B6575;--mu2:#8A94A3;--fondo:#FFFFFF;--velo:255,255,255;
+  --caja:rgba(255,255,255,.55);--borde:rgba(255,255,255,.8);--sombra:0 10px 28px rgba(0,58,110,.10);--blur:blur(8px) saturate(170%);
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)
+}
+@media (prefers-color-scheme:dark){:root{
+  --azul:#3B9BEA;--azul-cl:rgba(59,155,234,.18);--verde:#2EA559;--verde-ok:#5BCB7C;--rojo:#FF7A7A;--ambar:#FFB547;
+  --tx:#F2F5FA;--mu:#A3AEC0;--mu2:#7D889A;--fondo:#000000;--velo:0,0,0;
+  --caja:rgba(22,28,40,.55);--borde:rgba(255,255,255,.10);--sombra:0 10px 28px rgba(0,0,0,.35)
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--fondo);color:var(--tx);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+body{min-height:100dvh;background:transparent}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--azul)}
+/* fondo: retrato con degradado, como la app */
+.deco{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;background:var(--fondo)}
+.deco img{position:absolute;left:50%;transform:translateX(-50%);bottom:-14%;height:80%;max-width:none;width:auto}
+.deco img.oscuro{display:none}
+@media (prefers-color-scheme:dark){.deco img.claro{display:none}.deco img.oscuro{display:block}}
+.deco::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(var(--velo),1) 0%,rgba(var(--velo),1) 24%,rgba(var(--velo),.80) 40%,rgba(var(--velo),.62) 62%,rgba(var(--velo),.74) 100%)}
+@media (prefers-color-scheme:dark){.deco::after{background:linear-gradient(180deg,rgba(var(--velo),1) 0%,rgba(var(--velo),1) 24%,rgba(var(--velo),.70) 40%,rgba(var(--velo),.44) 62%,rgba(var(--velo),.62) 100%)}}
+.app{max-width:520px;margin:0 auto;padding:calc(var(--sat) + 0px) 20px calc(110px + var(--sab))}
+.franjas{display:flex;gap:5px}.franjas i{width:22px;height:4px;border-radius:2px}
+.franjas i:nth-child(1){background:#E53935}.franjas i:nth-child(2){background:#FDD835}.franjas i:nth-child(3){background:#0068B8}.franjas i:nth-child(4){background:#2E9E4B}
+.top-c{position:relative;display:flex;flex-direction:column;align-items:center;padding-top:22px}
+.top-c img{height:72px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.18))}
+.top-c .franjas{margin-top:10px}
+.top-s{display:flex;align-items:center;gap:6px;padding:18px 0 0}
+.top-s h1{font-size:20px;font-weight:700;flex:1}
+.top-s img{height:40px}
+.top-s+.franjas{margin-top:10px}
+.ico{width:44px;height:44px;border-radius:12px;border:0;background:transparent;display:grid;place-items:center;color:var(--azul);cursor:pointer;flex:none}
+.ico.gris{color:var(--mu)}
+.esq{position:absolute;right:-8px;top:22px}
+.vidrio{background:var(--caja);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--borde);box-shadow:var(--sombra);border-radius:18px}
+.pila{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+.saludo{display:flex;align-items:center;gap:14px;padding:14px}
+.circ{width:50px;height:50px;border-radius:50%;background:var(--azul);display:grid;place-items:center;flex:none;color:#fff}
+.circ.v{background:var(--verde)}.circ.g{width:56px;height:56px}
+.saludo small{font-size:14px}.saludo b{display:block;font-size:21px;line-height:1.2}.saludo p{font-size:12.5px;color:var(--mu)}
+.aviso{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px}
+.aviso .pt{width:10px;height:10px;border-radius:50%;flex:none}
+.aviso b{display:block;font-size:15px}.aviso p{font-size:12.5px;color:var(--mu)}
+.aviso.ok{background:linear-gradient(110deg,rgba(46,158,75,.14),var(--caja));border-color:rgba(46,158,75,.35)}.aviso.ok b{color:var(--verde-ok)}.aviso.ok .pt{background:#2E9E4B;box-shadow:0 0 0 4px rgba(46,158,75,.18)}
+.aviso.rev{background:linear-gradient(110deg,rgba(217,119,6,.16),var(--caja));border-color:rgba(217,119,6,.4)}.aviso.rev b{color:var(--ambar)}.aviso.rev .pt{background:#D97706;box-shadow:0 0 0 4px rgba(217,119,6,.18)}
+.aviso.pro{background:linear-gradient(110deg,var(--azul-cl),var(--caja));border-color:rgba(0,104,184,.35)}.aviso.pro b{color:var(--azul)}.aviso.pro .pt{background:var(--azul);animation:lat 1.2s ease-in-out infinite}
+@keyframes lat{50%{box-shadow:0 0 0 7px rgba(0,104,184,.0),0 0 0 3px rgba(0,104,184,.35)}}
+.rejilla{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tarjeta{display:flex;flex-direction:column;gap:9px;padding:14px;min-height:140px;text-align:left;cursor:pointer;border-radius:18px;transition:transform .15s}
+.tarjeta:active{transform:scale(.98)}
+.tarjeta .f1{display:flex;justify-content:space-between;align-items:flex-start;color:var(--mu2)}
+.tarjeta b{font-size:16px;line-height:1.25}.tarjeta span.sub{font-size:12.5px;color:var(--mu);line-height:1.35}
+.tarjeta span.sub.rev{color:var(--ambar);font-weight:600}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--borde);background:var(--caja);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);font-size:13px;font-weight:600;cursor:pointer}
+.chip.on{background:var(--azul);border-color:var(--azul);color:#fff}
+.soltar{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:18px 16px;border-radius:18px;border:2px dashed rgba(0,104,184,.45);cursor:pointer}
+.soltar.sobre{border-color:var(--azul);background:var(--azul-cl)}
+.soltar b{font-size:16px}.soltar span{font-size:12.5px;color:var(--mu)}
+.soltar input{position:absolute;width:1px;height:1px;opacity:0}
+.archivo{display:flex;align-items:center;gap:12px}
+.archivo .tipo{width:40px;height:48px;border-radius:8px;display:grid;place-items:center;font-size:11px;font-weight:800;flex:none}
+.archivo .tipo.pdf{background:#FDECEC;color:#C62828}.archivo .tipo.xls{background:#E6F4EA;color:#1B7A35}.archivo .tipo.js{background:#EEF2F7;color:#455A64}
+.archivo .nm{display:flex;flex-direction:column;min-width:0;flex:1}.archivo .nm b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.archivo .nm span{font-size:12px;color:var(--mu)}
+.hallazgo{background:var(--azul-cl);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.hallazgo h4{font-size:12px;color:var(--mu);letter-spacing:.3px}
+.fila{display:flex;justify-content:space-between;gap:10px;font-size:14px}.fila span:first-child{color:var(--mu)}.fila span:last-child{font-weight:700;text-align:right}
+.fila .ok{color:var(--verde-ok)}.fila .rev{color:var(--ambar)}
+.btn{height:52px;border-radius:14px;border:0;background:var(--azul);color:#fff;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;box-shadow:0 8px 18px rgba(0,104,184,.28);width:100%}
+.btn:disabled{opacity:.45;box-shadow:none;cursor:default}
+.btn.sec{background:var(--caja);color:var(--azul);border:1px solid var(--borde);box-shadow:none;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
+.nota{font-size:12.5px;color:var(--mu);text-align:center;line-height:1.45}
+.pasos{padding:18px 16px}
+.paso{display:flex;gap:14px}.paso .col{display:flex;flex-direction:column;align-items:center}
+.paso .bol{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:rgba(138,148,163,.25);color:#fff;flex:none}
+.paso .lin{width:2px;height:30px;background:rgba(138,148,163,.3)}
+.paso.hecho .bol,.paso.hecho .lin{background:#2E9E4B}
+.paso.ahora .bol{background:var(--azul);animation:lat 1.2s infinite}
+.paso.mal .bol{background:#D97706}
+.paso .tx{padding-top:3px;display:flex;flex-direction:column;gap:2px}.paso .tx b{font-size:15px}.paso .tx span{font-size:12px;color:var(--mu)}
+.lista{display:flex;flex-direction:column}
+.lista .it{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(138,148,163,.18)}
+.lista .it:last-child{border-bottom:0}
+.lista .it .pt{width:10px;height:10px;border-radius:50%;flex:none}
+.lista .it div{display:flex;flex-direction:column;min-width:0;flex:1}.lista .it b{font-size:14px}.lista .it span{font-size:12px;color:var(--mu)}
+.lista .it p{font-size:12.5px;color:var(--ambar);margin-top:3px}
+.titulo-sec{font-size:13px;font-weight:700;color:var(--mu);letter-spacing:.4px;margin-top:6px}
+.campo{display:flex;align-items:center;gap:10px;background:var(--caja);border:1.5px solid rgba(0,104,184,.45);border-radius:14px;padding:0 14px;height:54px}
+.campo input{border:0;outline:0;flex:1;background:transparent;font-size:15px;min-width:0}
+.err{color:var(--rojo);font-size:13px;min-height:18px;text-align:center}
+nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + var(--sab));width:calc(100% - 24px);max-width:496px;height:70px;border-radius:30px;background:var(--caja);backdrop-filter:blur(14px) saturate(180%);-webkit-backdrop-filter:blur(14px) saturate(180%);border:1px solid var(--borde);box-shadow:0 10px 30px rgba(0,58,110,.16);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;padding:0 6px;z-index:5}
+nav button{height:58px;border:0;background:transparent;border-radius:24px;color:var(--mu);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600;cursor:pointer}
+nav button.on{background:var(--azul-cl);color:var(--azul);font-weight:700}
+[hidden]{display:none!important}
+.entra{animation:entra .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes entra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (min-width:900px){.app{max-width:720px}.rejilla{grid-template-columns:repeat(4,minmax(0,1fr))}nav{max-width:560px}}
+</style>
+</head>
+<body>
+<div class="deco" aria-hidden="true"><img class="claro" src="../nm_fondo_claro.webp" alt=""><img class="oscuro" src="../nm_fondo_oscuro.webp" alt=""></div>
+
+<!-- ============ LLAVE (primera vez) ============ -->
+<main id="s-llave" class="app" hidden>
+  <div class="top-c" style="padding-top:56px"><img src="../escudo.png" alt="Escudo Sección 80" style="height:96px"><div class="franjas"><i></i><i></i><i></i><i></i></div></div>
+  <h1 style="text-align:center;font-size:24px;font-weight:800;color:var(--azul);margin-top:16px">Panel Sección 80</h1>
+  <p class="nota" style="font-size:14px;margin-top:12px">Solo para el administrador. Pega tu llave de GitHub una sola vez: se guarda únicamente en este equipo.</p>
+  <form id="f-llave" class="pila" style="margin-top:24px" autocomplete="off">
+    <label for="llave" style="font-size:13px;font-weight:700">Llave de GitHub</label>
+    <div class="campo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--azul)" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L20 3M16 7l3 3M14 9l2 2"/></svg><input id="llave" type="password" placeholder="github_pat_…" spellcheck="false" autocapitalize="off"></div>
+    <p class="nota" style="text-align:left">Permisos: subir archivos y ver las actualizaciones del repositorio privado <b>Seccion80-sistema</b>.</p>
+    <p class="err" id="llave-err" role="alert"></p>
+    <button class="btn" type="submit" id="llave-btn">Conectar</button>
+    <a class="nota" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener" style="display:block;padding:12px">Crear una llave en GitHub ›</a>
+  </form>
+  <section class="vidrio aviso" style="margin-top:24px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2E9E4B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;margin-top:1px"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg><p style="font-size:13px;line-height:1.45">Sin la llave esta página no muestra ni sube nada. Los datos de los trabajadores se procesan y cifran en GitHub; la CURP de la lista de raya nunca sale de este equipo.</p></section>
+</main>
+
+<!-- ============ INICIO ============ -->
+<main id="s-inicio" class="app" hidden>
+  <div class="top-c"><img src="../escudo.png" alt="Escudo del sindicato"><button class="ico gris esq" id="salir" aria-label="Quitar la llave de este equipo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4"/><path d="M6 12h10"/></svg></button><div class="franjas"><i></i><i></i><i></i><i></i></div></div>
+  <div class="pila">
+    <section class="vidrio saludo"><span class="circ g"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span><div><small>Hola,</small><b id="quien">Administrador</b><p>Administrador · Panel de la Sección 80</p></div></section>
+    <section class="vidrio aviso" id="aviso"><span class="pt"></span><div><b id="aviso-t">Cargando…</b><p id="aviso-p"></p></div></section>
+    <div class="rejilla">
+      <button class="vidrio tarjeta" data-tipo="nomina"><span class="f1"><span class="circ"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/><path d="M14 3l5 5v2"/><path d="M14 3v5h5"/><path d="M8.5 11h5M8.5 14.5h3"/><circle cx="16.5" cy="16.5" r="3"/><path d="M18.7 18.7L21 21"/></svg></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span><b>Nómina</b><span class="sub" id="c-nomina">—</span></button>
+      <button class="vidrio tarjeta" data-tipo="fondo"><span class="f1"><span class="circ v"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 10.5c0-3.6-3.4-6-7.5-6S4 6.9 4 10.5c0 2 1 3.6 2.5 4.7V19h3v-2h4v2h3v-3.6c1-.6 1.8-1.5 2.2-2.4H21v-3h-1.6c-.1-.5-.2-1-.4-1.5"/><path d="M9.5 8h4"/></svg></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span><b>Fondo de ahorro</b><span class="sub" id="c-fondo">—</span></button>
+      <button class="vidrio tarjeta" data-tipo="prestamos"><span class="f1"><span class="circ v"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="7" r="3"/><path d="M3 15c2.5-1.5 5-1.5 7 0l3 1.5c1 .5 1 2-.2 2.2H9"/><path d="M3 20h12l5-3"/></svg></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span><b>Préstamos</b><span class="sub" id="c-prestamos">—</span></button>
+      <button class="vidrio tarjeta" data-tipo="cumple"><span class="f1"><span class="circ"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span><b>Escalafones y lista de raya</b><span class="sub" id="c-cumple">—</span></button>
+    </div>
+  </div>
+</main>
+
+<!-- ============ SUBIR ============ -->
+<main id="s-subir" class="app" hidden>
+  <div class="top-s"><button class="ico" data-ir="inicio" aria-label="Regresar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><h1 id="subir-t">Subir archivo</h1><img src="../escudo.png" alt="" aria-hidden="true"></div>
+  <div class="franjas"><i></i><i></i><i></i><i></i></div>
+  <div class="pila">
+    <div class="chips" role="radiogroup" aria-label="Tipo de archivo">
+      <button class="chip" data-t="nomina" role="radio">Nómina</button>
+      <button class="chip" data-t="fondo" role="radio">Fondo</button>
+      <button class="chip" data-t="prestamos" role="radio">Préstamos</button>
+      <button class="chip" data-t="escalafones" role="radio">Escalafones</button>
+      <button class="chip" data-t="cumple" role="radio">Lista de raya</button>
+    </div>
+    <p class="nota" id="subir-ayuda" style="text-align:left"></p>
+    <label class="vidrio soltar" id="soltar">
+      <span class="circ"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span>
+      <b>Elegir archivo</b><span id="soltar-p">PDF o Excel · también puedes arrastrarlo aquí</span>
+      <input type="file" id="archivo" multiple>
+    </label>
+    <section class="vidrio" id="revision" style="padding:14px;display:flex;flex-direction:column;gap:12px" hidden></section>
+    <button class="btn" id="subir-btn" disabled><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg><span>Subir y publicar</span></button>
+    <p class="nota">Si algo no cuadra no se publica nada y te aviso aquí (y GitHub te manda un correo).</p>
+  </div>
+</main>
+
+<!-- ============ PROCESO ============ -->
+<main id="s-proceso" class="app" hidden>
+  <div class="top-s"><button class="ico" data-ir="inicio" aria-label="Regresar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><h1 id="proc-t">Actualización</h1><img src="../escudo.png" alt="" aria-hidden="true"></div>
+  <div class="franjas"><i></i><i></i><i></i><i></i></div>
+  <div class="pila">
+    <section class="vidrio pasos" id="pasos"></section>
+    <section class="vidrio aviso" id="proc-aviso" hidden><span class="pt"></span><div><b id="proc-aviso-t"></b><p id="proc-aviso-p"></p></div></section>
+    <section class="vidrio" id="proc-detalle" hidden><div class="lista" id="proc-lista"></div></section>
+    <button class="btn sec" data-ir="inicio">Volver al inicio</button>
+  </div>
+</main>
+
+<!-- ============ HISTORIAL ============ -->
+<main id="s-historial" class="app" hidden>
+  <div class="top-s"><button class="ico" data-ir="inicio" aria-label="Regresar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><h1>Historial</h1><img src="../escudo.png" alt="" aria-hidden="true"></div>
+  <div class="franjas"><i></i><i></i><i></i><i></i></div>
+  <div class="pila">
+    <section class="vidrio"><div class="lista" id="hist"></div></section>
+  </div>
+</main>
+
+<nav id="nav" hidden aria-label="Navegación del panel">
+  <button data-ir="inicio"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</button>
+  <button data-ir="subir"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>Subir</button>
+  <button data-ir="historial"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Historial</button>
+  <button data-abrir="https://docs.google.com/spreadsheets/d/1-y1xNYYhvKu5geP-YPffe8oO2X3rII5D5XxIRdPp-J8"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Accesos</button>
+  <button data-abrir="https://molinishky.github.io/Seccion80/"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>Ver app</button>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+'use strict';
+/* ======================= Configuración ======================= */
+const REPO = 'molinishky/Seccion80-sistema';
+const API = 'https://api.github.com';
+const LLAVE = 's80_panel_llave';
+const TIPOS = {
+  nomina: { nombre: 'Nómina', ext: ['.pdf'], ayuda: 'Sube el PDF "verificación de nómina" de la semana.' },
+  fondo: { nombre: 'Fondo de ahorro', ext: ['.pdf'], ayuda: 'Sube el PDF "acumulado de fondo de ahorro".' },
+  prestamos: { nombre: 'Préstamos', ext: ['.xlsx', '.xlsm', '.xls'], ayuda: 'Sube el Excel del Préstamo Sindical Personal, Económico 25-26 o Económico 2018.' },
+  escalafones: { nombre: 'Escalafones', ext: ['.xlsx', '.xls'], ayuda: 'Sube el Excel de zafra, reparación o antigüedades (el nombre debe decir cuál).' },
+  cumple: { nombre: 'Lista de raya', ext: ['.pdf'], ayuda: 'Sube una o varias listas de raya. Aquí mismo saco solo el mes y día de cumpleaños: la CURP no sale de este equipo.' }
+};
+const $ = s => document.querySelector(s);
+const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+const dinero = n => '$' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fecha = s => { try { return new Date(s).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return s; } };
+let llave = null, estado = null, tipoSel = 'nomina', listos = [], ultimoEnvio = null;
+try { llave = localStorage.getItem(LLAVE); } catch (e) {}
+if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+/* ======================= GitHub ======================= */
+async function gh(ruta, op = {}) {
+  const r = await fetch(API + ruta, { ...op, headers: { Authorization: 'Bearer ' + llave, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(op.headers || {}) } });
+  if (r.status === 401) throw new Error('La llave no es válida o ya venció.');
+  if (r.status === 403 || r.status === 404) { const j = await r.json().catch(() => ({})); throw new Error(r.status === 404 ? 'No encontré eso en el repositorio (o la llave no tiene permiso).' : (j.message || 'Sin permiso.')); }
+  if (!r.ok) throw new Error('GitHub respondió ' + r.status);
+  return r;
+}
+async function leerJSON(ruta) {
+  try { const r = await gh(`/repos/${REPO}/contents/${ruta}?t=${Date.now()}`, { headers: { Accept: 'application/vnd.github.raw+json' }, cache: 'no-store' }); return await r.json(); }
+  catch (e) { if (/No encontré/.test(e.message)) return null; throw e; }
+}
+function b64(buf) { const u = new Uint8Array(buf); let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); }
+async function subirArchivo(ruta, buf, msg) {
+  let sha; try { const r = await gh(`/repos/${REPO}/contents/${encodeURI(ruta)}`); sha = (await r.json()).sha; } catch (e) {}
+  await gh(`/repos/${REPO}/contents/${encodeURI(ruta)}`, { method: 'PUT', body: JSON.stringify({ message: msg, content: b64(buf), ...(sha ? { sha } : {}) }) });
+}
+async function corridas() { const r = await gh(`/repos/${REPO}/actions/workflows/actualizar.yml/runs?per_page=5&t=${Date.now()}`); return (await r.json()).workflow_runs || []; }
+
+/* ======================= Pantallas ======================= */
+const PANT = ['llave', 'inicio', 'subir', 'proceso', 'historial'];
+function ir(p) {
+  PANT.forEach(x => { const s = $('#s-' + x); s.hidden = x !== p; if (x === p) { s.classList.remove('entra'); void s.offsetWidth; s.classList.add('entra'); } });
+  $('#nav').hidden = p === 'llave';
+  document.querySelectorAll('#nav [data-ir]').forEach(b => b.classList.toggle('on', b.dataset.ir === p || (p === 'proceso' && b.dataset.ir === 'historial')));
+  window.scrollTo(0, 0);
+  if (p === 'inicio') cargarInicio();
+  if (p === 'historial') cargarHistorial();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-ir]'); if (b) { e.preventDefault(); ir(b.dataset.ir); return; }
+  const a = e.target.closest('[data-abrir]'); if (a) { e.preventDefault(); window.open(a.dataset.abrir, '_blank', 'noopener'); return; }
+  const t = e.target.closest('.tarjeta[data-tipo]'); if (t) { elegirTipo(t.dataset.tipo); ir('subir'); }
+});
+
+/* ======================= Llave ======================= */
+$('#f-llave').addEventListener('submit', async e => {
+  e.preventDefault(); const v = $('#llave').value.trim(); $('#llave-err').textContent = '';
+  if (!/^(github_pat_|ghp_)/.test(v)) { $('#llave-err').textContent = 'La llave empieza con github_pat_ …'; return; }
+  $('#llave-btn').disabled = true; $('#llave-btn').textContent = 'Revisando…'; llave = v;
+  try { await gh(`/repos/${REPO}`); try { localStorage.setItem(LLAVE, v); } catch (e) {} $('#llave').value = ''; ir('inicio'); }
+  catch (err) { llave = null; $('#llave-err').textContent = err.message; }
+  $('#llave-btn').disabled = false; $('#llave-btn').textContent = 'Conectar';
+});
+$('#salir').addEventListener('click', () => { if (!confirm('¿Quitar la llave de este equipo? Tendrás que pegarla otra vez.')) return; try { localStorage.removeItem(LLAVE); } catch (e) {} llave = null; ir('llave'); });
+
+/* ======================= Inicio ======================= */
+function pintarAviso(nodo, clase, t, p) { nodo.className = 'vidrio aviso ' + clase; nodo.querySelector('b').textContent = t; nodo.querySelector('p').textContent = p; nodo.hidden = false; }
+async function cargarInicio() {
+  const av = $('#aviso');
+  try {
+    const [ult, runs] = await Promise.all([leerJSON('estado/ultimo.json'), corridas().catch(() => [])]);
+    estado = ult;
+    const viva = runs.find(r => r.status !== 'completed');
+    const a = (ult && ult.app) || {};
+    $('#c-nomina').textContent = a.nomina ? `Publicada: semana ${a.nomina}` : 'Sube la primera';
+    $('#c-fondo').textContent = a.fondo ? `Publicado: semana ${a.fondo}` : 'Sube el primero';
+    $('#c-prestamos').textContent = a.prestamo_sindical ? `Sindical: semana ${a.prestamo_sindical}` : 'Sube el primero';
+    $('#c-cumple').textContent = a.cumple ? `Cumpleaños: ${a.cumple} trabajadores` : 'Escalafón o lista de raya';
+    const rev = ult && (ult.movimientos || []).filter(m => m.resultado === 'revisar');
+    ['nomina', 'fondo', 'prestamos', 'cumple'].forEach(k => { const s = $('#c-' + k); s.classList.toggle('rev', !!(rev && rev.some(m => m.tipo === k || (k === 'cumple' && m.tipo === 'escalafones')))); });
+    (rev || []).forEach(m => { const s = $('#c-' + (m.tipo === 'escalafones' ? 'cumple' : m.tipo)); if (s) s.textContent = 'Revisar: ' + (m.titulo || m.archivo); });
+    if (viva) pintarAviso(av, 'pro', 'Actualizando la app…', 'GitHub está procesando lo que subiste. Tarda 2 o 3 minutos.');
+    else if (!ult) pintarAviso(av, 'pro', 'Todavía no hay actualizaciones', 'Sube tu primer archivo desde aquí abajo.');
+    else if (ult.resultado === 'revisar' || (rev && rev.length)) pintarAviso(av, 'rev', 'Hay algo que revisar', `${fecha(ult.fecha)} · toca Historial para ver el motivo`);
+    else pintarAviso(av, 'ok', 'La app está al día', `Nómina ${a.nomina || '—'} · Fondo ${a.fondo || '—'} · Préstamos ${a.prestamo_sindical || '—'} · ningún PIN cambió`);
+    if (viva) setTimeout(() => { if (!$('#s-inicio').hidden) cargarInicio(); }, 8000);
+  } catch (e) { pintarAviso(av, 'rev', 'No pude leer el estado', e.message); if (/llave/i.test(e.message)) { llave = null; ir('llave'); } }
+}
+
+/* ======================= Subir ======================= */
+function elegirTipo(t) {
+  tipoSel = t; listos = [];
+  document.querySelectorAll('.chip').forEach(c => { const on = c.dataset.t === t; c.classList.toggle('on', on); c.setAttribute('aria-checked', on); });
+  $('#subir-t').textContent = 'Subir ' + TIPOS[t].nombre.toLowerCase();
+  $('#subir-ayuda').textContent = TIPOS[t].ayuda;
+  $('#soltar-p').textContent = TIPOS[t].ext.join(', ').toUpperCase().replace(/\./g, '') + ' · también puedes arrastrarlo aquí';
+  $('#archivo').accept = TIPOS[t].ext.join(',');
+  $('#revision').hidden = true; $('#revision').replaceChildren(); $('#subir-btn').disabled = true;
+}
+document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => elegirTipo(c.dataset.t)));
+$('#archivo').addEventListener('change', e => revisar([...e.target.files]));
+const zona = $('#soltar');
+['dragenter', 'dragover'].forEach(ev => zona.addEventListener(ev, e => { e.preventDefault(); zona.classList.add('sobre'); }));
+['dragleave', 'drop'].forEach(ev => zona.addEventListener(ev, e => { e.preventDefault(); zona.classList.remove('sobre'); }));
+zona.addEventListener('drop', e => revisar([...e.dataTransfer.files]));
+
+async function textoPDF(buf, paginas) {
+  const doc = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise; const n = doc.numPages, out = [];
+  for (const i of (paginas === 'todas' ? [...Array(n).keys()].map(x => x + 1) : paginas.map(p => p < 0 ? n + 1 + p : p))) {
+    if (i < 1 || i > n) continue;
+    const c = await (await doc.getPage(i)).getTextContent();
+    // reagrupa por renglón para que los números queden juntos como en el PDF
+    const lineas = {}; c.items.forEach(it => { const y = Math.round(it.transform[5]); (lineas[y] = lineas[y] || []).push(it); });
+    Object.keys(lineas).sort((a, b) => b - a).forEach(y => out.push(lineas[y].sort((a, b) => a.transform[4] - b.transform[4]).map(x => x.str).join(' ')));
+  }
+  return { texto: out.join('\n'), paginas: n };
+}
+function tarjetaArchivo(f, extra) {
+  const ext = f.name.split('.').pop().toLowerCase(), box = el('div', 'archivo');
+  box.append(el('span', 'tipo ' + (ext === 'pdf' ? 'pdf' : ext === 'json' ? 'js' : 'xls'), ext.toUpperCase()));
+  const nm = el('div', 'nm'); nm.append(el('b', null, f.name), el('span', null, `${(f.size / 1048576).toFixed(1)} MB${extra ? ' · ' + extra : ''}`)); box.append(nm); return box;
+}
+function hallazgos(filas) {
+  const h = el('div', 'hallazgo'); h.append(el('h4', null, 'LO QUE ENCONTRÉ EN EL ARCHIVO'));
+  filas.forEach(([a, b, c]) => { const f = el('div', 'fila'); f.append(el('span', null, a), el('span', c || null, b)); h.append(f); }); return h;
+}
+async function revisar(archivos) {
+  const box = $('#revision'); box.replaceChildren(); box.hidden = false; listos = []; $('#subir-btn').disabled = true;
+  const T = TIPOS[tipoSel], app = (estado && estado.app) || {};
+  const malos = archivos.filter(f => !T.ext.some(x => f.name.toLowerCase().endsWith(x)));
+  if (malos.length) { box.append(el('p', 'err', `${malos.map(f => f.name).join(', ')} no es ${T.ext.join(' o ')}.`)); return; }
+  box.append(el('p', 'nota', 'Revisando…'));
+  const partes = []; let mapa = {}, total = 0;
+  for (const f of archivos) {
+    const buf = await f.arrayBuffer(), ini = partes.length;
+    try {
+      if (tipoSel === 'nomina') {
+        const { texto, paginas } = await textoPDF(buf, [1]); const m = /PERIODO\s*=\s*(\d+)/.exec(texto), p = /del\s+\d+\s+al\s+\d+\s+de\s+\w+/i.exec(texto);
+        if (!m) throw new Error('No encontré "PERIODO = …": ¿es la verificación de nómina?');
+        const w = +m[1], ya = app.nomina && w <= app.nomina;
+        partes.push(tarjetaArchivo(f, paginas + ' páginas'), hallazgos([['Semana', w + (p ? ' · ' + p[0] : '')], ['¿Ya estaba publicada?', ya ? 'Sí, se reemplaza' : 'No, es nueva', ya ? 'rev' : 'ok']]));
+        listos.push({ ruta: `entrada/nomina/${f.name}`, buf, titulo: `Nómina semana ${w}` });
+      } else if (tipoSel === 'fondo') {
+        const { texto, paginas } = await textoPDF(buf, [-1]); const m = /Total por Ejercicio\s*:\s*[\d,]+\.\d{2}\s+[\d,]+\.\d{2}\s+([\d,]+\.\d{2})/.exec(texto), s = /sem[\s_]*\d+[\s_]*a[\s_]*(\d+)/i.exec(f.name);
+        if (!m) throw new Error('No encontré el "Total por Ejercicio": ¿es el acumulado de fondo de ahorro?');
+        partes.push(tarjetaArchivo(f, paginas + ' páginas'), hallazgos([['Hasta la semana', s ? s[1] : '—'], ['Total acumulado', dinero(m[1].replace(/,/g, ''))], ['Publicado ahora', app.fondo ? 'semana ' + app.fondo : '—']]));
+        listos.push({ ruta: `entrada/fondo/${f.name}`, buf, titulo: `Fondo de ahorro${s ? ' semana ' + s[1] : ''}` });
+      } else if (tipoSel === 'prestamos') {
+        const wb = XLSX.read(buf, { type: 'array', sheetRows: 3 }), h = (XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 })[0] || []).map(x => String(x || '').trim().toUpperCase());
+        const sem = h.filter(x => /^SEM\s*\d+\s*\d{4}$/.test(x)), n = f.name.toUpperCase().replace('Ó', 'O');
+        const es = sem.length >= 5 && h.includes('SALDO') ? 'sindical' : wb.SheetNames.map(x => x.toUpperCase()).includes('HOJA5') ? '2526' : /2018/.test(n) ? '2018' : null;
+        const dice = /SINDICAL/.test(n) ? 'sindical' : /25.?26/.test(n) ? '2526' : /2018/.test(n) ? '2018' : null;
+        const NOM = { sindical: 'Préstamo Sindical Personal', '2526': 'Préstamo Económico 25-26', '2018': 'Préstamo Económico 2018' };
+        if (!es) throw new Error('No tiene la forma de ninguno de los 3 préstamos.');
+        const choca = dice && dice !== es;
+        partes.push(tarjetaArchivo(f), hallazgos([['Es el', NOM[es], choca ? 'rev' : 'ok'], ...(sem.length ? [['Última semana', sem[sem.length - 1].replace(/^SEM\s*/, '')]] : []), ...(choca ? [['Ojo', 'el nombre dice ' + NOM[dice], 'rev']] : [])]));
+        if (choca) throw new Error(`El archivo se llama como ${NOM[dice]} pero su contenido es del ${NOM[es]}. Revisa cuál es antes de subirlo.`);
+        listos.push({ ruta: `entrada/prestamos/${f.name}`, buf, titulo: NOM[es] });
+      } else if (tipoSel === 'escalafones') {
+        const n = f.name.toLowerCase(), cual = /zafra/.test(n) ? 'Zafra' : /repar/.test(n) ? 'Reparación' : /antig/.test(n) ? 'Antigüedades' : null;
+        if (!cual) throw new Error('El nombre del archivo debe decir zafra, reparación o antigüedades.');
+        partes.push(tarjetaArchivo(f), hallazgos([['Escalafón', cual, 'ok']]));
+        listos.push({ ruta: `entrada/escalafones/${f.name}`, buf, titulo: 'Escalafón de ' + cual.toLowerCase() });
+      } else if (tipoSel === 'cumple') {
+        // De la CURP solo se toma mes y día; la CURP, RFC e IMSS no salen de este equipo.
+        const { texto, paginas } = await textoPDF(buf, 'todas'); let n = 0;
+        const re = /(?:^|\s)(1\d{4})\s+.*?\b[A-Z][AEIOUX][A-Z]{2}(\d{2})(\d{2})(\d{2})[HM][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z\d]\d\b/gm; let m;
+        while ((m = re.exec(texto))) { const mm = +m[3], dd = +m[4]; if (mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) { mapa[m[1]] = String(mm).padStart(2, '0') + '-' + String(dd).padStart(2, '0'); n++; } }
+        total += n; partes.push(tarjetaArchivo(f, `${paginas} páginas · ${n} trabajadores`));
+      }
+    } catch (err) { if (partes.length === ini) partes.push(tarjetaArchivo(f)); partes.push(el('p', 'err', err.message)); }
+  }
+  if (tipoSel === 'cumple') {
+    const k = Object.keys(mapa).length;
+    if (k) { partes.push(hallazgos([['Trabajadores con cumpleaños', String(k), 'ok'], ['Se sube', 'solo mes y día (sin CURP)']])); listos = [{ ruta: `entrada/cumple/cumple_${Date.now()}.json`, buf: new TextEncoder().encode(JSON.stringify(mapa)), titulo: 'Cumpleaños (lista de raya)' }]; }
+    else if (archivos.length) partes.push(el('p', 'err', 'No encontré renglones con CURP en estos PDF.'));
+  }
+  box.replaceChildren(...partes); $('#subir-btn').disabled = !listos.length;
+}
+$('#subir-btn').addEventListener('click', async () => {
+  const b = $('#subir-btn'); b.disabled = true; b.querySelector('span').textContent = 'Subiendo…';
+  try {
+    for (const x of listos) await subirArchivo(x.ruta, x.buf, 'Panel: ' + x.titulo);
+    ultimoEnvio = { titulos: listos.map(x => x.titulo), desde: Date.now() };
+    listos = []; $('#revision').hidden = true; $('#archivo').value = '';
+    ir('proceso'); seguir();
+  } catch (e) { alert('No se pudo subir: ' + e.message); }
+  b.querySelector('span').textContent = 'Subir y publicar'; b.disabled = !listos.length;
+});
+
+/* ======================= Proceso ======================= */
+const PASOS = [['Archivo subido', 'Guardado en tu repositorio privado'], ['Leído y cuadrado', 'Totales y semanas revisados'], ['Seguridad revisada', 'Ningún PIN cambia · datos cifrados'], ['Publicado en la app', 'Los trabajadores ya lo ven']];
+function pintarPasos(n, mal, detalles = {}) {
+  const box = $('#pasos'); box.replaceChildren();
+  PASOS.forEach(([t, s], i) => {
+    const p = el('div', 'paso' + (i < n ? ' hecho' : i === n ? (mal ? ' mal' : ' ahora') : '')), col = el('div', 'col'), bol = el('span', 'bol');
+    bol.innerHTML = i < n ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>' : (mal && i === n ? '!' : '');
+    col.append(bol); if (i < PASOS.length - 1) col.append(el('span', 'lin'));
+    const tx = el('div', 'tx'); tx.append(el('b', null, t), el('span', null, detalles[i] || s)); p.append(col, tx); box.append(p);
+  });
+}
+async function seguir() {
+  $('#proc-t').textContent = ultimoEnvio ? ultimoEnvio.titulos.join(' · ') : 'Actualización';
+  $('#proc-aviso').hidden = true; $('#proc-detalle').hidden = true; pintarPasos(1, false, { 0: 'Hace un momento' });
+  const t0 = ultimoEnvio ? ultimoEnvio.desde - 60000 : 0; let vueltas = 0;
+  const tick = async () => {
+    if ($('#s-proceso').hidden) return;
+    try {
+      const run = (await corridas()).find(r => Date.parse(r.created_at) >= t0);
+      if (!run || run.status !== 'completed') { pintarPasos(run && run.status === 'in_progress' ? 2 : 1, false, { 0: 'Hace un momento', 1: run ? 'GitHub lo está procesando…' : 'Esperando a GitHub…' }); if (++vueltas < 120) setTimeout(tick, 5000); return; }
+      const ult = await leerJSON('estado/ultimo.json'); mostrarResultado(ult);
+    } catch (e) { pintarAviso($('#proc-aviso'), 'rev', 'No pude consultar el avance', e.message); }
+  };
+  tick();
+}
+function mostrarResultado(ult) {
+  if (!ult) return;
+  const movs = ult.movimientos || [], pub = movs.filter(m => m.resultado === 'publicado'), rev = movs.filter(m => m.resultado === 'revisar');
+  if (pub.length && !rev.length) { pintarPasos(4); pintarAviso($('#proc-aviso'), 'ok', 'Listo, ya está en la app', pub.map(m => m.titulo).join(' · ')); }
+  else if (pub.length) { pintarPasos(4); pintarAviso($('#proc-aviso'), 'rev', 'Se publicó una parte', `${rev.length} archivo(s) no cuadraron y no se publicaron.`); }
+  else { pintarPasos(1, true, { 1: 'No cuadró: no se publicó nada' }); pintarAviso($('#proc-aviso'), 'rev', 'No se publicó nada', 'La app sigue con los datos anteriores. Revisa el motivo y vuelve a subir el archivo correcto.'); }
+  const l = $('#proc-lista'); l.replaceChildren(); movs.forEach(m => l.append(renglon(m))); $('#proc-detalle').hidden = !movs.length;
+}
+function renglon(m) {
+  const it = el('div', 'it'), pt = el('span', 'pt'); pt.style.background = m.resultado === 'publicado' ? '#2E9E4B' : '#D97706';
+  const d = el('div'); d.append(el('b', null, m.titulo || m.archivo), el('span', null, `${m.resultado === 'publicado' ? 'Publicado' : 'Revisar'} · ${fecha(m.fecha)}`));
+  (m.detalle || []).forEach(x => { const p = el('p', null, x); if (m.resultado === 'publicado') p.style.color = 'var(--mu)'; d.append(p); });
+  it.append(pt, d); return it;
+}
+
+/* ======================= Historial ======================= */
+async function cargarHistorial() {
+  const l = $('#hist'); l.replaceChildren(el('p', 'nota', 'Cargando…'));
+  try { const h = (await leerJSON('estado/historial.json')) || []; l.replaceChildren(...(h.length ? h.map(renglon) : [el('p', 'nota', 'Todavía no hay movimientos.')])); }
+  catch (e) { l.replaceChildren(el('p', 'err', e.message)); }
+}
+
+/* ======================= Arranque ======================= */
+elegirTipo('nomina');
+ir(llave ? 'inicio' : 'llave');
+</script>
+</body>
+</html>

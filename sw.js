@@ -7,6 +7,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
+  if (url.pathname.includes('/panel/')) return; // el panel de administración no se guarda aquí
   const esPagina = req.mode === 'navigate' || url.pathname.endsWith('/index.html');
   const esDato = /\/(version|datos)\.json$/.test(url.pathname);
   if (!esPagina && !esDato) return; // lo demás lo maneja el navegador normal

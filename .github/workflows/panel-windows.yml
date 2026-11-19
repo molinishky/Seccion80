@@ -1,0 +1,39 @@
+name: Panel para Windows
+on:
+  push:
+    paths: ['escritorio/**', '.github/workflows/panel-windows.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Compilar .exe
+        working-directory: escritorio
+        shell: bash
+        run: |
+          npm install --no-audit --no-fund
+          npm run dist
+          V=$(node -p "require('./package.json').version")
+          echo "V=$V" >> "$GITHUB_ENV"
+          cp "dist/Panel-Seccion80-v$V.exe" ../
+          cp "dist/Panel-Seccion80-v$V.exe" ../Panel-Seccion80.exe
+      - name: Quitar versiones anteriores del release
+        shell: bash
+        env: { GH_TOKEN: '${{ github.token }}', GH_REPO: '${{ github.repository }}' }
+        run: |
+          gh release view panel-windows --json assets -q '.assets[].name' 2>/dev/null | grep -E '^Panel-Seccion80-v.*\.exe$' | grep -v "^Panel-Seccion80-v$V\.exe$" | while read a; do gh release delete-asset panel-windows "$a" -y; done || true
+      - name: Publicar en Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: panel-windows
+          name: Panel Sección 80 para Windows
+          body: "Versión ${{ env.V }}. Descarga Panel-Seccion80.exe y ábrelo (no necesita instalarse). Windows puede mostrar «Windows protegió su PC»: toca «Más información» › «Ejecutar de todas formas»."
+          files: |
+            Panel-Seccion80-v${{ env.V }}.exe
+            Panel-Seccion80.exe
+          make_latest: false
