@@ -102,6 +102,9 @@ a{color:var(--azul)}
 .titulo-sec{font-size:13px;font-weight:700;color:var(--mu);letter-spacing:.4px;margin-top:6px}
 .campo{display:flex;align-items:center;gap:10px;background:var(--caja);border:1.5px solid rgba(0,104,184,.45);border-radius:14px;padding:0 14px;height:54px}
 .campo input{border:0;outline:0;flex:1;background:transparent;font-size:16px;min-width:0}
+/* el autollenado de iPhone/Chrome pinta el campo de amarillo: se deja el vidrio */
+.campo input:-webkit-autofill,.campo input:-webkit-autofill:hover,.campo input:-webkit-autofill:focus,.campo input:-webkit-autofill:active{-webkit-text-fill-color:var(--tx);caret-color:var(--tx);-webkit-box-shadow:0 0 0 1000px transparent inset;box-shadow:0 0 0 1000px transparent inset;background-color:transparent!important;background-clip:text;-webkit-background-clip:text;transition:background-color 99999s ease-out 0s,color 99999s ease-out 0s}
+.campo input:autofill{background-color:transparent!important;background-clip:text;-webkit-background-clip:text;box-shadow:0 0 0 1000px transparent inset;-webkit-text-fill-color:var(--tx);transition:background-color 99999s ease-out 0s}
 /* iOS hace zoom si un campo tiene letra menor a 16px */
 input,select,textarea{font-size:16px}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
@@ -143,6 +146,7 @@ html,body{overflow-x:hidden}
     <label for="pin" style="font-size:13px;font-weight:700">PIN</label>
     <div class="campo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--azul)" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><input id="pin" type="password" inputmode="numeric" placeholder="••••" autocomplete="current-password"></div>
     <p class="err" id="entrar-err" role="alert"></p>
+    <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;padding:2px 2px 6px"><input type="checkbox" id="mantener" checked style="width:20px;height:20px;accent-color:var(--azul)">Mantener la sesión en este equipo</label>
     <button class="btn" type="submit" id="entrar-btn">Entrar</button>
     <button class="nota" type="button" id="olvidar" style="background:none;border:0;padding:12px;cursor:pointer" hidden>Olvidar la llave en este equipo</button>
   </form>
@@ -269,7 +273,7 @@ if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.clo
 /* ======================= GitHub ======================= */
 async function gh(ruta, op = {}) {
   const r = await fetch(API + ruta, { ...op, headers: { Authorization: 'Bearer ' + llave, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(op.headers || {}) } });
-  if (r.status === 401) throw new Error('La llave no es válida o ya venció.');
+  if (r.status === 401) { olvidarSesion(); throw new Error('La llave no es válida o ya venció.'); }
   if (r.status === 403 || r.status === 404) { const j = await r.json().catch(() => ({})); throw new Error(r.status === 404 ? 'No encontré eso en el repositorio (o la llave no tiene permiso).' : (j.message || 'Sin permiso.')); }
   if (!r.ok) throw new Error('GitHub respondió ' + r.status);
   return r;
@@ -421,7 +425,7 @@ $('#f-entrar').addEventListener('submit', async e => {
     try { localStorage.setItem('s80_panel_ibm', $('#ibm').value.trim()); } catch (x) {}
     $('#pin').value = '';
     pintarNombre();
-    if (llave) ir('inicio'); else { $('#llave').value = ''; ir('llave'); }
+    if (llave) { await recordarSesion(); ir('inicio'); } else { $('#llave').value = ''; ir('llave'); }
   } catch (x) {
     if (++intentos >= 5) { espera = Date.now() + 30000; intentos = 0; }
     err.textContent = x instanceof TypeError ? 'Sin internet. Revisa tu conexión.' : 'IBM o PIN incorrecto.';
@@ -441,11 +445,42 @@ $('#f-llave').addEventListener('submit', async e => {
     await gh(`/repos/${REPO}`);
     guardada = await cerrar(socio, pinMem, v);
     try { localStorage.setItem(LLAVE + '_' + socio, JSON.stringify(guardada)); } catch (x) {}
-    $('#llave').value = ''; ir('inicio');
+    $('#llave').value = ''; await recordarSesion(); ir('inicio');
   } catch (err) { llave = null; $('#llave-err').textContent = err.message; }
   $('#llave-btn').disabled = false; $('#llave-btn').textContent = 'Guardar y entrar';
 });
-$('#salir').addEventListener('click', () => { llave = null; socio = null; pinMem = null; PINS = null; pantallaEntrar(); });
+$('#salir').addEventListener('click', () => { if (!confirm('¿Cerrar sesión? Para volver a entrar pedirá tu IBM y PIN.')) return; olvidarSesion(); llave = null; socio = null; pinMem = null; PINS = null; pantallaEntrar(); });
+
+/* ======================= Mantener la sesión ======================= */
+// La sesión se guarda cifrada con una clave que el navegador crea y NO deja leer (ni copiar a otro equipo).
+// Dura 30 días o hasta tocar «Cerrar sesión». El PIN no se guarda.
+const SES = 's80_panel_sesion', DIAS = 30;
+function idb(modo, fn) {
+  return new Promise((ok, mal) => { const r = indexedDB.open('s80panel', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('k');
+    r.onerror = () => mal(r.error);
+    r.onsuccess = () => { const t = r.result.transaction('k', modo), q = fn(t.objectStore('k')); t.oncomplete = () => ok(q && q.result); t.onerror = () => mal(t.error); }; });
+}
+async function recordarSesion() {
+  try {
+    if (!$('#mantener').checked) { olvidarSesion(); return; }
+    const k = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const c = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, k, te.encode(JSON.stringify({ socio, llave, hasta: Date.now() + DIAS * 864e5 }))));
+    await idb('readwrite', s => s.put(k, 'sesion'));
+    localStorage.setItem(SES, JSON.stringify({ iv: b64(iv), c: b64(c) }));
+  } catch (e) {}
+}
+function olvidarSesion() { try { localStorage.removeItem(SES); } catch (e) {} try { idb('readwrite', s => s.delete('sesion')).catch(() => {}); } catch (e) {} }
+async function retomarSesion() {
+  try {
+    const g = JSON.parse(localStorage.getItem(SES) || 'null'); if (!g) return false;
+    const k = await idb('readonly', s => s.get('sesion')); if (!k) return false;
+    const x = JSON.parse(td.decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(g.iv) }, k, unb64(g.c))));
+    if (!x.llave || Date.now() > x.hasta || !ADMIN.includes(x.socio)) { olvidarSesion(); return false; }
+    llave = x.llave; socio = x.socio; pintarNombre(); return true;
+  } catch (e) { return false; }
+}
 
 /* ======================= Inicio ======================= */
 function pintarAviso(nodo, clase, t, p) { nodo.className = 'vidrio aviso ' + clase; nodo.querySelector('b').textContent = t; nodo.querySelector('p').textContent = p; nodo.hidden = false; }
@@ -653,7 +688,7 @@ let tPin; $('#buscar-ibm').addEventListener('input', () => { clearTimeout(tPin);
 /* ======================= Arranque ======================= */
 elegirTipo('auto');
 try { $('#ibm').value = localStorage.getItem('s80_panel_ibm') || ''; } catch (x) {}
-pantallaEntrar();
+retomarSesion().then(si => si ? ir('inicio') : pantallaEntrar());
 </script>
 </body>
 </html>
