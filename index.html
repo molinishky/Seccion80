@@ -272,6 +272,9 @@ body.en-chat .deco img{opacity:.12}
 .instalar .pasos li{padding-left:2px}
 .flecha-abajo{margin-top:auto;padding-top:8px;animation:rebota 1.2s ease-in-out infinite}
 @keyframes rebota{50%{transform:translateY(8px)}}
+#sinred{position:fixed;left:50%;bottom:calc(var(--navh) + var(--sab) + 22px);transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:700;white-space:nowrap;color:#8A4F00;background:rgba(255,244,229,.82);border:1px solid rgba(217,119,6,.35);backdrop-filter:blur(14px) saturate(170%);-webkit-backdrop-filter:blur(14px) saturate(170%);box-shadow:0 6px 18px rgba(0,0,0,.10);pointer-events:none}
+#sinred[hidden]{display:none}
+@media (prefers-color-scheme:dark){#sinred{color:#FFB547;background:rgba(40,28,10,.78);border-color:rgba(255,181,71,.3)}}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--navh) + var(--sab) + 18px);background:var(--tx);color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;z-index:20;max-width:90%;text-align:center}
 #splash{position:fixed;inset:0;background:#fff;display:grid;place-items:center;z-index:30}
 #splash .sp-in{display:flex;flex-direction:column;align-items:center;gap:22px}
@@ -1248,6 +1251,7 @@ function olvidarTodo() { try { localStorage.removeItem(RKEY); localStorage.remov
 async function cargarDatos() {
   const r = await fetch('datos.json?v=' + Date.now(), { cache: 'no-store' });
   if (!r.ok) throw new Error('datos ' + r.status);
+  window.S80_COPIA = r.headers.get('X-S80-Copia') === '1';   // sin internet: viene de la copia del teléfono
   return r.json();
 }
 
@@ -1911,9 +1915,36 @@ async function iniciar(socio, pin) {
   const data = await unseal(socio, pin, blob);
   session = { socio, pin, id, data, key: unseal.key, salt: blob.s };
   dCache = {}; semanaSel = null; chatIniciado = false; chatHist = []; $('#chat-log').replaceChildren();
+  setTimeout(guardarSinRed, 2500);
 }
+/* ================= Sin internet: copia en el teléfono ================= */
+// Con señal, se guardan en el teléfono los archivos cifrados de ESTE trabajador para poder verlos sin internet.
+async function guardarSinRed() {
+  if (!session || !DATA || window.S80_COPIA || !navigator.onLine) return;
+  const v = (DATA.meta && DATA.meta.version) || '', id = session.id;
+  const rutas = [...semanas(session.data).map(w => `d/${w}/${id}.bin`), `d/pag/${id}.bin`, `d/esc/${id}.bin`];
+  for (const r of rutas) { if (!session || session.id !== id) return; try { await fetch(`${r}?v=${v}`, { cache: 'no-store' }); } catch (e) { return; } }
+  // imágenes que ya usó la página (escudo, fondo…): pasan por el guardado del teléfono
+  const imgs = new Set(performance.getEntriesByType('resource').map(x => x.name).filter(u => u.startsWith(location.origin) && /\.(webp|png|jpe?g|svg)(\?|$)/i.test(u)));
+  for (const u of imgs) { try { await fetch(u); } catch (e) {} }
+}
+function avisoSinRed() {
+  let b = $('#sinred');
+  const sin = !!DATA && (window.S80_COPIA || !navigator.onLine);
+  if (!b) { b = el('div'); b.id = 'sinred'; b.setAttribute('role', 'status'); document.body.append(b); }
+  b.hidden = !sin;
+  if (sin) b.innerHTML = '<svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 4.2-2.6M10.7 5.1A15 15 0 0 1 22 8.8M5 12.9a10 10 0 0 1 5-2.7M16.8 11a10 10 0 0 1 2.2 1.9M8.5 16.4a5 5 0 0 1 7 0M12 20h.01M3 3l18 18"/></svg>'
+    + `<span>Sin internet · datos hasta la semana ${semN((DATA.meta && DATA.meta.ultimaSemana) || 0)}</span>`;
+}
+window.addEventListener('offline', avisoSinRed);
+window.addEventListener('online', async () => {
+  try { DATA = await cargarDatos(); } catch (e) {}
+  avisoSinRed(); enviarPendientes();
+  if (session) { try { await refresh(); if (actual === 'home') renderHome(); } catch (e) {} guardarSinRed(); }
+});
 async function refresh() {
   try { DATA = await cargarDatos(); waNumber = (DATA.meta && DATA.meta.whatsapp) || waNumber; } catch (e) { /* sin red: usa lo cargado */ }
+  avisoSinRed();
   const blob = DATA && DATA.cuentas[session.id];
   if (!blob) throw new Error('gone');
   if (session.salt !== blob.s) {
@@ -2721,7 +2752,20 @@ async function registrarAcceso() {
   const [disp, ver] = dispositivo(), d = session.data;
   let eq = {}; try { eq = await infoEquipo(); } catch (e) {}
   const cuerpo = JSON.stringify({ ibm: corto(d.socio), socio: d.socio, nombre: nombreCompleto(d), disp, ver, marca: eq.marca || '', modelo: eq.modelo || '', sistema: eq.sistema || '' });
-  try { fetch(DATA.meta.registro, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: cuerpo, keepalive: true }).catch(() => {}); } catch (e) {}
+  mandarRegistro(DATA.meta.registro, cuerpo);
+}
+// Sin señal, el registro de acceso se guarda y se manda cuando vuelve el internet.
+const PEND = 's80_pendientes';
+function leerPend() { try { return JSON.parse(localStorage.getItem(PEND) || '[]'); } catch (e) { return []; } }
+function guardarPend(l) { try { localStorage.setItem(PEND, JSON.stringify(l.slice(-50))); } catch (e) {} }
+function mandarRegistro(url, cuerpo) {
+  const pend = () => guardarPend(leerPend().concat([{ url, cuerpo }]));
+  if (!navigator.onLine || window.S80_COPIA) { pend(); return; }
+  try { fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: cuerpo, keepalive: true }).catch(pend); } catch (e) { pend(); }
+}
+function enviarPendientes() {
+  const l = leerPend(); if (!l.length || !navigator.onLine) return; guardarPend([]);
+  l.forEach(x => mandarRegistro(x.url, x.cuerpo));
 }
 
 /* ================= Versión del APK ================= */
@@ -2906,8 +2950,9 @@ async function arrancar() {
   $('#olvidar').hidden = !Object.keys(leerRec()).length;
   if (!(window.crypto && crypto.subtle)) { loginMsg.textContent = 'Este navegador no permite abrir la información protegida. Usa Chrome o Safari actualizados.'; ocultarSplash(); return; }
   try { DATA = await cargarDatos(); } catch (e) { DATA = null; }
-  if (!DATA) { loginMsg.textContent = 'No pude cargar la información. Revisa tu conexión a internet y vuelve a abrir.'; ocultarSplash(); return; }
+  if (!DATA) { loginMsg.textContent = 'No pude cargar la información. La primera vez necesitas internet; después la app también abre sin señal.'; ocultarSplash(); return; }
   waNumber = (DATA.meta && DATA.meta.whatsapp) || '';
+  avisoSinRed(); setTimeout(enviarPendientes, 4000);
   const u = ultimo(), rp = u && recordado(u);
   if (rp) { try { await iniciar(u, rp); ocultarSplash(); show('home'); registrarAcceso(); return; } catch (e) { olvidar(u); } }
   ocultarSplash();
@@ -2919,7 +2964,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261119051653';
+const APP_VERSION = '20261119000617';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
