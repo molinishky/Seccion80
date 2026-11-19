@@ -116,17 +116,33 @@ nav button.on{background:var(--azul-cl);color:var(--azul);font-weight:700}
 <body>
 <div class="deco" aria-hidden="true"><img class="claro" src="../nm_fondo_claro.webp" alt=""><img class="oscuro" src="../nm_fondo_oscuro.webp" alt=""></div>
 
+<!-- ============ ENTRAR (IBM + PIN de la app) ============ -->
+<main id="s-entrar" class="app" hidden>
+  <div class="top-c" style="padding-top:56px"><img src="../escudo.png" alt="Escudo Sección 80" style="height:96px"><div class="franjas"><i></i><i></i><i></i><i></i></div></div>
+  <h1 style="text-align:center;font-size:24px;font-weight:800;color:var(--azul);margin-top:16px">Panel Sección 80</h1>
+  <p class="nota" style="font-size:14px;margin-top:12px">Entra con tu IBM y el mismo PIN de la app.</p>
+  <form id="f-entrar" class="pila" style="margin-top:24px" autocomplete="off">
+    <label for="ibm" style="font-size:13px;font-weight:700">IBM</label>
+    <div class="campo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--azul)" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><input id="ibm" inputmode="numeric" placeholder="Tu número" autocomplete="username"></div>
+    <label for="pin" style="font-size:13px;font-weight:700">PIN</label>
+    <div class="campo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--azul)" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><input id="pin" type="password" inputmode="numeric" placeholder="••••" autocomplete="current-password"></div>
+    <p class="err" id="entrar-err" role="alert"></p>
+    <button class="btn" type="submit" id="entrar-btn">Entrar</button>
+    <button class="nota" type="button" id="olvidar" style="background:none;border:0;padding:12px;cursor:pointer" hidden>Olvidar la llave en este equipo</button>
+  </form>
+</main>
+
 <!-- ============ LLAVE (primera vez) ============ -->
 <main id="s-llave" class="app" hidden>
   <div class="top-c" style="padding-top:56px"><img src="../escudo.png" alt="Escudo Sección 80" style="height:96px"><div class="franjas"><i></i><i></i><i></i><i></i></div></div>
   <h1 style="text-align:center;font-size:24px;font-weight:800;color:var(--azul);margin-top:16px">Panel Sección 80</h1>
-  <p class="nota" style="font-size:14px;margin-top:12px">Solo para el administrador. Pega tu llave de GitHub una sola vez: se guarda únicamente en este equipo.</p>
+  <p class="nota" style="font-size:14px;margin-top:12px">Primera vez en este equipo: pega tu llave de GitHub. Queda guardada aquí, cerrada con tu PIN; después solo entras con IBM y PIN.</p>
   <form id="f-llave" class="pila" style="margin-top:24px" autocomplete="off">
     <label for="llave" style="font-size:13px;font-weight:700">Llave de GitHub</label>
     <div class="campo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--azul)" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L20 3M16 7l3 3M14 9l2 2"/></svg><input id="llave" type="password" placeholder="github_pat_…" spellcheck="false" autocapitalize="off"></div>
     <p class="nota" style="text-align:left">Permisos: subir archivos y ver las actualizaciones del repositorio privado <b>Seccion80-sistema</b>.</p>
     <p class="err" id="llave-err" role="alert"></p>
-    <button class="btn" type="submit" id="llave-btn">Conectar</button>
+    <button class="btn" type="submit" id="llave-btn">Guardar y entrar</button>
     <a class="nota" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener" style="display:block;padding:12px">Crear una llave en GitHub ›</a>
   </form>
   <section class="vidrio aviso" style="margin-top:24px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2E9E4B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;margin-top:1px"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg><p style="font-size:13px;line-height:1.45">Sin la llave esta página no muestra ni sube nada. Los datos de los trabajadores se procesan y cifran en GitHub; la CURP de la lista de raya nunca sale de este equipo.</p></section>
@@ -134,7 +150,7 @@ nav button.on{background:var(--azul-cl);color:var(--azul);font-weight:700}
 
 <!-- ============ INICIO ============ -->
 <main id="s-inicio" class="app" hidden>
-  <div class="top-c"><img src="../escudo.png" alt="Escudo del sindicato"><button class="ico gris esq" id="salir" aria-label="Quitar la llave de este equipo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4"/><path d="M6 12h10"/></svg></button><div class="franjas"><i></i><i></i><i></i><i></i></div></div>
+  <div class="top-c"><img src="../escudo.png" alt="Escudo del sindicato"><button class="ico gris esq" id="salir" aria-label="Cerrar sesión"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4"/><path d="M6 12h10"/></svg></button><div class="franjas"><i></i><i></i><i></i><i></i></div></div>
   <div class="pila">
     <section class="vidrio saludo"><span class="circ g"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span><div><small>Hola,</small><b id="quien">Administrador</b><p>Administrador · Panel de la Sección 80</p></div></section>
     <section class="vidrio aviso" id="aviso"><span class="pt"></span><div><b id="aviso-t">Cargando…</b><p id="aviso-p"></p></div></section>
@@ -208,6 +224,8 @@ nav button.on{background:var(--azul-cl);color:var(--azul);font-weight:700}
 const REPO = 'molinishky/Seccion80-sistema';
 const API = 'https://api.github.com';
 const LLAVE = 's80_panel_llave';
+const ADMIN = ['15059']; // IBM 5059
+const ITER = 600000;
 const TIPOS = {
   nomina: { nombre: 'Nómina', ext: ['.pdf'], ayuda: 'Sube el PDF "verificación de nómina" de la semana.' },
   fondo: { nombre: 'Fondo de ahorro', ext: ['.pdf'], ayuda: 'Sube el PDF "acumulado de fondo de ahorro".' },
@@ -219,8 +237,9 @@ const $ = s => document.querySelector(s);
 const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
 const dinero = n => '$' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fecha = s => { try { return new Date(s).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return s; } };
-let llave = null, estado = null, tipoSel = 'nomina', listos = [], ultimoEnvio = null;
-try { llave = localStorage.getItem(LLAVE); } catch (e) {}
+let llave = null, guardada = null, socio = null, pinMem = null, intentos = 0, espera = 0, estado = null, tipoSel = 'nomina', listos = [], ultimoEnvio = null;
+try { guardada = JSON.parse(localStorage.getItem(LLAVE) || 'null'); } catch (e) { guardada = null; }
+if (guardada && !guardada.c) guardada = null; // llave vieja sin cerrar: se vuelve a pedir
 if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 /* ======================= GitHub ======================= */
@@ -243,10 +262,10 @@ async function subirArchivo(ruta, buf, msg) {
 async function corridas() { const r = await gh(`/repos/${REPO}/actions/workflows/actualizar.yml/runs?per_page=5&t=${Date.now()}`); return (await r.json()).workflow_runs || []; }
 
 /* ======================= Pantallas ======================= */
-const PANT = ['llave', 'inicio', 'subir', 'proceso', 'historial'];
+const PANT = ['entrar', 'llave', 'inicio', 'subir', 'proceso', 'historial'];
 function ir(p) {
   PANT.forEach(x => { const s = $('#s-' + x); s.hidden = x !== p; if (x === p) { s.classList.remove('entra'); void s.offsetWidth; s.classList.add('entra'); } });
-  $('#nav').hidden = p === 'llave';
+  $('#nav').hidden = p === 'llave' || p === 'entrar';
   document.querySelectorAll('#nav [data-ir]').forEach(b => b.classList.toggle('on', b.dataset.ir === p || (p === 'proceso' && b.dataset.ir === 'historial')));
   window.scrollTo(0, 0);
   if (p === 'inicio') cargarInicio();
@@ -258,16 +277,72 @@ document.addEventListener('click', e => {
   const t = e.target.closest('.tarjeta[data-tipo]'); if (t) { elegirTipo(t.dataset.tipo); ir('subir'); }
 });
 
-/* ======================= Llave ======================= */
+/* ======================= Entrar con IBM + PIN ======================= */
+// El PIN se revisa contra los mismos datos cifrados de la app (no se guarda en ningún lado).
+// La llave de GitHub se guarda en este equipo cifrada con IBM + PIN.
+const te = new TextEncoder(), td = new TextDecoder();
+const unb64 = x => Uint8Array.from(atob(x), c => c.charCodeAt(0));
+const normSocio = x => { const v = String(x || '').trim().replace(/\s+/g, '').toUpperCase(); return /^\d{1,4}$/.test(v) ? '1' + v.padStart(4, '0') : v; };
+const normPin = x => String(x || '').replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+async function clave(soc, pin, salt, iter) {
+  const base = await crypto.subtle.importKey('raw', te.encode(soc + ':' + pin), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+async function abrir(soc, pin, d) { const k = await clave(soc, pin, unb64(d.s), +d.n || 210000); return td.decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(d.i) }, k, unb64(d.c))); }
+async function cerrar(soc, pin, texto) {
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12)), k = await clave(soc, pin, salt, ITER);
+  const c = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, k, te.encode(texto)));
+  return { n: ITER, s: b64(salt), i: b64(iv), c: b64(c) };
+}
+const titulo = x => String(x || '').toLowerCase().replace(/(^|\s)\S/g, m => m.toUpperCase());
+function pantallaEntrar() { $('#olvidar').hidden = !guardada; $('#pin').value = ''; ir('entrar'); }
+$('#f-entrar').addEventListener('submit', async e => {
+  e.preventDefault(); const err = $('#entrar-err'), btn = $('#entrar-btn'); err.textContent = '';
+  if (Date.now() < espera) { err.textContent = `Demasiados intentos. Espera ${Math.ceil((espera - Date.now()) / 1000)} segundos.`; return; }
+  const soc = normSocio($('#ibm').value), pin = normPin($('#pin').value);
+  if (!soc || !pin) { err.textContent = 'Escribe tu IBM y tu PIN.'; return; }
+  if (!ADMIN.includes(soc)) { err.textContent = 'Este panel es solo para el administrador.'; return; }
+  btn.disabled = true; btn.textContent = 'Revisando…';
+  try {
+    if (guardada) {
+      // Con la llave ya guardada, el PIN correcto es el que la abre.
+      llave = await abrir(soc, pin, guardada);
+    } else {
+      const r = await fetch('../datos.json?t=' + Date.now(), { cache: 'no-store' }); const D = await r.json();
+      const id = [...new Uint8Array(await crypto.subtle.digest('SHA-256', te.encode('fondo-id:v1:' + soc)))].map(x => x.toString(16).padStart(2, '0')).join('').slice(0, 40);
+      const blob = D.cuentas && D.cuentas[id]; if (!blob) throw new Error('pin');
+      const datos = JSON.parse(await abrir(soc, pin, blob));
+      try { localStorage.setItem('s80_panel_nombre', titulo(datos.nombre || blob.nm || '')); } catch (x) {}
+    }
+    socio = soc; pinMem = pin; intentos = 0;
+    try { localStorage.setItem('s80_panel_ibm', $('#ibm').value.trim()); } catch (x) {}
+    $('#pin').value = '';
+    pintarNombre();
+    if (llave) ir('inicio'); else { $('#llave').value = ''; ir('llave'); }
+  } catch (x) {
+    if (++intentos >= 5) { espera = Date.now() + 30000; intentos = 0; }
+    err.textContent = x instanceof TypeError ? 'Sin internet. Revisa tu conexión.' : 'IBM o PIN incorrecto.';
+  }
+  btn.disabled = false; btn.textContent = 'Entrar';
+});
+$('#olvidar').addEventListener('click', () => { if (!confirm('¿Olvidar la llave de GitHub en este equipo? Tendrás que pegarla otra vez.')) return; try { localStorage.removeItem(LLAVE); } catch (x) {} guardada = null; $('#olvidar').hidden = true; });
+function pintarNombre() { let n = ''; try { n = localStorage.getItem('s80_panel_nombre') || ''; } catch (x) {} $('#quien').textContent = n || 'Administrador'; }
+
+/* ======================= Llave (una vez por equipo) ======================= */
 $('#f-llave').addEventListener('submit', async e => {
   e.preventDefault(); const v = $('#llave').value.trim(); $('#llave-err').textContent = '';
+  if (!socio || !pinMem) { pantallaEntrar(); return; }
   if (!/^(github_pat_|ghp_)/.test(v)) { $('#llave-err').textContent = 'La llave empieza con github_pat_ …'; return; }
   $('#llave-btn').disabled = true; $('#llave-btn').textContent = 'Revisando…'; llave = v;
-  try { await gh(`/repos/${REPO}`); try { localStorage.setItem(LLAVE, v); } catch (e) {} $('#llave').value = ''; ir('inicio'); }
-  catch (err) { llave = null; $('#llave-err').textContent = err.message; }
-  $('#llave-btn').disabled = false; $('#llave-btn').textContent = 'Conectar';
+  try {
+    await gh(`/repos/${REPO}`);
+    guardada = await cerrar(socio, pinMem, v);
+    try { localStorage.setItem(LLAVE, JSON.stringify(guardada)); } catch (x) {}
+    $('#llave').value = ''; ir('inicio');
+  } catch (err) { llave = null; $('#llave-err').textContent = err.message; }
+  $('#llave-btn').disabled = false; $('#llave-btn').textContent = 'Guardar y entrar';
 });
-$('#salir').addEventListener('click', () => { if (!confirm('¿Quitar la llave de este equipo? Tendrás que pegarla otra vez.')) return; try { localStorage.removeItem(LLAVE); } catch (e) {} llave = null; ir('llave'); });
+$('#salir').addEventListener('click', () => { llave = null; socio = null; pinMem = null; pantallaEntrar(); });
 
 /* ======================= Inicio ======================= */
 function pintarAviso(nodo, clase, t, p) { nodo.className = 'vidrio aviso ' + clase; nodo.querySelector('b').textContent = t; nodo.querySelector('p').textContent = p; nodo.hidden = false; }
@@ -290,7 +365,7 @@ async function cargarInicio() {
     else if (ult.resultado === 'revisar' || (rev && rev.length)) pintarAviso(av, 'rev', 'Hay algo que revisar', `${fecha(ult.fecha)} · toca Historial para ver el motivo`);
     else pintarAviso(av, 'ok', 'La app está al día', `Nómina ${a.nomina || '—'} · Fondo ${a.fondo || '—'} · Préstamos ${a.prestamo_sindical || '—'} · ningún PIN cambió`);
     if (viva) setTimeout(() => { if (!$('#s-inicio').hidden) cargarInicio(); }, 8000);
-  } catch (e) { pintarAviso(av, 'rev', 'No pude leer el estado', e.message); if (/llave/i.test(e.message)) { llave = null; ir('llave'); } }
+  } catch (e) { pintarAviso(av, 'rev', 'No pude leer el estado', e.message); if (/llave/i.test(e.message)) { llave = null; ir('llave'); $('#llave-err').textContent = 'Tu llave de GitHub venció o la borraste: pega una nueva.'; } }
 }
 
 /* ======================= Subir ======================= */
@@ -443,7 +518,8 @@ async function cargarHistorial() {
 
 /* ======================= Arranque ======================= */
 elegirTipo('nomina');
-ir(llave ? 'inicio' : 'llave');
+try { $('#ibm').value = localStorage.getItem('s80_panel_ibm') || ''; } catch (x) {}
+pantallaEntrar();
 </script>
 </body>
 </html>

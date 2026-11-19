@@ -27,7 +27,7 @@ Copia la llave (`github_pat_…`) y guárdala como secreto:
 | Permissions › Repository › Contents | **Read and write** |
 | Permissions › Repository › Actions | **Read-only** |
 
-Abre `https://molinishky.github.io/Seccion80/panel/` (o el **Panel-Seccion80.exe**) y pégala en «Llave de GitHub». Se guarda solo en ese equipo.
+Abre `https://molinishky.github.io/Seccion80/panel/` (o el **Panel-Seccion80.exe**), entra con tu **IBM y el PIN de la app**, y la primera vez en cada equipo pega la llave. Queda guardada solo en ese equipo, cifrada con tu PIN: las siguientes veces solo pides IBM y PIN.
 
 ## Uso
 
