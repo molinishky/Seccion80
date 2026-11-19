@@ -494,7 +494,15 @@ async function seguir() {
     try {
       const run = (await corridas()).find(r => Date.parse(r.created_at) >= t0);
       if (!run || run.status !== 'completed') { pintarPasos(run && run.status === 'in_progress' ? 2 : 1, false, { 0: 'Hace un momento', 1: run ? 'GitHub lo está procesando…' : 'Esperando a GitHub…' }); if (++vueltas < 120) setTimeout(tick, 5000); return; }
-      const ult = await leerJSON('estado/ultimo.json'); mostrarResultado(ult);
+      const ult = await leerJSON('estado/ultimo.json');
+      const nuevo = ult && Date.parse(ult.fecha) >= t0;
+      if (!nuevo) {
+        // GitHub terminó pero no llegó a revisar el archivo (falta configuración o falló la máquina)
+        pintarPasos(1, true, { 0: 'Hace un momento', 1: 'GitHub no pudo procesarlo' });
+        pintarAviso($('#proc-aviso'), 'rev', 'No se publicó nada', run.conclusion === 'success' ? 'GitHub no dejó resultado. Vuelve a subir el archivo.' : 'GitHub se detuvo antes de revisar el archivo. Lo más común: falta guardar la llave para publicar (PUBLICO_TOKEN). Tu archivo quedó guardado; cuando se arregle, vuélvelo a subir.');
+        return;
+      }
+      mostrarResultado(ult);
     } catch (e) { pintarAviso($('#proc-aviso'), 'rev', 'No pude consultar el avance', e.message); }
   };
   tick();
