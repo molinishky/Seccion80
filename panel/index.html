@@ -67,7 +67,6 @@ a{color:var(--azul)}
 .tarjeta .f1{display:flex;justify-content:space-between;align-items:flex-start;color:var(--mu2)}
 .tarjeta b{font-size:16px;line-height:1.25}.tarjeta span.sub{font-size:12.5px;color:var(--mu);line-height:1.35}
 .tarjeta span.sub.rev{color:var(--ambar);font-weight:600}
-.chips{display:flex;gap:8px;flex-wrap:wrap}
 .chip{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--borde);background:var(--caja);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);font-size:13px;font-weight:600;cursor:pointer}
 .chip.on{background:var(--azul);border-color:var(--azul);color:#fff}
 .soltar{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:18px 16px;border-radius:18px;border:2px dashed rgba(0,104,184,.45);cursor:pointer}
@@ -109,7 +108,19 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .err{color:var(--rojo);font-size:13px;min-height:18px;text-align:center}
 nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + var(--sab));width:calc(100% - 24px);max-width:496px;height:70px;border-radius:30px;background:var(--caja);backdrop-filter:blur(14px) saturate(180%);-webkit-backdrop-filter:blur(14px) saturate(180%);border:1px solid var(--borde);box-shadow:0 10px 30px rgba(0,58,110,.16);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;padding:0 6px;z-index:5}
 nav button{height:58px;border:0;background:transparent;border-radius:24px;color:var(--mu);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600;cursor:pointer}
-nav button.on{background:var(--azul-cl);color:var(--azul);font-weight:700}
+nav button{position:relative;z-index:1;transition:color .2s}
+nav button.on{color:var(--azul);font-weight:700}
+nav .burbuja{position:absolute;left:0;top:6px;height:58px;width:0;border-radius:24px;background:var(--azul-cl);z-index:0;transition:transform .42s cubic-bezier(.3,1.35,.5,1),width .3s;pointer-events:none}
+nav .burbuja.sin{transition:none}
+nav .burbuja.arrastre{transition:none;background:rgba(0,104,184,.20);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 4px 14px rgba(0,58,110,.15)}
+nav button.cerca{color:var(--azul)}
+nav{touch-action:none;user-select:none;-webkit-user-select:none}
+.app{will-change:transform}
+@keyframes entraD{from{transform:translateX(28%);opacity:.3}to{transform:none;opacity:1}}
+@keyframes entraI{from{transform:translateX(-28%);opacity:.3}to{transform:none;opacity:1}}
+.entra-d{animation:entraD .28s cubic-bezier(.2,.8,.2,1)}
+.entra-i{animation:entraI .28s cubic-bezier(.2,.8,.2,1)}
+html,body{overflow-x:hidden}
 [hidden]{display:none!important}
 .entra{animation:entra .28s cubic-bezier(.2,.8,.2,1)}
 @keyframes entra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -161,7 +172,7 @@ nav button.on{background:var(--azul-cl);color:var(--azul);font-weight:700}
       <button class="vidrio tarjeta" data-tipo="nomina"><span class="f1"><span class="circ"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/><path d="M14 3l5 5v2"/><path d="M14 3v5h5"/><path d="M8.5 11h5M8.5 14.5h3"/><circle cx="16.5" cy="16.5" r="3"/><path d="M18.7 18.7L21 21"/></svg></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span><b>Nómina</b><span class="sub" id="c-nomina">—</span></button>
       <button class="vidrio tarjeta" data-tipo="fondo"><span class="f1"><span class="circ v"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 10.5c0-3.6-3.4-6-7.5-6S4 6.9 4 10.5c0 2 1 3.6 2.5 4.7V19h3v-2h4v2h3v-3.6c1-.6 1.8-1.5 2.2-2.4H21v-3h-1.6c-.1-.5-.2-1-.4-1.5"/><path d="M9.5 8h4"/></svg></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span><b>Fondo de ahorro</b><span class="sub" id="c-fondo">—</span></button>
       <button class="vidrio tarjeta" data-tipo="prestamos"><span class="f1"><span class="circ v"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="7" r="3"/><path d="M3 15c2.5-1.5 5-1.5 7 0l3 1.5c1 .5 1 2-.2 2.2H9"/><path d="M3 20h12l5-3"/></svg></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span><b>Préstamos</b><span class="sub" id="c-prestamos">—</span></button>
-      <button class="vidrio tarjeta" data-tipo="cumple"><span class="f1"><span class="circ"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span><b>Escalafones y lista de raya</b><span class="sub" id="c-cumple">—</span></button>
+      <button class="vidrio tarjeta" data-tipo="esc_raya"><span class="f1"><span class="circ"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span><b>Escalafones y lista de raya</b><span class="sub" id="c-cumple">—</span></button>
     </div>
   </div>
 </main>
@@ -171,13 +182,6 @@ nav button.on{background:var(--azul-cl);color:var(--azul);font-weight:700}
   <div class="top-s"><button class="ico" data-ir="inicio" aria-label="Regresar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><h1 id="subir-t">Subir archivo</h1><img src="../escudo.png" alt="" aria-hidden="true"></div>
   <div class="franjas"><i></i><i></i><i></i><i></i></div>
   <div class="pila">
-    <div class="chips" role="radiogroup" aria-label="Tipo de archivo">
-      <button class="chip" data-t="nomina" role="radio">Nómina</button>
-      <button class="chip" data-t="fondo" role="radio">Fondo</button>
-      <button class="chip" data-t="prestamos" role="radio">Préstamos</button>
-      <button class="chip" data-t="escalafones" role="radio">Escalafones</button>
-      <button class="chip" data-t="cumple" role="radio">Lista de raya</button>
-    </div>
     <p class="nota" id="subir-ayuda" style="text-align:left"></p>
     <label class="vidrio soltar" id="soltar">
       <span class="circ"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span>
@@ -230,12 +234,13 @@ const LLAVE = 's80_panel_llave';
 const ADMIN = ['15059']; // IBM 5059
 const ITER = 600000;
 const TIPOS = {
-  nomina: { nombre: 'Nómina', ext: ['.pdf'], ayuda: 'Sube el PDF "verificación de nómina" de la semana.' },
-  fondo: { nombre: 'Fondo de ahorro', ext: ['.pdf'], ayuda: 'Sube el PDF "acumulado de fondo de ahorro".' },
-  prestamos: { nombre: 'Préstamos', ext: ['.xlsx', '.xlsm', '.xls'], ayuda: 'Sube el Excel del Préstamo Sindical Personal, Económico 25-26 o Económico 2018.' },
-  escalafones: { nombre: 'Escalafones', ext: ['.xlsx', '.xls'], ayuda: 'Sube el Excel de zafra, reparación o antigüedades (el nombre debe decir cuál).' },
-  cumple: { nombre: 'Lista de raya', ext: ['.pdf'], ayuda: 'Sube una o varias listas de raya. Aquí mismo saco solo el mes y día de cumpleaños: la CURP no sale de este equipo.' }
+  nomina: { titulo: 'Subir nómina', ext: ['.pdf'], acepta: ['nomina'], ayuda: 'Sube el PDF "verificación de nómina" de la semana.' },
+  fondo: { titulo: 'Subir fondo de ahorro', ext: ['.pdf'], acepta: ['fondo'], ayuda: 'Sube el PDF "acumulado de fondo de ahorro".' },
+  prestamos: { titulo: 'Subir préstamo', ext: ['.xlsx', '.xlsm', '.xls'], acepta: ['prestamos'], ayuda: 'Sube el Excel del Préstamo Sindical Personal, Económico 25-26 o Económico 2018. Reconozco cuál es por la tabla, aunque el nombre sea distinto; el anterior se reemplaza.' },
+  esc_raya: { titulo: 'Subir escalafón o lista de raya', ext: ['.xlsx', '.xls', '.pdf'], acepta: ['escalafones', 'cumple'], ayuda: 'Sube el Excel del escalafón (zafra, reparación o antigüedades) o los PDF de la lista de raya. De la lista de raya solo se guardan los cumpleaños.' },
+  auto: { titulo: 'Subir archivo', ext: ['.pdf', '.xlsx', '.xlsm', '.xls'], acepta: ['nomina', 'fondo', 'prestamos', 'escalafones', 'cumple'], ayuda: 'Sube cualquier archivo de la app: reconozco solo si es nómina, fondo, préstamo, escalafón o lista de raya.' }
 };
+const NOMBRE = { nomina: 'la nómina', fondo: 'el fondo de ahorro', prestamos: 'un préstamo', escalafones: 'un escalafón', cumple: 'la lista de raya' };
 const $ = s => document.querySelector(s);
 const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
 const dinero = n => '$' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -266,19 +271,85 @@ async function corridas() { const r = await gh(`/repos/${REPO}/actions/workflows
 
 /* ======================= Pantallas ======================= */
 const PANT = ['entrar', 'llave', 'inicio', 'subir', 'proceso', 'historial'];
-function ir(p) {
-  PANT.forEach(x => { const s = $('#s-' + x); s.hidden = x !== p; if (x === p) { s.classList.remove('entra'); void s.offsetWidth; s.classList.add('entra'); } });
-  $('#nav').hidden = p === 'llave' || p === 'entrar';
-  document.querySelectorAll('#nav [data-ir]').forEach(b => b.classList.toggle('on', b.dataset.ir === p || (p === 'proceso' && b.dataset.ir === 'historial')));
+const ORDEN = { entrar: 0, llave: 0, inicio: 0, subir: 1, historial: 2, proceso: 2 };
+const NAV = $('#nav'), BURB = el('span', 'burbuja'); NAV.prepend(BURB);
+const TABS = [...NAV.querySelectorAll('button')];
+let actual = null;
+function marcarBurbuja(p, sinAnim) {
+  const t = TABS.find(b => b.dataset.ir === (p === 'proceso' ? 'historial' : p)); if (!t || NAV.hidden) return;
+  if (sinAnim || !BURB.style.width) { BURB.classList.add('sin'); requestAnimationFrame(() => requestAnimationFrame(() => BURB.classList.remove('sin'))); }
+  BURB.style.width = t.offsetWidth + 'px'; BURB.style.transform = `translateX(${t.offsetLeft}px)`;
+}
+function ir(p, dir) {
+  const antes = actual; actual = p;
+  if (dir == null) dir = antes == null ? 0 : Math.sign((ORDEN[p] ?? 0) - (ORDEN[antes] ?? 0));
+  PANT.forEach(x => { const s = $('#s-' + x); s.hidden = x !== p; s.style.transform = ''; s.style.opacity = ''; s.style.transition = '';
+    if (x === p) { s.classList.remove('entra', 'entra-d', 'entra-i'); void s.offsetWidth; s.classList.add(dir > 0 ? 'entra-d' : dir < 0 ? 'entra-i' : 'entra'); } });
+  NAV.hidden = p === 'llave' || p === 'entrar';
+  TABS.forEach(b => b.classList.toggle('on', b.dataset.ir === p || (p === 'proceso' && b.dataset.ir === 'historial')));
+  marcarBurbuja(p);
   window.scrollTo(0, 0);
   if (p === 'inicio') cargarInicio();
   if (p === 'historial') cargarHistorial();
 }
+window.addEventListener('resize', () => marcarBurbuja(actual, true));
+function irA(p) { if (p === 'subir') elegirTipo('auto'); ir(p); }
 document.addEventListener('click', e => {
-  const b = e.target.closest('[data-ir]'); if (b) { e.preventDefault(); ir(b.dataset.ir); return; }
+  if (NAV._sinClick && e.target.closest('nav')) return;
+  const b = e.target.closest('[data-ir]'); if (b) { e.preventDefault(); if (b.dataset.ir !== actual) irA(b.dataset.ir); return; }
   const a = e.target.closest('[data-abrir]'); if (a) { e.preventDefault(); window.open(a.dataset.abrir, '_blank', 'noopener'); return; }
   const t = e.target.closest('.tarjeta[data-tipo]'); if (t) { elegirTipo(t.dataset.tipo); ir('subir'); }
 });
+// Arrastrar la burbuja por la barra de abajo
+(() => {
+  let d = null;
+  NAV.addEventListener('pointerdown', e => { d = { x0: e.clientX, movio: false, id: e.pointerId }; });
+  NAV.addEventListener('pointermove', e => {
+    if (!d) return;
+    if (!d.movio && Math.abs(e.clientX - d.x0) < 8) return;
+    if (!d.movio) { try { NAV.setPointerCapture(d.id); } catch (x) {} d.movio = true; BURB.classList.add('arrastre'); }
+    const n = NAV.getBoundingClientRect(), w = BURB.offsetWidth;
+    const x = Math.max(6, Math.min(NAV.offsetWidth - w - 6, e.clientX - n.left - w / 2));
+    BURB.style.transform = `translateX(${x}px)`;
+    const i = Math.max(0, Math.min(TABS.length - 1, Math.floor((e.clientX - n.left) / (n.width / TABS.length))));
+    TABS.forEach((t, j) => t.classList.toggle('cerca', j === i)); d.i = i;
+  });
+  const fin = () => {
+    if (!d) return; const x = d; d = null; BURB.classList.remove('arrastre'); TABS.forEach(t => t.classList.remove('cerca'));
+    if (!x.movio) return;
+    NAV._sinClick = true; setTimeout(() => { NAV._sinClick = false; }, 80);
+    const t = TABS[x.i], go = t && t.dataset.ir;
+    if (go && go !== actual) { vibrar(); irA(go); } else marcarBurbuja(actual);
+  };
+  NAV.addEventListener('pointerup', fin); NAV.addEventListener('pointercancel', fin);
+})();
+// Deslizar la pantalla a los lados para cambiar de sección (como en la app)
+(() => {
+  const SECC = ['inicio', 'subir', 'historial'];
+  let g = null;
+  const vecino = (p, lado) => { if (p === 'proceso') return lado < 0 ? 'inicio' : null; const i = SECC.indexOf(p); return i < 0 ? null : SECC[i + lado] || null; };
+  document.addEventListener('touchstart', e => {
+    if (!llave || e.touches.length !== 1 || !SECC.concat('proceso').includes(actual) || e.target.closest('nav, input, .soltar, select, textarea')) { g = null; return; }
+    const t = e.touches[0]; g = { x0: t.clientX, y0: t.clientY, t0: performance.now(), modo: null, scr: $('#s-' + actual) };
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (!g) return; const t = e.touches[0], dx = t.clientX - g.x0, dy = t.clientY - g.y0;
+    if (!g.modo) { if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return; g.modo = Math.abs(dx) > Math.abs(dy) * 1.2 ? 'h' : 'v'; }
+    if (g.modo !== 'h') return;
+    const destino = vecino(actual, dx < 0 ? 1 : -1), k = destino ? 1 : 0.25;          // sin vecino: resiste
+    g.dx = dx; g.scr.style.transition = 'none'; g.scr.style.transform = `translateX(${dx * k}px)`; g.scr.style.opacity = String(1 - Math.min(Math.abs(dx) / 900, 0.35));
+  }, { passive: true });
+  document.addEventListener('touchend', () => {
+    if (!g || g.modo !== 'h') { g = null; return; }
+    const x = g; g = null; const dx = x.dx || 0, v = Math.abs(dx) / Math.max(1, performance.now() - x.t0);
+    const destino = vecino(actual, dx < 0 ? 1 : -1);
+    if (destino && (Math.abs(dx) > window.innerWidth * 0.28 || v > 0.5)) {
+      x.scr.style.transition = 'transform .18s ease-in, opacity .18s'; x.scr.style.transform = `translateX(${dx < 0 ? -40 : 40}%)`; x.scr.style.opacity = '0';
+      setTimeout(() => { vibrar(); irA(destino); }, 170);
+    } else { x.scr.style.transition = 'transform .3s cubic-bezier(.3,1.3,.5,1), opacity .3s'; x.scr.style.transform = ''; x.scr.style.opacity = ''; }
+  });
+})();
+function vibrar() { try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} }
 
 /* ======================= Entrar con IBM + PIN ======================= */
 // El PIN se revisa contra los mismos datos cifrados de la app (no se guarda en ningún lado).
@@ -359,7 +430,7 @@ async function cargarInicio() {
     $('#c-nomina').textContent = a.nomina ? `Publicada: semana ${a.nomina}` : 'Sube la primera';
     $('#c-fondo').textContent = a.fondo ? `Publicado: semana ${a.fondo}` : 'Sube el primero';
     $('#c-prestamos').textContent = a.prestamo_sindical ? `Sindical: semana ${a.prestamo_sindical}` : 'Sube el primero';
-    $('#c-cumple').textContent = a.cumple ? `Cumpleaños: ${a.cumple} trabajadores` : 'Escalafón o lista de raya';
+    $('#c-cumple').textContent = 'La lista de raya solo guarda los cumpleaños de los trabajadores';
     const rev = ult && (ult.movimientos || []).filter(m => m.resultado === 'revisar');
     ['nomina', 'fondo', 'prestamos', 'cumple'].forEach(k => { const s = $('#c-' + k); s.classList.toggle('rev', !!(rev && rev.some(m => m.tipo === k || (k === 'cumple' && m.tipo === 'escalafones')))); });
     (rev || []).forEach(m => { const s = $('#c-' + (m.tipo === 'escalafones' ? 'cumple' : m.tipo)); if (s) s.textContent = 'Revisar: ' + (m.titulo || m.archivo); });
@@ -374,14 +445,12 @@ async function cargarInicio() {
 /* ======================= Subir ======================= */
 function elegirTipo(t) {
   tipoSel = t; listos = [];
-  document.querySelectorAll('.chip').forEach(c => { const on = c.dataset.t === t; c.classList.toggle('on', on); c.setAttribute('aria-checked', on); });
-  $('#subir-t').textContent = 'Subir ' + TIPOS[t].nombre.toLowerCase();
+  $('#subir-t').textContent = TIPOS[t].titulo;
   $('#subir-ayuda').textContent = TIPOS[t].ayuda;
-  $('#soltar-p').textContent = TIPOS[t].ext.join(', ').toUpperCase().replace(/\./g, '') + ' · también puedes arrastrarlo aquí';
+  $('#soltar-p').textContent = [...new Set(TIPOS[t].ext.map(x => x === '.pdf' ? 'PDF' : 'Excel'))].join(' o ') + ' · también puedes arrastrarlo aquí';
   $('#archivo').accept = TIPOS[t].ext.join(',') + (/xls/.test(TIPOS[t].ext.join()) ? ',application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel' : '');
-  $('#revision').hidden = true; $('#revision').replaceChildren(); $('#subir-btn').disabled = true;
+  $('#revision').hidden = true; $('#revision').replaceChildren(); $('#subir-btn').disabled = true; $('#archivo').value = '';
 }
-document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => elegirTipo(c.dataset.t)));
 $('#archivo').addEventListener('change', e => revisar([...e.target.files]));
 const zona = $('#soltar');
 ['dragenter', 'dragover'].forEach(ev => zona.addEventListener(ev, e => { e.preventDefault(); zona.classList.add('sobre'); }));
@@ -411,6 +480,7 @@ function hallazgos(filas) {
 async function revisar(archivos) {
   const box = $('#revision'); box.replaceChildren(); box.hidden = false; listos = []; $('#subir-btn').disabled = true;
   const T = TIPOS[tipoSel], app = (estado && estado.app) || {};
+  const CURP = /\b[A-Z][AEIOUX][A-Z]{2}\d{6}[HM][A-Z]{5}[A-Z\d]\d\b/;
   // "PRESTAMO ECONOMICO 25-26 xlsx" (sin punto) se corrige a ".xlsx"
   archivos = archivos.map(f => /[ _-](xlsx|xls|pdf)$/i.test(f.name) && !/\.(xlsx|xls|pdf)$/i.test(f.name) ? new File([f], f.name.replace(/[ _-](xlsx|xls|pdf)$/i, '.$1').replace(/\.(\w+)$/, (m, e) => '.' + e.toLowerCase()), { type: f.type }) : f);
   const malos = archivos.filter(f => !T.ext.some(x => f.name.toLowerCase().endsWith(x)));
@@ -420,18 +490,26 @@ async function revisar(archivos) {
   for (const f of archivos) {
     const buf = await f.arrayBuffer(), ini = partes.length;
     try {
-      if (tipoSel === 'nomina') {
-        const { texto, paginas } = await textoPDF(buf, [1]); const m = /PERIODO\s*=\s*(\d+)/.exec(texto), p = /del\s+\d+\s+al\s+\d+\s+de\s+\w+/i.exec(texto);
+      // ¿Qué archivo es? Se reconoce por su contenido, no por el botón que se tocó.
+      let k, p1 = null;
+      if (/\.pdf$/i.test(f.name)) {
+        p1 = await textoPDF(buf, [1]);
+        k = CURP.test(p1.texto) ? 'cumple' : /PERIODO\s*=/.test(p1.texto) ? 'nomina' : /Total por Ejercicio/.test((await textoPDF(buf, [-1])).texto) ? 'fondo' : null;
+        if (!k) throw new Error('No reconozco este PDF: no parece verificación de nómina, acumulado de fondo de ahorro ni lista de raya.');
+      } else k = /zafra|repar|antig/i.test(f.name) ? 'escalafones' : 'prestamos';
+      if (!T.acepta.includes(k)) throw new Error(`Este archivo es ${NOMBRE[k]}, no va aquí. Súbelo desde su recuadro o desde «Subir» en la barra de abajo.`);
+      if (k === 'nomina') {
+        const { texto, paginas } = p1; const m = /PERIODO\s*=\s*(\d+)/.exec(texto), p = /del\s+\d+\s+al\s+\d+\s+de\s+\w+/i.exec(texto);
         if (!m) throw new Error('No encontré "PERIODO = …": ¿es la verificación de nómina?');
         const w = +m[1], ya = app.nomina === w;
         partes.push(tarjetaArchivo(f, paginas + ' páginas'), hallazgos([['Semana', w + (p ? ' · ' + p[0] : '')], ['¿Ya estaba publicada?', ya ? 'Sí, se reemplaza' : 'No, es nueva', ya ? 'rev' : 'ok']]));
         listos.push({ ruta: `entrada/nomina/${f.name}`, buf, titulo: `Nómina semana ${w}` });
-      } else if (tipoSel === 'fondo') {
+      } else if (k === 'fondo') {
         const { texto, paginas } = await textoPDF(buf, [-1]); const m = /Total por Ejercicio\s*:\s*[\d,]+\.\d{2}\s+[\d,]+\.\d{2}\s+([\d,]+\.\d{2})/.exec(texto), s = /sem[\s_]*\d+[\s_]*a[\s_]*(\d+)/i.exec(f.name);
         if (!m) throw new Error('No encontré el "Total por Ejercicio": ¿es el acumulado de fondo de ahorro?');
         partes.push(tarjetaArchivo(f, paginas + ' páginas'), hallazgos([['Hasta la semana', s ? s[1] : '—'], ['Total acumulado', dinero(m[1].replace(/,/g, ''))], ['Publicado ahora', app.fondo ? 'semana ' + app.fondo : '—']]));
         listos.push({ ruta: `entrada/fondo/${f.name}`, buf, titulo: `Fondo de ahorro${s ? ' semana ' + s[1] : ''}` });
-      } else if (tipoSel === 'prestamos') {
+      } else if (k === 'prestamos') {
         const wb = XLSX.read(buf, { type: 'array', sheetRows: 3 }), h = (XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 })[0] || []).map(x => String(x || '').trim().toUpperCase());
         const sem = h.filter(x => /^SEM\s*\d+\s*\d{4}$/.test(x)), n = f.name.toUpperCase().replace('Ó', 'O');
         const es = sem.length >= 5 && h.includes('SALDO') ? 'sindical' : wb.SheetNames.map(x => x.toUpperCase()).includes('HOJA5') ? '2526' : /2018/.test(n) ? '2018' : null;
@@ -442,12 +520,12 @@ async function revisar(archivos) {
         partes.push(tarjetaArchivo(f), hallazgos([['Es el', NOM[es], choca ? 'rev' : 'ok'], ...(sem.length ? [['Última semana', sem[sem.length - 1].replace(/^SEM\s*/, '')]] : []), ...(choca ? [['Ojo', 'el nombre dice ' + NOM[dice], 'rev']] : [])]));
         if (choca) throw new Error(`El archivo se llama como ${NOM[dice]} pero su contenido es del ${NOM[es]}. Revisa cuál es antes de subirlo.`);
         listos.push({ ruta: `entrada/prestamos/${f.name}`, buf, titulo: NOM[es] });
-      } else if (tipoSel === 'escalafones') {
+      } else if (k === 'escalafones') {
         const n = f.name.toLowerCase(), cual = /zafra/.test(n) ? 'Zafra' : /repar/.test(n) ? 'Reparación' : /antig/.test(n) ? 'Antigüedades' : null;
         if (!cual) throw new Error('El nombre del archivo debe decir zafra, reparación o antigüedades.');
         partes.push(tarjetaArchivo(f), hallazgos([['Escalafón', cual, 'ok']]));
         listos.push({ ruta: `entrada/escalafones/${f.name}`, buf, titulo: 'Escalafón de ' + cual.toLowerCase() });
-      } else if (tipoSel === 'cumple') {
+      } else if (k === 'cumple') {
         // De la CURP solo se toma mes y día; la CURP, RFC e IMSS no salen de este equipo.
         const { texto, paginas } = await textoPDF(buf, 'todas'); let n = 0;
         const re = /(?:^|\s)(1\d{4})\s+.*?\b[A-Z][AEIOUX][A-Z]{2}(\d{2})(\d{2})(\d{2})[HM][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z\d]\d\b/gm; let m;
@@ -456,11 +534,8 @@ async function revisar(archivos) {
       }
     } catch (err) { if (partes.length === ini) partes.push(tarjetaArchivo(f)); partes.push(el('p', 'err', err.message)); }
   }
-  if (tipoSel === 'cumple') {
-    const k = Object.keys(mapa).length;
-    if (k) { partes.push(hallazgos([['Trabajadores con cumpleaños', String(k), 'ok'], ['Se sube', 'solo mes y día (sin CURP)']])); listos = [{ ruta: `entrada/cumple/cumple_${Date.now()}.json`, buf: new TextEncoder().encode(JSON.stringify(mapa)), titulo: 'Cumpleaños (lista de raya)' }]; }
-    else if (archivos.length) partes.push(el('p', 'err', 'No encontré renglones con CURP en estos PDF.'));
-  }
+  const kc = Object.keys(mapa).length;
+  if (kc) { partes.push(hallazgos([['Trabajadores con cumpleaños', String(kc), 'ok'], ['Se sube', 'solo mes y día (sin CURP)']])); listos.push({ ruta: `entrada/cumple/cumple_${Date.now()}.json`, buf: new TextEncoder().encode(JSON.stringify(mapa)), titulo: 'Cumpleaños (lista de raya)' }); }
   box.replaceChildren(...partes); $('#subir-btn').disabled = !listos.length;
 }
 $('#subir-btn').addEventListener('click', async () => {
@@ -530,7 +605,7 @@ async function cargarHistorial() {
 }
 
 /* ======================= Arranque ======================= */
-elegirTipo('nomina');
+elegirTipo('auto');
 try { $('#ibm').value = localStorage.getItem('s80_panel_ibm') || ''; } catch (x) {}
 pantallaEntrar();
 </script>
