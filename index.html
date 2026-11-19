@@ -78,6 +78,9 @@ body.en-chat .deco img{opacity:.12}
 .caja svg.ic{flex:none;color:var(--azul)}
 .caja input{flex:1;min-width:0;height:100%;border:0;background:transparent;font-size:17px;outline:none}
 .caja input::placeholder{color:var(--mu2)}
+/* el autollenado de iPhone/Chrome pinta el campo de amarillo: se deja el vidrio */
+.caja input:-webkit-autofill,.caja input:-webkit-autofill:hover,.caja input:-webkit-autofill:focus,.caja input:-webkit-autofill:active{-webkit-text-fill-color:var(--tx);caret-color:var(--tx);-webkit-box-shadow:0 0 0 1000px transparent inset;box-shadow:0 0 0 1000px transparent inset;background-color:transparent!important;background-clip:text;-webkit-background-clip:text;transition:background-color 99999s ease-out 0s,color 99999s ease-out 0s}
+.caja input:autofill{background-color:transparent!important;background-clip:text;-webkit-background-clip:text;box-shadow:0 0 0 1000px transparent inset;-webkit-text-fill-color:var(--tx);transition:background-color 99999s ease-out 0s}
 #pin{letter-spacing:.2em}
 #ojo .c{display:none}#ojo.on .c{display:block}#ojo.on .o{display:none}
 #ojo{color:var(--mu)}
@@ -272,7 +275,8 @@ body.en-chat .deco img{opacity:.12}
 .instalar .pasos li{padding-left:2px}
 .flecha-abajo{margin-top:auto;padding-top:8px;animation:rebota 1.2s ease-in-out infinite}
 @keyframes rebota{50%{transform:translateY(8px)}}
-#sinred{position:fixed;left:50%;bottom:calc(var(--navh) + var(--sab) + 22px);transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:700;white-space:nowrap;color:#8A4F00;background:rgba(255,244,229,.82);border:1px solid rgba(217,119,6,.35);backdrop-filter:blur(14px) saturate(170%);-webkit-backdrop-filter:blur(14px) saturate(170%);box-shadow:0 6px 18px rgba(0,0,0,.10);pointer-events:none}
+body.sinred .scr{padding-bottom:calc(var(--navh) + var(--sab) + 56px)}
+#sinred{position:fixed;left:50%;bottom:calc(var(--navh) + var(--sab) + 14px);transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:700;white-space:nowrap;color:#8A4F00;background:rgba(255,244,229,.82);border:1px solid rgba(217,119,6,.35);backdrop-filter:blur(14px) saturate(170%);-webkit-backdrop-filter:blur(14px) saturate(170%);box-shadow:0 6px 18px rgba(0,0,0,.10);pointer-events:none}
 #sinred[hidden]{display:none}
 @media (prefers-color-scheme:dark){#sinred{color:#FFB547;background:rgba(40,28,10,.78);border-color:rgba(255,181,71,.3)}}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--navh) + var(--sab) + 18px);background:var(--tx);color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;z-index:20;max-width:90%;text-align:center}
@@ -1932,7 +1936,7 @@ function avisoSinRed() {
   let b = $('#sinred');
   const sin = !!DATA && (window.S80_COPIA || !navigator.onLine);
   if (!b) { b = el('div'); b.id = 'sinred'; b.setAttribute('role', 'status'); document.body.append(b); }
-  b.hidden = !sin;
+  b.hidden = !sin; document.body.classList.toggle('sinred', sin); requestAnimationFrame(ajustarInicio);
   if (sin) b.innerHTML = '<svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 4.2-2.6M10.7 5.1A15 15 0 0 1 22 8.8M5 12.9a10 10 0 0 1 5-2.7M16.8 11a10 10 0 0 1 2.2 1.9M8.5 16.4a5 5 0 0 1 7 0M12 20h.01M3 3l18 18"/></svg>'
     + `<span>Sin internet · datos hasta la semana ${semN((DATA.meta && DATA.meta.ultimaSemana) || 0)}</span>`;
 }
@@ -2964,7 +2968,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261119000617';
+const APP_VERSION = '20261119001231';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
@@ -3357,7 +3361,8 @@ function tarjetaCumple(d, pn) {
 function ajustarInicio() {
   const home = $('#s-home'), nav = $('#nav'); if (!home || home.hidden || !nav || nav.hidden) return;
   const R = document.documentElement, ult = home.querySelector('.tarjetas .tarjeta:last-child'); if (!ult) return;
-  const limite = () => nav.getBoundingClientRect().top - 10, fondo = () => ult.getBoundingClientRect().bottom + window.scrollY;
+  const sr = $('#sinred'), tope = sr && !sr.hidden ? sr : nav;
+  const limite = () => tope.getBoundingClientRect().top - 10, fondo = () => ult.getBoundingClientRect().bottom + window.scrollY;
   R.classList.remove('fit1', 'fit2', 'fit3', 'fit4');
   for (const c of ['fit1', 'fit2', 'fit3', 'fit4']) { if (fondo() <= limite()) break; R.classList.add(c); }
 }
