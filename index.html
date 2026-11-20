@@ -2635,7 +2635,7 @@ async function chatPrestacion(q) {
   for (const x of lista) {
     const bx = el('div', 'msg-acc');
     const cab = el('div'); const b = el('b', null, x.titulo); cab.append(b); bx.append(cab);
-    const tot = el('div', null, `${pideDias && x.dias != null ? `Te tocan unos ${x.dias} días: ` : ''}aproximadamente ${money(x.total)}`.replace(/^a/, 'A') + `${x.parcial ? ', a la fecha' : ''} (bruto, antes de impuestos).`);
+    const tot = el('div', null, `${pideDias && x.dias != null ? `Te tocan unos ${x.dias} días: ` : ''}aproximadamente ${money(x.total)}`.replace(/^a/, 'A') + `${x.parcial ? ', a la fecha' : ''} (bruto, sin ISR).`);
     tot.style.marginTop = '6px'; bx.append(tot);
     x.lineas.forEach(l => { const d = el('div', 'ley-nota', l); d.style.marginTop = '6px'; bx.append(d); });
     const pg = el('div', 'ley-nota', 'Cuándo: ' + x.pago + '.' + (x.parcial ? ' El ciclo no ha terminado: la cantidad crece con cada nómina.' : '')); pg.style.marginTop = '6px'; bx.append(pg);
@@ -2643,7 +2643,7 @@ async function chatPrestacion(q) {
     bot(bx);
   }
   const av = el('div', 'msg-acc');
-  av.append(el('div', null, `Estos resultados son aproximados: salen del cálculo de la Sección 80 con las nóminas publicadas al ${fd(P.generado)}. No tenemos registro de tus incapacidades del IMSS (no vienen en la nómina), así que si tuviste alguna, la cantidad puede cambiar. La cantidad final la determina la empresa al pagar; si ves algo que no cuadra, coméntaselo al Secretario de Relaciones.`), botonSecretario('sobre el cálculo de mis prestaciones'));
+  av.append(el('div', null, `Estos resultados son aproximados: salen del cálculo de la Sección 80 con las nóminas publicadas al ${fd(P.generado)}. Las cantidades son brutas: el cálculo es sin ISR, así que lo que recibas será menos después del impuesto. No tenemos registro de tus incapacidades del IMSS (no vienen en la nómina), así que si tuviste alguna, la cantidad puede cambiar. La cantidad final la determina la empresa al pagar; si ves algo que no cuadra, coméntaselo al Secretario de Relaciones.`), botonSecretario('sobre el cálculo de mis prestaciones'));
   bot(av);
   chips(['¿Cuánto me toca de aguinaldo?', '¿Cuánto me toca de vacaciones?', 'Mis prestaciones', 'Mi saldo']);
 }
@@ -3067,7 +3067,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261120122607';
+const APP_VERSION = '20261120125554';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
