@@ -708,7 +708,8 @@ async function cargarVac() {
       for (const f of fs) VACS[f.name.replace('.json', '')] = null;
     }
     const ids = Object.keys(VACS); if (!ids.length) { box.replaceChildren(el('p', 'nota', 'Todavía no hay cálculos de vacaciones.')); return; }
-    box.replaceChildren(...ids.map(id => { const b = el('button', null, /^aguinaldo-/.test(id) ? 'Aguinaldo ' + id.slice(10) : 'Vacaciones ' + id.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()).replace('Reparacion', 'Reparación').replace(/^Zafra (\d+) (\d+)$/, 'Zafra $1-$2')); b.type = 'button'; b.dataset.id = id; b.onclick = () => elegirVac(id); return b; }));
+    const ORDEN = id => /^aguinaldo/.test(id) ? 0 : /^vac|^repar|^zafra/.test(id) ? 1 : 2; ids.sort((a, b) => ORDEN(a) - ORDEN(b));
+    box.replaceChildren(...ids.map(id => { const b = el('button', null, /^aguinaldo-/.test(id) ? 'Aguinaldo ' + id.slice(10) : /^recreacion-/.test(id) ? 'Recreación familiar ' + id.slice(11) : /^utiles-/.test(id) ? 'Útiles escolares ' + id.slice(7) : /^gratificacion-/.test(id) ? 'Gratificación 3.5 días' : 'Vacaciones ' + id.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()).replace('Reparacion', 'Reparación').replace(/^Zafra (\d+) (\d+)$/, 'Zafra $1-$2')); b.type = 'button'; b.dataset.id = id; b.onclick = () => elegirVac(id); return b; }));
     elegirVac(VAC && VAC.ciclo || ids[ids.length - 1]);
   } catch (e) { box.replaceChildren(el('p', 'err', e.message)); }
 }
@@ -718,6 +719,10 @@ async function elegirVac(id) {
   VAC = VACS[id]; const v = VAC, info = $('#vac-info'), nota = $('#s-vac .nota');
   if (!nota.dataset.vac) nota.dataset.vac = nota.textContent;
   info.hidden = false;
+  if (v.tipo === 'generico') {
+    info.querySelector('b').textContent = v.info.titulo; info.querySelector('p').textContent = `${v.info.detalle} · ${v.trabajadores.length} trabajadores`;
+    nota.textContent = v.nota; $('#vac-excel').hidden = !v.trabajadores.length; buscarVac(); return;
+  }
   if (v.tipo === 'aguinaldo') {
     const r = v.reparacion;
     info.querySelector('b').textContent = `${v.nombre}: ${v.zafra.nombre} y ${r.nombre}` + (v.parcial ? ', a la fecha' : '');
@@ -736,6 +741,13 @@ function buscarVac() {
   const soc = normSocio(v), x = VAC.trabajadores.find(t => t.socio === soc); box.hidden = false;
   if (!x) { box.replaceChildren(el('p', 'err', `El IBM ${v} no tiene nóminas en ${VAC.nombre}.`)); return; }
   const fila = (a, b, c) => { const f = el('div', 'fila'); f.append(el('span', null, a), el('span', c || null, b)); return f; };
+  if (VAC.tipo === 'generico') {
+    const fmt = ([v, k]) => k === '$' ? pesos(v) : k === 'd' ? Number(v || 0).toLocaleString('es-MX', { maximumFractionDigits: 3 }) : k === '%' ? dd(v) + ' %' : String(v);
+    const tot = el('div', 'vac-tot'); tot.append(el('span', null, 'TOTAL BRUTO A LA FECHA'), el('b', null, pesos(x.total)));
+    const secs = x.secciones.map(s => { const h = el('div', 'hallazgo'); h.style.marginTop = '10px'; h.append(el('div', 'pin-ibm', s.titulo), ...s.filas.map(f => fila(f[0], fmt(f[1]), f[2]))); return h; });
+    box.replaceChildren(el('div', 'pin-nom', x.nombre), el('div', 'pin-ibm', `IBM ${soc.replace(/^1/, '').replace(/^0+/, '')}`), tot, ...secs, ...(x.revisar ? [el('p', 'err', x.revisar)] : []));
+    return;
+  }
   if (VAC.tipo === 'aguinaldo') {
     const conCom = [x.zafra, x.reparacion].some(p => p && p.dif_comision);
     const tot = el('div', 'vac-tot'); tot.append(el('span', null, conCom ? 'TOTAL BRUTO CON COMISIÓN SINDICAL' : 'TOTAL BRUTO A PAGAR'), el('b', null, pesos(x.total)));
@@ -770,6 +782,13 @@ $('#f-vac').addEventListener('submit', e => { e.preventDefault(); $('#vac-ibm').
 let tVac; $('#vac-ibm').addEventListener('input', () => { clearTimeout(tVac); tVac = setTimeout(buscarVac, 300); });
 $('#vac-excel').addEventListener('click', () => {
   if (!VAC || !window.XLSX) return;
+  if (VAC.tipo === 'generico') {
+    const filas = VAC.trabajadores.map(x => { const o = { IBM: +x.socio.replace(/^1/, ''), 'No. empleado': +x.socio, Nombre: x.nombre };
+      for (const s of x.secciones) for (const f of s.filas) o[`${s.titulo} · ${f[0]}`] = f[1][0];
+      o['Total'] = x.total; o['Revisar'] = x.revisar || ''; return o; });
+    const ws = XLSX.utils.json_to_sheet(filas), wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Cálculo');
+    XLSX.writeFile(wb, `${VAC.nombre} a la fecha.xlsx`); return;
+  }
   if (VAC.tipo === 'aguinaldo') {
     const c = (p, k) => p ? p[k] : 0, ib = x => +x.socio.replace(/^1/, '');
     const filas = VAC.trabajadores.map(x => { const z = x.zafra, r = x.reparacion; return { IBM: ib(x), 'No. empleado': +x.socio, Nombre: x.nombre,
