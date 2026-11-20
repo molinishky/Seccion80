@@ -737,7 +737,7 @@ function vacDatos(id) {
   if (/^utiles-/.test(id)) return { titulo: 'Útiles escolares ' + anio, sub: `Se paga en la primera quincena de agosto de ${anio} · Art. 31`, color: '#7E57C2', ico: SVG('<path d="M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M4 17a2 2 0 0 1 2-2h12M9 7h5"/>') };
   if (/^gratificacion-/.test(id)) return { titulo: 'Gratificación 3.5 días', sub: 'Se paga al terminar la zafra ' + id.replace(/^gratificacion-zafra-/, '') + ' · convenio de 1989', color: '#0068B8', ico: SVG('<path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/>') };
   const nom = id.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()).replace('Reparacion', 'Reparación').replace(/^Zafra (\d+) (\d+)$/, 'Zafra $1-$2');
-  return { titulo: 'Vacaciones ' + nom, sub: 'Se pagan en los 15 días antes de que termine el ciclo · Art. 40', color: '#E8A317', ico: SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>') };
+  return { titulo: 'Vacaciones ' + nom, sub: 'Se pagan dentro de los 15 días anteriores a la terminación de cada ciclo · Art. 40', color: '#E8A317', ico: SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>') };
 }
 function abrirVac(id) {
   $('#vac-ciclos').hidden = true; $('#vac-det').hidden = false; $('#vac-h1').textContent = vacDatos(id).titulo;
