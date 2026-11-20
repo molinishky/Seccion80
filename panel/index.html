@@ -708,15 +708,24 @@ async function cargarVac() {
       for (const f of fs) VACS[f.name.replace('.json', '')] = null;
     }
     const ids = Object.keys(VACS); if (!ids.length) { box.replaceChildren(el('p', 'nota', 'Todavía no hay cálculos de vacaciones.')); return; }
-    box.replaceChildren(...ids.map(id => { const b = el('button', null, 'Vacaciones ' + id.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()).replace('Reparacion', 'Reparación').replace(/^Zafra (\d+) (\d+)$/, 'Zafra $1-$2')); b.type = 'button'; b.dataset.id = id; b.onclick = () => elegirVac(id); return b; }));
+    box.replaceChildren(...ids.map(id => { const b = el('button', null, /^aguinaldo-/.test(id) ? 'Aguinaldo ' + id.slice(10) : 'Vacaciones ' + id.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()).replace('Reparacion', 'Reparación').replace(/^Zafra (\d+) (\d+)$/, 'Zafra $1-$2')); b.type = 'button'; b.dataset.id = id; b.onclick = () => elegirVac(id); return b; }));
     elegirVac(VAC && VAC.ciclo || ids[ids.length - 1]);
   } catch (e) { box.replaceChildren(el('p', 'err', e.message)); }
 }
 async function elegirVac(id) {
   document.querySelectorAll('#vac-ciclos button').forEach(b => b.classList.toggle('on', b.dataset.id === id));
   if (!VACS[id]) VACS[id] = await leerJSON(`vacaciones/${id}.json`);
-  VAC = VACS[id]; const v = VAC, info = $('#vac-info');
-  info.hidden = false; const fch = f => new Date(f + 'T12:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+  VAC = VACS[id]; const v = VAC, info = $('#vac-info'), nota = $('#s-vac .nota');
+  if (!nota.dataset.vac) nota.dataset.vac = nota.textContent;
+  info.hidden = false;
+  if (v.tipo === 'aguinaldo') {
+    const r = v.reparacion;
+    info.querySelector('b').textContent = `${v.nombre}: ${v.zafra.nombre} y ${r.nombre}` + (v.parcial ? ', a la fecha' : '');
+    info.querySelector('p').textContent = `${v.zafra.nombre}: ${v.zafra.ordinarios} días ordinarios, del Excel de vacaciones de zafra · ${r.nombre}: semanas ${r.semana_desde} a ${r.semana_hasta}, ${r.ordinarios} días ordinarios · ${v.trabajadores.length} trabajadores` + (v.parcial ? ` · falta la nómina ${r.semana_fin}: el cálculo crece con cada nómina` : '');
+    nota.textContent = 'Cálculo bruto, sin ISR. Art. 94 del Contrato Ley: 17 días por zafra y 15 por reparación, proporcionales a los días del ciclo; las incapacidades y permisos cuentan como días trabajados, Art. 102. Igual que el Excel de aguinaldo de la empresa: sueldo promedio de cada ciclo más el promedio de la media hora de turno y alimentos entre los días naturales del ciclo. Destajo y comisión sindical se pagan como diferencia.';
+    $('#vac-excel').hidden = false; buscarVac(); return;
+  }
+  nota.textContent = nota.dataset.vac; const fch = f => new Date(f + 'T12:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
   info.querySelector('b').textContent = `Vacaciones de ${v.nombre}: del ${fch(v.desde)} al ${fch(v.fin)}` + (v.parcial ? ', a la fecha' : '');
   info.querySelector('p').textContent = `Semanas ${v.semana_desde} a ${v.semana_hasta}${v.corte ? ', con corte' : ''} · ${v.dias_ordinarios} días ordinarios de ${v.tipo === 'zafra' ? 'lunes a sábado' : 'lunes a viernes'} · ${v.trabajadores.length} trabajadores` + (v.parcial ? ' · el ciclo no ha terminado: el cálculo crece con cada nómina' : '');
   $('#vac-excel').hidden = false; buscarVac();
@@ -727,6 +736,23 @@ function buscarVac() {
   const soc = normSocio(v), x = VAC.trabajadores.find(t => t.socio === soc); box.hidden = false;
   if (!x) { box.replaceChildren(el('p', 'err', `El IBM ${v} no tiene nóminas en ${VAC.nombre}.`)); return; }
   const fila = (a, b, c) => { const f = el('div', 'fila'); f.append(el('span', null, a), el('span', c || null, b)); return f; };
+  if (VAC.tipo === 'aguinaldo') {
+    const conCom = [x.zafra, x.reparacion].some(p => p && p.dif_comision);
+    const tot = el('div', 'vac-tot'); tot.append(el('span', null, conCom ? 'TOTAL BRUTO CON COMISIÓN SINDICAL' : 'TOTAL BRUTO A PAGAR'), el('b', null, pesos(x.total)));
+    const ciclo = (nom, p, base) => {
+      const h = el('div', 'hallazgo'); h.style.marginTop = '10px';
+      h.append(el('div', 'pin-ibm', nom));
+      if (!p) { h.append(fila('Sin nóminas en este ciclo', pesos(0))); return h; }
+      h.append(fila('Días trabajados', dd(p.dias_trab)), fila('Incapacidades / permisos', `${dd(p.incap)} / ${dd(p.permisos)}`), fila('Días que cuentan del ciclo', `${dd(p.dias_ciclo)} de ${dd(p.dias_ordinarios)}`),
+        fila('Días de aguinaldo', `${dd(p.dias_agui)} de ${base}`), fila('Sueldo promedio', pesos(p.sueldo_prom)), fila('Promedio media hora turno y alimentos', pesos(p.prom_extras)), fila('Aguinaldo', pesos(p.aguinaldo)));
+      if (p.dif_primas) h.append(fila('Más: diferencia por destajo', pesos(p.dif_primas), 'ok'));
+      if (p.dif_comision) h.append(fila('Más: diferencia por comisión sindical', pesos(p.dif_comision), 'ok'));
+      h.append(fila('Total del ciclo', pesos(p.total), 'ok')); return h;
+    };
+    box.replaceChildren(el('div', 'pin-nom', x.nombre), el('div', 'pin-ibm', `IBM ${soc.replace(/^1/, '').replace(/^0+/, '')}`), tot,
+      ciclo(VAC.zafra.nombre, x.zafra, 17), ciclo(VAC.reparacion.nombre, x.reparacion, 15), ...(x.revisar ? [el('p', 'err', x.revisar)] : []));
+    return;
+  }
   const tot = el('div', 'vac-tot'); tot.append(el('span', null, x.comision ? 'TOTAL BRUTO CON COMISIÓN SINDICAL' : 'TOTAL BRUTO A PAGAR'), el('b', null, pesos(x.comision ? x.total_con_comision : x.total)));
   const h = el('div', 'hallazgo');
   h.append(fila('Días trabajados', dd(x.dias_trab)), fila('Incapacidades / permisos', `${dd(x.incap)} / ${dd(x.permisos)}`), ...(x.conceptos && x.conceptos.length ? [fila('Conceptos de la nómina', x.conceptos.map(c => titulo(c.replace(/^\d+\s*/, '').replace(/\s*\([^)]*\)/g, ''))).join(', '))] : []), fila('Días que cuentan del ciclo', `${dd(x.dias_ciclo)} de ${VAC.dias_ordinarios}`),
@@ -744,6 +770,15 @@ $('#f-vac').addEventListener('submit', e => { e.preventDefault(); $('#vac-ibm').
 let tVac; $('#vac-ibm').addEventListener('input', () => { clearTimeout(tVac); tVac = setTimeout(buscarVac, 300); });
 $('#vac-excel').addEventListener('click', () => {
   if (!VAC || !window.XLSX) return;
+  if (VAC.tipo === 'aguinaldo') {
+    const c = (p, k) => p ? p[k] : 0, ib = x => +x.socio.replace(/^1/, '');
+    const filas = VAC.trabajadores.map(x => { const z = x.zafra, r = x.reparacion; return { IBM: ib(x), 'No. empleado': +x.socio, Nombre: x.nombre,
+      'Z días trab.': c(z, 'dias_trab'), 'Z incap.': c(z, 'incap'), 'Z permisos': c(z, 'permisos'), 'Z días ciclo': c(z, 'dias_ciclo'), 'Z percepciones': c(z, 'percepciones'), 'Z extras': c(z, 'extras'), 'Z sueldo prom.': c(z, 'sueldo_prom'), 'Z prom. extras': c(z, 'prom_extras'), 'Z días aguinaldo': c(z, 'dias_agui'), 'Z aguinaldo': c(z, 'aguinaldo'), 'Z dif. destajo': c(z, 'dif_primas'), 'Z dif. comisión': c(z, 'dif_comision'), 'Z total': c(z, 'total'),
+      'R días trab.': c(r, 'dias_trab'), 'R incap.': c(r, 'incap'), 'R permisos': c(r, 'permisos'), 'R días ciclo': c(r, 'dias_ciclo'), 'R percepciones': c(r, 'percepciones'), 'R extras': c(r, 'extras'), 'R sueldo prom.': c(r, 'sueldo_prom'), 'R prom. extras': c(r, 'prom_extras'), 'R días aguinaldo': c(r, 'dias_agui'), 'R aguinaldo': c(r, 'aguinaldo'), 'R dif. comisión': c(r, 'dif_comision'), 'R total': c(r, 'total'),
+      'Total días aguinaldo': x.dias_agui, 'Total aguinaldo': x.total, Revisar: x.revisar || '' }; });
+    const ws = XLSX.utils.json_to_sheet(filas), wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Aguinaldo');
+    XLSX.writeFile(wb, `${VAC.nombre} ${VAC.zafra.nombre} y ${VAC.reparacion.nombre}.xlsx`); return;
+  }
   const filas = VAC.trabajadores.map(x => ({ IBM: +x.socio.replace(/^1/, ''), 'No. empleado': +x.socio, Nombre: x.nombre, Antigüedad: x.anios ?? '', 'Antigüedad tomada de': x.antig_fuente || '',
     'Días trabajados': x.dias_trab, Incapacidades: x.incap, Permisos: x.permisos, 'Días del ciclo': x.dias_ciclo, 'Días vac.': x.dias_vac, 'Días antig.': x.dias_antig, Descansos: x.descansos, 'Total días': x.total_dias, 'Disfrute del': x.vac_del || '', 'Disfrute al': x.vac_al || '',
     'Percepciones': x.percepciones, 'Extras': x.extras, 'Sueldo prom.': x.sueldo_prom, 'Factor extras': x.factor_extras, Vacaciones: x.vacaciones, 'Prima vacacional 65%': x.prima, 'Total a pagar': x.total,
