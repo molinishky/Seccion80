@@ -266,7 +266,7 @@ html,body{overflow-x:hidden}
     <section class="vidrio" id="fal-res" style="padding:16px" hidden></section>
     <button class="btn" id="fal-pdf" type="button" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg><span>PDF de este trabajador</span></button>
     <button class="btn sec" id="fal-todos" type="button" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg><span>PDF de todos (faltas del ciclo)</span></button>
-    <p class="nota">Días ordinarios: lunes a viernes en reparación (el sábado se paga como sexto día) y lunes a sábado en zafra. Falta = día ordinario sin trabajar en una semana en la que sí trabajó otros días y que no es incapacidad, permiso con goce ni festivo. Las semanas en que el trabajador sale en la nómina sin ningún día pagado, o no sale, no se cuentan como faltas: se marcan aparte para revisarlas. Las incapacidades del IMSS se toman del Excel de vacaciones de la empresa cuando la nómina no las trae.</p>
+    <p class="nota">Días ordinarios: lunes a viernes en reparación (el sábado se paga como sexto día) y lunes a sábado en zafra. Base: la semana completa de todas las nóminas del ciclo. Falta = día ordinario sin trabajar que no es incapacidad, permiso con goce ni festivo. Si el trabajador no tiene nómina esa semana, estuvo incapacitado o no trabajó: las incapacidades del IMSS se toman del Excel de vacaciones de la empresa (la nómina no las trae completas) y el resto son faltas.</p>
   </div>
 </main>
 
@@ -767,9 +767,23 @@ async function cargarVac() {
     ids.sort((a, b) => ORDEN(a) - ORDEN(b));
     box.replaceChildren(...ids.map(id => { const d = vacDatos(id), b = el('button', 'vidrio tarjeta'); b.type = 'button';
       b.innerHTML = `<span class="f1"><span class="circ" style="background:${d.color}">${d.ico}</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span><b></b><span class="sub"></span>`;
-      b.querySelector('b').textContent = d.titulo; b.querySelector('.sub').textContent = d.sub; b.onclick = () => abrirVac(id); return b; }));
+      b.querySelector('b').textContent = d.titulo; b.querySelector('.sub').textContent = d.sub; b.onclick = () => abrirVac(id); return b; }), tarjetaFaltas());
     if (VAC && !$('#vac-det').hidden) elegirVac(VAC.ciclo);
   } catch (e) { box.replaceChildren(el('p', 'err', e.message)); }
+}
+function tarjetaFaltas() {      // el reporte de faltas también desde Prestaciones
+  const b = el('button', 'vidrio tarjeta'); b.type = 'button';
+  b.innerHTML = `<span class="f1"><span class="circ" style="background:#D32F2F">${SVG('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M9.5 14l5 5M14.5 14l-5 5"/>')}</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span><b>Faltas por ciclo</b><span class="sub">Reporte en PDF de cada trabajador y de todos</span>`;
+  b.onclick = () => ir('faltas'); return b;
+}
+async function botonFaltasPDF(soc) {      // en el resultado de cada prestación: el PDF de faltas del trabajador (último ciclo)
+  const b = el('button', 'btn sec'); b.type = 'button'; b.style.marginTop = '12px';
+  b.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg><span>Reporte de faltas (PDF)</span>';
+  try { if (!FALC) FALC = ((await leerJSON('faltas/ciclos.json')) || { ciclos: [] }).ciclos.slice().reverse(); } catch (e) { return null; }
+  if (!FALC.length) return null; const c = FALC[0], ibm = String(+soc - 10000);
+  b.querySelector('span').textContent = `Reporte de faltas ${c.nombre} (PDF)`;
+  b.onclick = () => bajarArchivo(`faltas/pdf/${c.id}/${ibm}.pdf`, `Asistencia ${c.nombre} - IBM ${ibm}.pdf`, 'application/pdf', b);
+  return b;
 }
 const SVG = d => `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 function miercolesSanto(y) {      // domingo de Pascua (cómputo gregoriano) menos 4 días
@@ -827,6 +841,7 @@ const fdia = f => new Date(f + 'T12:00').toLocaleDateString('es-MX', { weekday: 
 function buscarVac() {
   const box = $('#vac-res'), v = $('#vac-ibm').value.trim(); if (!v || !VAC) { box.hidden = true; return; }
   const soc = normSocio(v), x = VAC.trabajadores.find(t => t.socio === soc); box.hidden = false;
+  if (x) setTimeout(async () => { const b = await botonFaltasPDF(soc); if (b && $('#vac-ibm').value.trim() === v && !box.querySelector('.fal-btn')) { b.classList.add('fal-btn'); box.append(b); } }, 0);
   if (!x) { box.replaceChildren(el('p', 'err', `El IBM ${v} no tiene nóminas en ${VAC.nombre}.`)); return; }
   const fila = (a, b, c) => { const f = el('div', 'fila'); f.append(el('span', null, a), el('span', c || null, b)); return f; };
   if (VAC.tipo === 'generico') {
@@ -885,8 +900,8 @@ $('#vac-excel').addEventListener('click', async () => {
 
 /* ======================= Faltas por ciclo (faltas/<ciclo>.json y faltas/pdf/<ciclo>/, los arma GitHub con cada nómina) ======================= */
 let FAL = null, FALC = null; const FALS = {};
-const FCOL = { T: '#2E9E4B', F: '#D32F2F', N: '#F0A020', I: '#1E6FBF', P: '#8E44AD', X: '#9AA5B1', '-': '#C9D1DB' };
-const FNOM = { T: 'Trabajó', F: 'Falta', N: 'Sin días en la nómina', I: 'Incapacidad', P: 'Permiso', X: 'Festivo' };
+const FCOL = { T: '#2E9E4B', F: '#D32F2F', N: '#8B1A1A', I: '#1E6FBF', P: '#8E44AD', X: '#9AA5B1', '-': '#C9D1DB' };
+const FNOM = { T: 'Trabajó', F: 'Falta', N: 'Falta (sin nómina)', I: 'Incapacidad', P: 'Permiso', X: 'Festivo' };
 async function cargarFaltas() {
   const box = $('#fal-ciclos');
   try {
@@ -912,13 +927,13 @@ function buscarFaltas() {
   if (!t) { box.replaceChildren(el('p', 'err', `El IBM ${v} no tiene nóminas en ${FAL.nombre}.`)); return; }
   const k = (lbl, val, c) => { const d = el('div', 'fal-kpi'); d.style.setProperty('--c', c); d.append(el('small', null, lbl), el('b', null, String(val))); return d; };
   const kp = el('div', 'fal-kpis'); kp.append(k('Días ordinarios', t.ordinarios, '#0B3D6E'), k('Trabajados', t.trabajados, FCOL.T), k('Faltas', t.faltas, FCOL.F),
-    k('Sin nómina', t.sin_nomina, FCOL.N), k('Incapacidades', t.incap, FCOL.I), k('Permisos', t.permisos, FCOL.P));
+    k('Faltas sin nómina', t.sin_nomina, FCOL.N), k('Incapacidades', t.incap, FCOL.I), k('Permisos', t.permisos, FCOL.P));
   const DIAS = 'LMMJVS'.slice(0, FAL.lab), lista = el('div');
   const cab = el('div', 'fal-sem'); cab.append(el('b', null, 'Sem.'), (() => { const d = el('div', 'fal-dias'); [...DIAS].forEach(x => { const i = el('i', null, x); i.style.background = 'transparent'; i.style.color = 'inherit'; d.append(i); }); return d; })(), el('b', null, 'Faltas')); lista.append(cab);
   t.semanas.forEach(s => {
     const f = el('div', 'fal-sem'), d = el('div', 'fal-dias');
     [...s.e].forEach(ch => { const i = el('i', null, { F: 'F', N: 'S', I: 'I', P: 'P', X: 'X' }[ch] || ''); i.style.background = FCOL[ch] || FCOL['-']; i.title = FNOM[ch] || ''; d.append(i); });
-    const nf = [...s.e].filter(c => c === 'F').length; const nb = el('b', null, nf ? String(nf) : '—'); if (nf) nb.style.color = FCOL.F;
+    const nf = [...s.e].filter(c => c === 'F' || c === 'N').length; const nb = el('b', null, nf ? String(nf) : '—'); if (nf) nb.style.color = FCOL.F;
     f.append(el('b', null, String(s.w > 1000 ? s.w % 100 : s.w)), d, nb); lista.append(f);
   });
   const ley = el('div', 'fal-ley'); Object.entries(FNOM).forEach(([c, n]) => { const sp = el('span'); const i = el('i'); i.style.background = FCOL[c]; sp.append(i, n); ley.append(sp); });
@@ -926,7 +941,7 @@ function buscarFaltas() {
   const fechas = t.fechas_faltas.map(f => { const d = new Date(f + 'T12:00'); return `${DS[d.getDay()]} ${d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}`; });
   box.replaceChildren(el('div', 'pin-nom', t.nombre), el('div', 'pin-ibm', `IBM ${+t.socio - 10000}${t.tipo ? ' · ' + t.tipo : ''}${t.puesto ? ' · ' + titulo(t.puesto) : ''}`), kp, lista, ley,
     ...(fechas.length ? [el('p', 'nota', `Faltas: ${fechas.join(', ')}.`)] : [el('p', 'nota', 'Sin faltas en el ciclo.')]),
-    ...(t.semanas_sin_nomina.length ? [el('p', 'nota', `Semanas sin días en la nómina (no se cuentan como faltas, hay que revisarlas): ${t.semanas_sin_nomina.join(', ')}.`)] : []));
+    ...(t.semanas_sin_nomina.length ? [el('p', 'nota', `Semanas sin nómina (cuentan como faltas): ${t.semanas_sin_nomina.join(', ')}.`)] : []));
   const b = $('#fal-pdf'); b.hidden = false; b.dataset.ibm = String(+t.socio - 10000); b.dataset.nombre = t.nombre;
 }
 $('#f-fal').addEventListener('submit', e => { e.preventDefault(); $('#fal-ibm').blur(); buscarFaltas(); });
