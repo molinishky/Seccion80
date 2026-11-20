@@ -19,7 +19,7 @@
 <link rel="apple-touch-icon" href="icono-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 :root{
   --azul:#0068B8;--azul-h:#00579A;--azul-os:#003E6E;--azul-cl:#EEF5FC;--tx:#1F2430;--mu:#5B6575;--mu2:#8A94A3;
@@ -1288,11 +1288,29 @@ function olvidar(socio) { try { const r = leerRec(); delete r[socio]; localStora
 
 function olvidarTodo() { try { localStorage.removeItem(RKEY); localStorage.removeItem('s80_ultimo'); Object.keys(localStorage).filter(k => k.startsWith('s80_foto_')).forEach(k => localStorage.removeItem(k)); } catch (e) {} }
 
+// Solo lo pequeño: la configuración (meta.json, unos KB) y, al entrar, el archivo cifrado de ESA cuenta (d/c/<id>.json).
+// Antes se bajaba datos.json completo (1.5 MB) en cada arranque: con datos móviles lentos la app no cargaba.
+const CUENTAS = {};
 async function cargarDatos() {
-  const r = await fetch('datos.json?v=' + Date.now(), { cache: 'no-store' });
+  const r = await fetch('meta.json?v=' + Date.now(), { cache: 'no-store' });
   if (!r.ok) throw new Error('datos ' + r.status);
   window.S80_COPIA = r.headers.get('X-S80-Copia') === '1';   // sin internet: viene de la copia del teléfono
-  return r.json();
+  const j = await r.json();
+  return { meta: j.meta, cuentas: CUENTAS };
+}
+// fresca = volver a pedirla a internet (al entrar y al actualizar); si no hay red, la copia que ya se tenga
+async function cuentaDe(id, fresca) {
+  if (!fresca && Object.prototype.hasOwnProperty.call(CUENTAS, id)) return CUENTAS[id];
+  try {
+    const v = (typeof DATA !== 'undefined' && DATA && DATA.meta && DATA.meta.version) || Date.now();
+    const r = await fetch(`d/c/${id}.json?v=${v}`, { cache: 'no-store' });
+    if (r.status === 404) return (CUENTAS[id] = null);
+    if (!r.ok) throw new Error('cuenta ' + r.status);
+    return (CUENTAS[id] = await r.json());
+  } catch (e) {
+    if (Object.prototype.hasOwnProperty.call(CUENTAS, id)) return CUENTAS[id];
+    throw new Error('red');
+  }
 }
 
 /* ================= Consultas de leyes (carpeta Libros) ================= */
@@ -1909,7 +1927,7 @@ async function revisarIBM() {
   $('#rec-row').hidden = !!rec || !canStore();
   $('#hola').textContent = '';
   if (!v || !DATA) return;
-  const blob = DATA.cuentas[await cuentaId(soc)];
+  let blob = null; try { blob = await cuentaDe(await cuentaId(soc)); } catch (e) {}
   if (ibmIn.value.trim() !== v) return;
   if (blob) $('#hola').textContent = `¡Hola${blob.nm ? ', ' + blob.nm : ''}!` + (rec ? ' Este teléfono ya te recuerda, solo toca Iniciar sesión.' : ' Escribe tu PIN para continuar.');
 }
@@ -1938,11 +1956,12 @@ $('#login-form').addEventListener('submit', async e => {
     pinIn.value = '';
     show('home'); registrarAcceso();
   } catch (err) {
-    if (rp) { olvidar(soc); revisarIBM(); loginMsg.textContent = 'Necesito tu PIN otra vez en este teléfono.'; }
+    if (rp && err.message === 'red') loginMsg.textContent = 'No pude conectarme. Revisa tu señal de internet e inténtalo de nuevo.';
+    else if (rp) { olvidar(soc); revisarIBM(); loginMsg.textContent = 'Necesito tu PIN otra vez en este teléfono.'; }
     else {
       fails++; if (fails >= 5) { lockUntil = Date.now() + 60000; fails = 0; }
-      const existe = DATA.cuentas[await cuentaId(soc)];
-      loginMsg.textContent = existe ? 'El PIN no coincide. Inténtalo de nuevo.' : 'No encontré ese número de IBM. Revísalo.';
+      let existe = null; try { existe = await cuentaDe(await cuentaId(soc)); } catch (e) {}
+      loginMsg.textContent = err.message === 'red' ? 'No pude conectarme. Revisa tu señal de internet e inténtalo de nuevo.' : existe ? 'El PIN no coincide. Inténtalo de nuevo.' : 'No encontré ese número de IBM. Revísalo.';
     }
   }
   btn.disabled = false; btn.textContent = 'Iniciar sesión';
@@ -1950,7 +1969,7 @@ $('#login-form').addEventListener('submit', async e => {
 
 async function iniciar(socio, pin) {
   const id = await cuentaId(socio);
-  const blob = DATA.cuentas[id];
+  const blob = await cuentaDe(id, true);
   if (!blob) throw new Error('no');
   const data = await unseal(socio, pin, blob);
   session = { socio, pin, id, data, key: unseal.key, salt: blob.s };
@@ -1985,7 +2004,7 @@ window.addEventListener('online', async () => {
 async function refresh() {
   try { DATA = await cargarDatos(); waNumber = (DATA.meta && DATA.meta.whatsapp) || waNumber; } catch (e) { /* sin red: usa lo cargado */ }
   avisoSinRed();
-  const blob = DATA && DATA.cuentas[session.id];
+  const blob = await cuentaDe(session.id, true);
   if (!blob) throw new Error('gone');
   if (session.salt !== blob.s) {
     session.data = await unseal(session.socio, session.pin, blob);
@@ -2107,7 +2126,7 @@ $('#foto-in').addEventListener('change', async e => {
 /* ================= Olvidé mi PIN: aviso por WhatsApp al Secretario ================= */
 $('#olvide-pin').addEventListener('click', async () => {
   const v = ibmIn.value.trim(); let nm = '';
-  if (v && DATA) { try { const bl = DATA.cuentas[await cuentaId(normSocio(v))]; nm = (bl && bl.nm) || ''; } catch (e) {} }
+  if (v && DATA) { try { const bl = await cuentaDe(await cuentaId(normSocio(v))); nm = (bl && bl.nm) || ''; } catch (e) {} }
   const f = el('div', 'hoja-fondo'); const h = el('form', 'hoja'); h.setAttribute('role', 'dialog'); h.setAttribute('aria-label', 'Olvidé mi PIN'); h.noValidate = true;
   const campo = (id, lbl, val, ph, num) => { const c = el('div', 'campo'); const l = el('label', null, lbl); l.htmlFor = id; const b = el('div', 'caja'); const i = el('input'); i.id = id; i.value = val; i.placeholder = ph; if (num) i.inputMode = 'numeric'; i.autocomplete = 'off'; b.append(i); c.append(l, b); return c; };
   const err = el('p', 'err');
@@ -3056,7 +3075,7 @@ async function arrancar() {
   waNumber = (DATA.meta && DATA.meta.whatsapp) || '';
   avisoSinRed(); setTimeout(enviarPendientes, 4000);
   const u = ultimo(), rp = u && recordado(u);
-  if (rp) { try { await iniciar(u, rp); ocultarSplash(); show('home'); registrarAcceso(); return; } catch (e) { olvidar(u); } }
+  if (rp) { try { await iniciar(u, rp); ocultarSplash(); show('home'); registrarAcceso(); return; } catch (e) { if (e.message === 'red') loginMsg.textContent = 'No pude conectarme. Revisa tu señal de internet y toca Iniciar sesión.'; else olvidar(u); } }
   ocultarSplash();
   revisarIBM();
 }
@@ -3066,7 +3085,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261120130034';
+const APP_VERSION = '20261120130435';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
