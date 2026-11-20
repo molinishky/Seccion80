@@ -345,9 +345,9 @@ html.lente .burbuja{z-index:2;background:linear-gradient(180deg,rgba(var(--tinte
 @media (prefers-color-scheme: dark){
   :root{--azul:#3B9BEA;--azul-h:#5AADF0;--azul-os:#0A2A47;--azul-cl:#13283F;--verde:#34B35A;--verde-cl:#11301C;--tx:#E9EEF5;--mu:#9AA6B6;--mu2:#7A8696;--ln:#2A3646;--ln2:#243142;--ln3:#1E2938;--neg:#FF7A7A;
     --fondo:#0B1220;
-    --g-bg:rgba(24,34,52,.55);--g-bg-fuerte:rgba(24,34,52,.82);--g-borde:rgba(255,255,255,.09);
-    --g-sombra:inset 0 1px 0 rgba(255,255,255,.10),0 0 0 .5px rgba(0,0,0,.5),0 12px 34px rgba(0,0,0,.45);
-    --g-tinte-az:rgba(26,52,82,.55);--g-tinte-ve:rgba(20,52,32,.55);
+    --g-bg:rgba(12,12,14,.42);--g-bg-fuerte:rgba(16,16,18,.74);--g-borde:rgba(255,255,255,.12);
+    --g-sombra:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 1px rgba(255,255,255,.04),0 0 0 .5px rgba(0,0,0,.5),0 12px 34px rgba(0,0,0,.45);
+    --g-tinte-az:rgba(12,12,14,.42);--g-tinte-ve:rgba(20,52,32,.55);
     --flota:0 10px 28px rgba(0,0,0,.45)}
   .deco svg{opacity:.10!important}
   .deco img{opacity:.10!important;filter:invert(1) hue-rotate(180deg) brightness(1.5)}
@@ -365,8 +365,8 @@ html.lente .burbuja{z-index:2;background:linear-gradient(180deg,rgba(var(--tinte
   .msg-b{box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 0 .5px rgba(0,0,0,.4)}
   .chip{background:var(--g-tinte-az);border-color:var(--g-borde);box-shadow:0 0 0 .5px rgba(0,0,0,.4)}
   .vidrio{background:var(--g-bg);border-color:var(--g-borde);box-shadow:var(--g-sombra)}
-  .hoy{background:rgba(24,34,52,.6);box-shadow:0 0 0 .5px rgba(255,255,255,.08)}
-  .btn-sec{background:rgba(24,34,52,.4)}
+  .hoy{background:rgba(12,12,14,.5);box-shadow:0 0 0 .5px rgba(255,255,255,.08)}
+  .btn-sec{background:rgba(12,12,14,.4)}
   #nav{background:rgba(22,32,48,.55);border-color:rgba(255,255,255,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 0 .5px rgba(0,0,0,.5),0 14px 40px rgba(0,0,0,.55)}
   .burbuja{background:linear-gradient(180deg,rgba(var(--tinte),.40),rgba(var(--tinte),.18));box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 0 0 .5px rgba(255,255,255,.12),0 6px 18px rgba(0,0,0,.45)}
   .burbuja.v{--tinte:52,179,90}.burbuja{--tinte:59,155,234}
@@ -675,7 +675,7 @@ html.rv #s-home .tarjeta{min-height:146px;gap:10px;padding:14px}
 html.nv .deco .nv-deco{filter:none!important;object-position:50% 50%}
 /* recuadros: todos con la misma transparencia (inicio y dentro de cada opción); el confeti se ve por detrás con blur suave */
 :is(html.rv,html.nv,html.an,html.nm){--rv-caja:rgba(255,255,255,.40);--rv-blur:blur(8px) saturate(170%)}
-@media (prefers-color-scheme:dark){:is(html.rv,html.nv,html.an,html.nm){--rv-caja:rgba(22,28,40,.46)}}
+@media (prefers-color-scheme:dark){:is(html.rv,html.nv,html.an,html.nm){--rv-caja:rgba(10,10,12,.40)}}
 :is(html.rv,html.nv,html.an,html.nm) :is(.tarjeta,.panel,.recibo,.pre,.cargando,.aviso,.ley,.pasos,.saldo.vacio,.saludo,.vidrio){background:var(--rv-caja);backdrop-filter:var(--rv-blur);-webkit-backdrop-filter:var(--rv-blur)}
 :is(html.rv,html.nv,html.an,html.nm) .rv-card{backdrop-filter:var(--rv-blur);-webkit-backdrop-filter:var(--rv-blur)}
 :is(html.rv,html.nv,html.an,html.nm) .recibo-h{background:linear-gradient(180deg,rgba(0,104,184,.12),rgba(0,104,184,.05))}
@@ -749,7 +749,7 @@ html.cm:not(.cm-mix) #s-home :is(.hw-card,.dm-card,.rv-card,.aniv-card){display:
 html.cm:not(.cm-mix) .home-top :is(.hw-murc,.dm-papel,.rv-guirnalda){display:none!important}
 html.cm:not(.cm-mix) .home-top::before{display:none!important}
 html.cm{--rv-caja:rgba(255,255,255,.55);--rv-blur:blur(10px) saturate(170%)}
-@media (prefers-color-scheme:dark){html.cm{--rv-caja:rgba(22,28,40,.55)}}
+@media (prefers-color-scheme:dark){html.cm{--rv-caja:rgba(10,10,12,.48)}}
 html.cm :is(.tarjeta,.panel,.recibo,.pre,.cargando,.aviso,.ley,.pasos,.saldo.vacio,.saludo){background:var(--rv-caja);backdrop-filter:var(--rv-blur);-webkit-backdrop-filter:var(--rv-blur)}
 .cm-confeti{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
 .cm-pz{position:absolute;top:-14px;animation:cmCae linear infinite}
@@ -760,7 +760,7 @@ html.cm :is(.tarjeta,.panel,.recibo,.pre,.cargando,.aviso,.ley,.pasos,.saldo.vac
 .cumple-card p{font-size:12.5px;color:var(--mu);margin-top:2px;line-height:1.3}
 .cumple-pastel{position:absolute;right:8px;top:50%;width:84px;height:84px;transform:translateY(-50%);filter:drop-shadow(0 4px 8px rgba(120,80,10,.25));animation:cmFlota 3s ease-in-out infinite}
 @keyframes cmFlota{0%,100%{transform:translateY(-50%)}50%{transform:translateY(calc(-50% - 3px))}}
-@media (prefers-color-scheme:dark){.cumple-card{background:linear-gradient(110deg,rgba(201,162,39,.26),rgba(22,28,40,.55) 55%,rgba(176,36,90,.22))}.cumple-card b{color:#F2D27A}}
+@media (prefers-color-scheme:dark){.cumple-card{background:linear-gradient(110deg,rgba(201,162,39,.26),rgba(10,10,12,.5) 55%,rgba(176,36,90,.22))}.cumple-card b{color:#F2D27A}}
 @media (prefers-reduced-motion:reduce){.cumple-pastel{animation:none}}
 html.fit2 #s-home .cumple-card{margin-top:10px;padding-top:9px;padding-bottom:9px;min-height:66px}
 html.fit2 #s-home .cumple-pastel{width:70px;height:70px}
@@ -831,7 +831,7 @@ html.nv .nv-card{backdrop-filter:var(--rv-blur);-webkit-backdrop-filter:var(--rv
 /* ================= Modo seguro (teléfonos cuyo chip gráfico falla con el cristal) ================= */
 html.seguro *,html.seguro *::before,html.seguro *::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 html.seguro{--g-bg:rgba(255,255,255,.94);--g-bg-fuerte:rgba(255,255,255,.97)}
-@media (prefers-color-scheme:dark){html.seguro{--g-bg:rgba(24,34,52,.95);--g-bg-fuerte:rgba(24,34,52,.98)}}
+@media (prefers-color-scheme:dark){html.seguro{--g-bg:rgba(16,16,18,.95);--g-bg-fuerte:rgba(18,18,20,.98)}}
 html.seguro .scr.debajo{filter:none!important}
 /* ================= Aviso de nueva APK ================= */
 .aviso-apk{position:fixed;z-index:41;left:50%;top:50%;width:min(340px,calc(100% - 40px));transform:translate(-50%,-46%) scale(.94);opacity:0;transition:transform .25s cubic-bezier(.2,1.2,.4,1),opacity .2s;
@@ -3020,7 +3020,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261119182231';
+const APP_VERSION = '20261119193434';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
