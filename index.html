@@ -2534,10 +2534,10 @@ function abrirChat() {
   chatIniciado = true; chatStage = 'chat';
   clog.append(el('span', 'hoy', 'Hoy'));
   const d = session.data, pn = primerNombre(d), sem = semanas(d);
-  bot(`Hola${pn ? ', ' + pn : ''}. Soy el asistente de la Secretaría de Relaciones. Puedo darte tu saldo del fondo de ahorro, tu desglose de nómina o resolver tus dudas sobre la Ley Federal del Trabajo, el Contrato Ley y el ISR.`);
+  bot(`Hola${pn ? ', ' + pn : ''}. Soy el asistente de la Secretaría de Relaciones. Puedo darte tu saldo del fondo de ahorro, tu desglose de nómina, lo que te toca de tus prestaciones (aproximado) o resolver tus dudas sobre la Ley Federal del Trabajo, el Contrato Ley y el ISR.`);
   chips(baseChips());
 }
-function baseChips() { const sem = semanas(session.data); return [...(sem.length ? [`Desglose semana ${semN(sem[0])}`] : []), 'Mi saldo', '¿Cuántos días de vacaciones me tocan?', '¿Cuándo pagan el aguinaldo?']; }
+function baseChips() { const sem = semanas(session.data); return [...(sem.length ? [`Desglose semana ${semN(sem[0])}`] : []), 'Mi saldo', '¿Cuánto me toca de aguinaldo?', '¿Cuánto me toca de vacaciones?']; }
 /* ----- Teclado: ocultar barra de iconos, ajustar a la pantalla visible y gesto para bajarlo ----- */
 const MSJ = $('#mensaje');
 function ajustarTeclado(alto) {
@@ -2573,6 +2573,7 @@ async function enviarChat(raw) {
     bx.append(el('div', null, 'Claro. Toca el botón y se abrirá tu WhatsApp con un mensaje para el Secretario de Relaciones con tu nombre, tu IBM y lo que hemos platicado. Solo revisa y toca enviar.'), botonSecretario('para pedir orientación'));
     bot(bx); return;
   }
+  if (pidePrestacion(q)) return chatPrestacion(q);
   if (/escalaf|escalof/.test(q) && !/(que dice|articulo|clausula|que es un|como funciona|para que sirve)/.test(q)) return chatEscalafon(q);
   if (/(pdf|lista|listado)/.test(q) && /(antig|zafra|reparacion|departamento)/.test(q) && !/(prima|indemniz)/.test(q)) return chatEscalafon(q);
   const legal = /(articulo|art\.|clausula|\bley\b|contrato|reglamento|que dice|lft|isr|\bsat\b|impuesto)/.test(q);
@@ -2603,6 +2604,48 @@ async function enviarChat(raw) {
   if (legal || esConsultaLey(q) || buscarFAQ(text) || tokens(text).length >= 2) { if (await responderLey(text)) return; }
   { const bx = el('div', 'msg-acc'); bx.append(el('div', null, 'No encontré algo claro sobre eso. Puedo darte tu saldo del fondo de ahorro, tu desglose de nómina de cualquier semana o buscar en la Ley Federal del Trabajo, el Contrato Ley y la Ley del ISR. Prueba, por ejemplo: "¿qué dice la ley sobre la prima vacacional?" o "artículo 87".'), el('div', 'ley-nota', 'Si prefieres, envíale tu duda al Secretario de Relaciones:'), botonSecretario('con una duda')); bot(bx); }
   chips(baseChips());
+}
+/* ================= Prestaciones: lo que calcula el panel, aproximado ================= */
+let prsCache = null, prsQuien = null;
+async function cargarPrestaciones() {
+  if (prsQuien !== session.id) { prsCache = null; prsQuien = session.id; }   // nunca reutilizar datos de otra sesión
+  if (prsCache !== null) return prsCache;
+  const r = await fetch(`d/prs/${session.id}.bin?v=${(DATA.meta && DATA.meta.version) || ''}`, { cache: 'no-store' });
+  if (r.status === 404) return (prsCache = false);
+  if (!r.ok) throw new Error('http ' + r.status);
+  const buf = new Uint8Array(await r.arrayBuffer());
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(0, 12) }, session.key, buf.slice(12));
+  return (prsCache = JSON.parse(td.decode(plain)));
+}
+const PRS_RE = /(aguinaldo|vacacion|recreaci|utiles|escolar|\bbono\b|productividad|gratificaci|3\.5 dias|tres dias y medio|prestacion)/;
+function pidePrestacion(q) {
+  if (!PRS_RE.test(q) || /(que dice|articulo|art\.|clausula|\bley\b|lft|que es (el|la|un|una)|como se calcula)/.test(q)) return false;
+  return /(cuanto|cuantos|me toca|me tocan|me corresponde|me va a tocar|me van a dar|me dan|voy a recibir|calcul|mi aguinaldo|mis vacaciones|mi bono|mis prestaciones|mis utiles|mi recreacion|mi gratificacion|de cuanto)/.test(q);
+}
+async function chatPrestacion(q) {
+  const t = escribiendo(); let P;
+  try { P = await cargarPrestaciones(); } catch (e) { t.remove(); bot('No pude abrir tus prestaciones. Revisa tu conexión a internet.'); return; }
+  await new Promise(r => setTimeout(r, 250)); t.remove();
+  if (!P || !P.lista.length) { bot('Todavía no tengo calculadas tus prestaciones. Se calculan con las nóminas que se van publicando; pregúntame más adelante o coméntaselo al Secretario de Relaciones.'); chips(baseChips()); return; }
+  let lista = P.lista.filter(x => x.claves.some(k => q.includes(k)));
+  if (!lista.length || /prestaciones/.test(q)) lista = P.lista;
+  if (!lista.length) { bot('Esa prestación todavía no está calculada para ti.'); return; }
+  const fd = s => { const d = new Date(s + 'T12:00'); return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }); };
+  const pideDias = /(cuantos dias|dias me)/.test(q);
+  for (const x of lista) {
+    const bx = el('div', 'msg-acc');
+    const cab = el('div'); const b = el('b', null, x.titulo); cab.append(b); bx.append(cab);
+    const tot = el('div', null, `${pideDias && x.dias != null ? `Te tocan unos ${x.dias} días: ` : ''}aproximadamente ${money(x.total)}`.replace(/^a/, 'A') + `${x.parcial ? ', a la fecha' : ''} (bruto, antes de impuestos).`);
+    tot.style.marginTop = '6px'; bx.append(tot);
+    x.lineas.forEach(l => { const d = el('div', 'ley-nota', l); d.style.marginTop = '6px'; bx.append(d); });
+    const pg = el('div', 'ley-nota', 'Cuándo: ' + x.pago + '.' + (x.parcial ? ' El ciclo no ha terminado: la cantidad crece con cada nómina.' : '')); pg.style.marginTop = '6px'; bx.append(pg);
+    if (x.revisar) { const r = el('div', 'ley-nota', 'Ojo: ' + x.revisar); r.style.marginTop = '6px'; bx.append(r); }
+    bot(bx);
+  }
+  const av = el('div', 'msg-acc');
+  av.append(el('div', null, `Estos resultados son aproximados: salen del cálculo de la Sección 80 con las nóminas publicadas al ${fd(P.generado)}. No tenemos registro de tus incapacidades del IMSS (no vienen en la nómina), así que si tuviste alguna, la cantidad puede cambiar. La cantidad final la determina la empresa al pagar; si ves algo que no cuadra, coméntaselo al Secretario de Relaciones.`), botonSecretario('sobre el cálculo de mis prestaciones'));
+  bot(av);
+  chips(['¿Cuánto me toca de aguinaldo?', '¿Cuánto me toca de vacaciones?', 'Mis prestaciones', 'Mi saldo']);
 }
 /* ================= Escalafones (zafra, reparación, antigüedades) ================= */
 let escCache = null, escDe = null;
@@ -3024,7 +3067,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261119211640';
+const APP_VERSION = '20261120122607';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
