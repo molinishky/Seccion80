@@ -821,30 +821,18 @@ function buscarVac() {
 }
 $('#f-vac').addEventListener('submit', e => { e.preventDefault(); $('#vac-ibm').blur(); buscarVac(); });
 let tVac; $('#vac-ibm').addEventListener('input', () => { clearTimeout(tVac); tVac = setTimeout(buscarVac, 300); });
-$('#vac-excel').addEventListener('click', () => {
-  if (!VAC || !window.XLSX) return;
-  if (VAC.tipo === 'generico') {
-    const filas = VAC.trabajadores.map(x => { const o = { IBM: +x.socio.replace(/^1/, ''), 'No. empleado': +x.socio, Nombre: x.nombre };
-      for (const s of x.secciones) for (const f of s.filas) o[`${s.titulo} · ${f[0]}`] = f[1][0];
-      o['Total'] = x.total; o['Revisar'] = x.revisar || ''; return o; });
-    const ws = XLSX.utils.json_to_sheet(filas), wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Cálculo');
-    XLSX.writeFile(wb, `${VAC.nombre} a la fecha.xlsx`); return;
-  }
-  if (VAC.tipo === 'aguinaldo') {
-    const c = (p, k) => p ? p[k] : 0, ib = x => +x.socio.replace(/^1/, '');
-    const filas = VAC.trabajadores.map(x => { const z = x.zafra, r = x.reparacion; return { IBM: ib(x), 'No. empleado': +x.socio, Nombre: x.nombre,
-      'Z días trab.': c(z, 'dias_trab'), 'Z incap.': c(z, 'incap'), 'Z permisos': c(z, 'permisos'), 'Z días ciclo': c(z, 'dias_ciclo'), 'Z percepciones': c(z, 'percepciones'), 'Z extras': c(z, 'extras'), 'Z sueldo prom.': c(z, 'sueldo_prom'), 'Z prom. extras': c(z, 'prom_extras'), 'Z días aguinaldo': c(z, 'dias_agui'), 'Z aguinaldo': c(z, 'aguinaldo'), 'Z dif. destajo': c(z, 'dif_primas'), 'Z dif. comisión': c(z, 'dif_comision'), 'Z total': c(z, 'total'),
-      'R días trab.': c(r, 'dias_trab'), 'R incap.': c(r, 'incap'), 'R permisos': c(r, 'permisos'), 'R días ciclo': c(r, 'dias_ciclo'), 'R percepciones': c(r, 'percepciones'), 'R extras': c(r, 'extras'), 'R sueldo prom.': c(r, 'sueldo_prom'), 'R prom. extras': c(r, 'prom_extras'), 'R días aguinaldo': c(r, 'dias_agui'), 'R aguinaldo': c(r, 'aguinaldo'), 'R dif. comisión': c(r, 'dif_comision'), 'R total': c(r, 'total'),
-      'Total días aguinaldo': x.dias_agui, 'Total aguinaldo': x.total, Revisar: x.revisar || '' }; });
-    const ws = XLSX.utils.json_to_sheet(filas), wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Aguinaldo');
-    XLSX.writeFile(wb, `${VAC.nombre} ${VAC.zafra.nombre} y ${VAC.reparacion.nombre}.xlsx`); return;
-  }
-  const filas = VAC.trabajadores.map(x => ({ IBM: +x.socio.replace(/^1/, ''), 'No. empleado': +x.socio, Nombre: x.nombre, Antigüedad: x.anios ?? '', 'Antigüedad tomada de': x.antig_fuente || '',
-    'Días trabajados': x.dias_trab, Incapacidades: x.incap, Permisos: x.permisos, 'Días del ciclo': x.dias_ciclo, 'Días vac.': x.dias_vac, 'Días antig.': x.dias_antig, Descansos: x.descansos, 'Total días': x.total_dias, 'Disfrute del': x.vac_del || '', 'Disfrute al': x.vac_al || '',
-    'Percepciones': x.percepciones, 'Extras': x.extras, 'Sueldo prom.': x.sueldo_prom, 'Factor extras': x.factor_extras, Vacaciones: x.vacaciones, 'Prima vacacional 65%': x.prima, 'Total a pagar': x.total,
-    'Comisión sindical': x.comision || 0, 'Diferencia comisión': x.diferencia_comision || 0, 'Total con comisión': x.comision ? x.total_con_comision : x.total, 'Permisos e incapacidades': (x.conceptos || []).join(', '), Revisar: x.revisar || '' }));
-  const ws = XLSX.utils.json_to_sheet(filas), wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Vacaciones');
-  XLSX.writeFile(wb, `Vacaciones ${VAC.nombre} semanas ${VAC.semana_desde}-${VAC.semana_hasta}.xlsx`);
+/* ---------- Excel con formato (como los de la empresa): lo arma GitHub con cada nómina (vacaciones/excel/<id>.xlsx) ---------- */
+$('#vac-excel').addEventListener('click', async () => {
+  if (!VAC) return; const btn = $('#vac-excel'), txt = btn.querySelector('span'), antes = txt.textContent; txt.textContent = 'Preparando Excel…'; btn.disabled = true;
+  try {
+    const r = await gh(`/repos/${REPO}/contents/vacaciones/excel/${VAC.ciclo}.xlsx?t=${Date.now()}`, { headers: { Accept: 'application/vnd.github.raw+json' }, cache: 'no-store' });
+    const blob = new Blob([await r.arrayBuffer()], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const nombre = (VAC.tipo === 'aguinaldo' ? VAC.nombre : VAC.tipo === 'generico' ? VAC.nombre + ' a la fecha' : 'Vacaciones ' + VAC.nombre) + '.xlsx';
+    const file = new File([blob], nombre, { type: blob.type }), solo = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+    if (solo && navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: nombre }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  } catch (e) { alert(/No encontré/.test(e.message) ? 'El Excel de este cálculo se arma con la próxima nómina que se suba.' : e.message); }
+  finally { txt.textContent = antes; btn.disabled = false; }
 });
 
 /* ======================= Buscar PIN ======================= */
