@@ -6,7 +6,7 @@
 <script>/* Modo seguro: si la app no terminó de abrir la vez anterior (p. ej. el chip gráfico falló), se abre sin efectos de cristal pesados */try{var _h=document.documentElement,_q=location.search;if(/[?&]normal=1/.test(_q)){localStorage.removeItem('s80_seguro');localStorage.removeItem('s80_arranque')}if(/[?&]seguro=1/.test(_q))localStorage.setItem('s80_seguro','1');if(localStorage.getItem('s80_seguro')==='1'||localStorage.getItem('s80_arranque')==='1'){_h.classList.add('seguro');localStorage.setItem('s80_seguro','1')}localStorage.setItem('s80_arranque','1')}catch(e){}</script>
 <script>/* Temporadas: Halloween hasta el 31 oct · Día de Muertos 1-2 nov · Revolución 16-20 nov · Navidad 14-27 dic 2026 · Año Nuevo 28 dic-3 ene · Aniversario del STIASRM 4-10 ene (fondo normal + tarjeta). Para ver una temporada como demostración: ?temporada=hw|dm|rv|nv|an|nm|aniv (nm = fondo normal) */(function(){var T=Date.now(),D=function(x){return Date.parse(x+'T00:00:00-06:00')},t='';if(T<D('2026-11-01'))t='hw';else if(T<D('2026-11-03'))t='dm';else if(T>=D('2026-11-16')&&T<D('2026-11-21'))t='rv';else if(T>=D('2026-12-14')&&T<D('2026-12-28'))t='nv';else if(T>=D('2026-12-28')&&T<D('2027-01-04'))t='an';var ani=T>=D('2027-01-04')&&T<D('2027-01-11');var q=/[?&]temporada=(hw|dm|rv|nv|an|nm|aniv)\b/.exec(location.search);if(q){t=q[1];ani=t==='aniv';if(ani)t='nm'}if(!t)t='nm';if(ani)document.documentElement.classList.add('aniv');if(t)document.documentElement.classList.add(t);if(t==='rv'||t==='nv'||t==='an'||t==='nm')document.addEventListener('DOMContentLoaded',function(){var m=document.querySelector('meta[name=theme-color][media*=dark]');if(m)m.content='#000000'})})()</script>
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#0A0A0B" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -343,8 +343,8 @@ html.lente .burbuja{z-index:2;background:linear-gradient(180deg,rgba(var(--tinte
 
 /* ================= Modo oscuro (según la configuración del teléfono) ================= */
 @media (prefers-color-scheme: dark){
-  :root{--azul:#3B9BEA;--azul-h:#5AADF0;--azul-os:#0A2A47;--azul-cl:#13283F;--verde:#34B35A;--verde-cl:#11301C;--tx:#E9EEF5;--mu:#9AA6B6;--mu2:#7A8696;--ln:#2A3646;--ln2:#243142;--ln3:#1E2938;--neg:#FF7A7A;
-    --fondo:#0B1220;
+  :root{--azul:#3B9BEA;--azul-h:#5AADF0;--azul-os:#0A2A47;--azul-cl:#13283F;--verde:#34B35A;--verde-cl:#11301C;--tx:#E9EEF5;--mu:#A1A1A8;--mu2:#7C7C84;--ln:#2C2C30;--ln2:#252529;--ln3:#1E1E21;--neg:#FF7A7A;
+    --fondo:#0A0A0B;
     --g-bg:rgba(12,12,14,.42);--g-bg-fuerte:rgba(16,16,18,.74);--g-borde:rgba(255,255,255,.12);
     --g-sombra:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 1px rgba(255,255,255,.04),0 0 0 .5px rgba(0,0,0,.5),0 12px 34px rgba(0,0,0,.45);
     --g-tinte-az:rgba(12,12,14,.42);--g-tinte-ve:rgba(20,52,32,.55);
@@ -354,9 +354,9 @@ html.lente .burbuja{z-index:2;background:linear-gradient(180deg,rgba(var(--tinte
   .caja{box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 0 .5px rgba(0,0,0,.5)}
   .hoja{box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 -10px 34px rgba(0,0,0,.5)}
   .hoja-fondo{background:rgba(0,0,0,.5)}
-  .recibo-h{background:linear-gradient(180deg,rgba(26,52,82,.7),rgba(26,52,82,.35));box-shadow:inset 0 -.5px 0 rgba(255,255,255,.06)}
-  .rec-tot{background:rgba(10,16,28,.4)}
-  .pre-tag{background:rgba(11,18,32,.6)}
+  .recibo-h{background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03));box-shadow:inset 0 -.5px 0 rgba(255,255,255,.06)}
+  .rec-tot{background:rgba(0,0,0,.35)}
+  .pre-tag{background:rgba(0,0,0,.5)}
   .pre{--ac-rgb:59,155,234}.pre.v{--ac-rgb:52,179,90}
   .pre-h{background:linear-gradient(180deg,rgba(var(--ac-rgb),.20),rgba(var(--ac-rgb),.08))}
   .saldo{background:#0F5FA8}
@@ -367,19 +367,19 @@ html.lente .burbuja{z-index:2;background:linear-gradient(180deg,rgba(var(--tinte
   .vidrio{background:var(--g-bg);border-color:var(--g-borde);box-shadow:var(--g-sombra)}
   .hoy{background:rgba(12,12,14,.5);box-shadow:0 0 0 .5px rgba(255,255,255,.08)}
   .btn-sec{background:rgba(12,12,14,.4)}
-  #nav{background:rgba(22,32,48,.55);border-color:rgba(255,255,255,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 0 .5px rgba(0,0,0,.5),0 14px 40px rgba(0,0,0,.55)}
+  #nav{background:rgba(12,12,14,.42);border-color:rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 1px rgba(255,255,255,.04),0 0 0 .5px rgba(0,0,0,.5),0 14px 40px rgba(0,0,0,.55)}
   .burbuja{background:linear-gradient(180deg,rgba(var(--tinte),.40),rgba(var(--tinte),.18));box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 0 0 .5px rgba(255,255,255,.12),0 6px 18px rgba(0,0,0,.45)}
   .burbuja.v{--tinte:52,179,90}.burbuja{--tinte:59,155,234}
   .burbuja::after{opacity:.25}
   html.lente .burbuja{background:linear-gradient(180deg,rgba(var(--tinte),.32),rgba(var(--tinte),.12))}
   .avatar img{box-shadow:0 0 0 2px var(--fondo),0 0 0 3.5px var(--azul)}
   .top img,.home-top img,.login-escudo{filter:drop-shadow(0 2px 8px rgba(0,0,0,.45))}
-  .tri i:nth-child(2){background:#2A3646}
+  .tri i:nth-child(2){background:#2C2C30}
   .instalar .ico-app{box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.08)}
   .tarjeta:hover{box-shadow:var(--g-sombra),0 0 0 1.5px var(--azul)}
   input::placeholder{color:var(--mu2)}
   .chk input{accent-color:var(--azul)}
-  #toast{background:#E9EEF5;color:#0B1220}
+  #toast{background:#F5F5F7;color:#0A0A0B}
 }
 
 
@@ -3020,7 +3020,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261119193434';
+const APP_VERSION = '20261119195124';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
