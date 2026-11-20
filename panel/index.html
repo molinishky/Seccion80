@@ -718,6 +718,7 @@ async function elegirVac(id) {
   info.querySelector('p').textContent = `Semanas ${v.semana_desde} a ${v.semana_hasta}${v.corte ? ', con corte' : ''} · ${v.dias_ordinarios} días ordinarios de ${v.tipo === 'zafra' ? 'lunes a sábado' : 'lunes a viernes'} · ${v.trabajadores.length} trabajadores` + (v.parcial ? ' · el ciclo no ha terminado: el cálculo crece con cada nómina' : '');
   $('#vac-excel').hidden = false; buscarVac();
 }
+const fdia = f => new Date(f + 'T12:00').toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '');
 function buscarVac() {
   const box = $('#vac-res'), v = $('#vac-ibm').value.trim(); if (!v || !VAC) { box.hidden = true; return; }
   const soc = normSocio(v), x = VAC.trabajadores.find(t => t.socio === soc); box.hidden = false;
@@ -727,7 +728,8 @@ function buscarVac() {
   const h = el('div', 'hallazgo');
   h.append(fila('Días trabajados', dd(x.dias_trab)), fila('Incapacidades / permisos', `${dd(x.incap)} / ${dd(x.permisos)}`), ...(x.conceptos && x.conceptos.length ? [fila('Conceptos de la nómina', x.conceptos.map(c => titulo(c.replace(/^\d+\s*/, '').replace(/\s*\([^)]*\)/g, ''))).join(', '))] : []), fila('Días que cuentan del ciclo', `${dd(x.dias_ciclo)} de ${VAC.dias_ordinarios}`),
     fila('Antigüedad', x.anios != null ? `${x.anios} años${x.dias_antig ? ` · +${x.dias_antig} día${x.dias_antig > 1 ? 's' : ''}` : ''}` : 'sin dato'), ...(x.antig_fuente ? [fila('Antigüedad tomada de', x.antig_fuente.replace('Escalafón de antigüedades', 'Escalafón').replace(/[()]/g, ''))] : []),
-    fila('Días de vacaciones', dd(x.dias_vac)), fila('Descansos pagados', dd(x.descansos)), fila('Total de días', dd(x.total_dias), 'ok'));
+    fila('Días de vacaciones', dd(x.dias_vac)), fila('Descansos pagados', dd(x.descansos)), fila('Total de días', dd(x.total_dias), 'ok'),
+    ...(x.vac_del ? [fila('Se disfrutan', `del ${fdia(x.vac_del)} al ${fdia(x.vac_al)}`)] : []));
   const h2 = el('div', 'hallazgo');
   h2.append(fila('Sueldo promedio', pesos(x.sueldo_prom)), fila('Factor extras', pesos(x.factor_extras)), fila('Vacaciones', pesos(x.vacaciones)), fila('Prima vacacional 65 %', pesos(x.prima)));
   if (x.comision) h2.append(fila('Subtotal sin comisión', pesos(x.total)), fila('Comisión sindical en el ciclo', pesos(x.comision)), fila('Más: diferencia por comisión', pesos(x.diferencia_comision), 'ok'), fila('Total con comisión', pesos(x.total_con_comision), 'ok'));
@@ -740,7 +742,7 @@ let tVac; $('#vac-ibm').addEventListener('input', () => { clearTimeout(tVac); tV
 $('#vac-excel').addEventListener('click', () => {
   if (!VAC || !window.XLSX) return;
   const filas = VAC.trabajadores.map(x => ({ IBM: +x.socio.replace(/^1/, ''), 'No. empleado': +x.socio, Nombre: x.nombre, Antigüedad: x.anios ?? '', 'Antigüedad tomada de': x.antig_fuente || '',
-    'Días trabajados': x.dias_trab, Incapacidades: x.incap, Permisos: x.permisos, 'Días del ciclo': x.dias_ciclo, 'Días vac.': x.dias_vac, 'Días antig.': x.dias_antig, Descansos: x.descansos, 'Total días': x.total_dias,
+    'Días trabajados': x.dias_trab, Incapacidades: x.incap, Permisos: x.permisos, 'Días del ciclo': x.dias_ciclo, 'Días vac.': x.dias_vac, 'Días antig.': x.dias_antig, Descansos: x.descansos, 'Total días': x.total_dias, 'Disfrute del': x.vac_del || '', 'Disfrute al': x.vac_al || '',
     'Percepciones': x.percepciones, 'Extras': x.extras, 'Sueldo prom.': x.sueldo_prom, 'Factor extras': x.factor_extras, Vacaciones: x.vacaciones, 'Prima vacacional 65%': x.prima, 'Total a pagar': x.total,
     'Comisión sindical': x.comision || 0, 'Diferencia comisión': x.diferencia_comision || 0, 'Total con comisión': x.comision ? x.total_con_comision : x.total, 'Permisos e incapacidades': (x.conceptos || []).join(', '), Revisar: x.revisar || '' }));
   const ws = XLSX.utils.json_to_sheet(filas), wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Vacaciones');
