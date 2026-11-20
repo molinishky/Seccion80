@@ -2002,7 +2002,15 @@ $('#salir').addEventListener('click', salir);
 $('#olvidar').addEventListener('click', () => { olvidarTodo(); ibmIn.value = ''; revisarIBM(); $('#olvidar').hidden = true; loginMsg.textContent = 'Este teléfono ya no recuerda a nadie.'; });
 
 /* ================= Nombres ================= */
-function nombreCompleto(d) { return d.orden === 'nomina' ? titulo(d.nombreNomina || d.nombre) : titulo(d.nombre || ''); }
+// Nombre completo siempre empezando por el nombre: la nómina trae «APELLIDO APELLIDO NOMBRES» (respeta «de la», «del»…)
+function nombrePrimero(raw) {
+  const P = new Set(['DE', 'DEL', 'LA', 'LAS', 'LOS', 'Y', 'SAN', 'SANTA', 'MC', 'VDA', 'VIUDA']); let u = [], a = [];
+  for (const w of String(raw || '').trim().split(/\s+/).filter(Boolean)) { a.push(w); if (!P.has(w.toUpperCase())) { u.push(a.join(' ')); a = []; } }
+  if (a.length) { if (u.length) u[u.length - 1] += ' ' + a.join(' '); else u.push(a.join(' ')); }
+  if (u.length >= 3) u = u.slice(2).concat(u.slice(0, 2)); else if (u.length === 2) u = [u[1], u[0]];
+  return u.join(' ').split(' ').map((x, i) => P.has(x.toUpperCase()) && i ? x.toLowerCase() : x.charAt(0).toUpperCase() + x.slice(1).toLowerCase()).join(' ');
+}
+function nombreCompleto(d) { return d.orden === 'nomina' ? nombrePrimero(d.nombreNomina || d.nombre) : titulo(d.nombre || ''); }
 function primerNombre(d) {
   const b = DATA && session && DATA.cuentas[session.id];
   if (b && b.nm) return titulo(b.nm);
@@ -3012,7 +3020,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261119174002';
+const APP_VERSION = '20261119182231';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
