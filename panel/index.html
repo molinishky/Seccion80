@@ -556,6 +556,20 @@ const zona = $('#soltar');
 ['dragleave', 'drop'].forEach(ev => zona.addEventListener(ev, e => { e.preventDefault(); zona.classList.remove('sobre'); }));
 zona.addEventListener('drop', e => revisar([...e.dataTransfer.files]));
 
+// Pagos especiales: mismo reconocimiento que actualizar.py (folio o nombre del archivo)
+const ESPECIALES = [['vacaciones', /VACACION/, 'Vacaciones'], ['aguinaldo', /AGUINALDO/, 'Aguinaldo'], ['recreacion', /RECREACI/, 'Recreación familiar'],
+  ['utiles', /UTILES|ÚTILES|ESCOLAR/, 'Útiles escolares'], ['bono', /\bBONO\b|PRODUCTIVIDAD/, 'Bono de productividad'], ['gratificacion', /GRATIFICACI|3\.5\s*D|TRES DIAS/, 'Gratificación 3.5 días'],
+  ['ptu', /\bPTU\b|UTILIDADES/, 'Reparto de utilidades'], ['fondo', /FONDO\s+DE\s+AHORRO|REPARTO.*AHORRO/, 'Fondo de ahorro'], ['prima', /PRIMA\s+VACACIONAL/, 'Prima vacacional']];
+function especialDe(folio, nombre, w) {
+  const T = (folio + ' ' + nombre).toUpperCase().replace(/_/g, ' '), y = /(20\d{2})/.exec(T);
+  const e = ESPECIALES.find(x => x[1].test(T));
+  if (e) {
+    if (e[0] === 'vacaciones' || e[0] === 'prima') { const z = /ZAFRA\s*(\d{2})\s*[-/ ]?\s*(\d{2})/.exec(T); return /REPARA/.test(T) ? `${e[2]} Reparación ${y ? y[1] : ''}`.trim() : z ? `${e[2]} Zafra ${z[1]}-${z[2]}` : e[2]; }
+    return `${e[2]} ${y ? y[1] : ''}`.trim();
+  }
+  if (!/^\s*\d*\s*(DEL\s+\d+(\s+DE\s+\w+)?\s+AL\s+\d+\s+DE\s+\w+)?\s*$/i.test(folio)) return folio.replace(/^\s*\d+\s*/, '').trim() || 'Pago especial';
+  return null;
+}
 async function textoPDF(buf, paginas) {
   const doc = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise; const n = doc.numPages, out = [];
   for (const i of (paginas === 'todas' ? [...Array(n).keys()].map(x => x + 1) : paginas.map(p => p < 0 ? n + 1 + p : p))) {
@@ -601,12 +615,11 @@ async function revisar(archivos) {
         const { texto, paginas } = p1; const m = /PERIODO\s*=\s*(\d+)/.exec(texto), p = /del\s+\d+\s+al\s+\d+\s+de\s+\w+/i.exec(texto);
         if (!m) throw new Error('No encontré "PERIODO = …": ¿es la verificación de nómina?');
         const w = +m[1], ya = app.nomina === w;
-        const fol = /FOLIO\s*=\s*([\s\S]*?)(?:,\s*FECHA_MOV|$)/.exec(texto.replace(/\s+/g, ' '));
-        if ((fol && /VACACION/i.test(fol[1])) || /vacacion/i.test(f.name)) {      // nómina de vacaciones: va aparte, no reemplaza la semana
-          const F = ((fol ? fol[1] : '') + ' ' + f.name).toUpperCase(), rep = /REPARA/.test(F), z = /ZAFRA\s*(\d{2})\s*[-/ ]?\s*(\d{2})/.exec(F), a = /(20\d{2})/.exec(F);
-          const nom = rep ? 'Vacaciones Reparación ' + (a ? a[1] : '') : 'Vacaciones Zafra ' + (z ? z[1] + '-' + z[2] : '');
-          partes.push(tarjetaArchivo(f, paginas + ' páginas'), hallazgos([['Nómina de vacaciones', nom.trim()], ['Periodo', w + (p ? ' · ' + p[0] : '')], ['En la app', 'Sale aparte en el desglose como «' + nom.trim() + '»; no reemplaza la semana ' + w, 'ok']]));
-          listos.push({ ruta: `entrada/nomina/${f.name}`, buf, titulo: `Nómina de ${nom.trim().toLowerCase()}` });
+        const fol = /FOLIO\s*=\s*([\s\S]*?)(?:,\s*FECHA_MOV|$)/.exec(texto.replace(/\s+/g, ' ')), folio = fol ? fol[1].trim() : '';
+        const esp = especialDe(folio, f.name, w);
+        if (esp) {      // pago especial (vacaciones, aguinaldo, útiles…): va aparte, NO reemplaza la semana
+          partes.push(tarjetaArchivo(f, paginas + ' páginas'), hallazgos([['Nómina especial', esp], ['Periodo', w + (p ? ' · ' + p[0] : '')], ['En la app', 'Sale aparte en el desglose como «' + esp + '»; la semana ' + w + ' no se toca', 'ok']]));
+          listos.push({ ruta: `entrada/nomina/${f.name}`, buf, titulo: `Nómina especial · ${esp}` });
         } else {
         partes.push(tarjetaArchivo(f, paginas + ' páginas'), hallazgos([['Semana', w + (p ? ' · ' + p[0] : '')], ['¿Ya estaba publicada?', ya ? 'Sí, se reemplaza' : 'No, es nueva', ya ? 'rev' : 'ok']]));
         listos.push({ ruta: `entrada/nomina/${f.name}`, buf, titulo: `Nómina semana ${w}` });
