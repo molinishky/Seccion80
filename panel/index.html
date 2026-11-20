@@ -243,7 +243,7 @@ html,body{overflow-x:hidden}
     <form id="f-vac" autocomplete="off"><div class="campo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--azul)" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="vac-ibm" inputmode="numeric" placeholder="IBM del trabajador" enterkeyhint="search"></div></form>
     <section class="vidrio" id="vac-res" style="padding:16px" hidden></section>
     <button class="btn sec" id="vac-excel" type="button" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg><span>Descargar Excel de todos</span></button>
-    <p class="nota">Cálculo bruto, sin ISR ni descuentos, con las nóminas publicadas. Los permisos con goce por defunción, nacimiento o alumbramiento y matrimonio, y las incapacidades, cuentan como días del ciclo y no como faltas, según el Art. 42. Art. 40 del Contrato Ley: zafra 15 días y reparación 11, proporcionales a los días del ciclo; +1 día a los 29 años de antigüedad y +1 cada 5 años más; prima vacacional 65 %.</p>
+    <p class="nota">Cálculo bruto, sin ISR ni descuentos, con las nóminas publicadas. En zafra el destajo en envase se integra como dice el convenio de envases de 2025: todo el destajo entre los días que lo devengó. Los permisos con goce por defunción, nacimiento o alumbramiento y matrimonio, y las incapacidades, cuentan como días del ciclo y no como faltas, según el Art. 42. Art. 40 del Contrato Ley: zafra 15 días y reparación 11, proporcionales a los días del ciclo; +1 día a los 29 años de antigüedad y +1 cada 5 años más; prima vacacional 65 %.</p>
     </div>
   </div>
 </main>
@@ -761,7 +761,13 @@ async function elegirVac(id) {
     nota.textContent = 'Cálculo bruto, sin ISR. Art. 94 del Contrato Ley: 17 días por zafra y 15 por reparación, proporcionales a los días del ciclo; las incapacidades y permisos cuentan como días trabajados, Art. 102. Igual que el Excel de aguinaldo de la empresa: sueldo promedio de cada ciclo más el promedio de la media hora de turno y alimentos, con su integración al séptimo día, entre los días naturales del ciclo. Comprobado contra el aguinaldo 2025 de la empresa con sus nóminas. Las incapacidades del IMSS no vienen en la nómina: en zafra se toman del Excel de vacaciones de la empresa. Destajo y comisión sindical se pagan como diferencia.';
     $('#vac-excel').hidden = false; buscarVac(); return;
   }
-  nota.textContent = nota.dataset.vac; const fch = f => new Date(f + 'T12:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+  nota.textContent = nota.dataset.vac;
+  if (v.vacio) {
+    const fch = f => new Date(f + 'T12:00').toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).replace(',', '');
+    info.querySelector('b').textContent = `Vacaciones de ${v.nombre}`;
+    info.querySelector('p').textContent = `Todavía no hay nóminas de la ${v.nombre}: el cálculo empieza con la primera nómina, la semana ${v.semana_desde}, que arranca el ${fch(v.desde)}, y crece con cada nómina que se suba.`;
+    $('#vac-excel').hidden = true; $('#vac-res').hidden = true; return;
+  } const fch = f => new Date(f + 'T12:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
   info.querySelector('b').textContent = `Vacaciones de ${v.nombre}: del ${fch(v.desde)} al ${fch(v.fin)}` + (v.parcial ? ', a la fecha' : '');
   info.querySelector('p').textContent = `Semanas ${v.semana_desde} a ${v.semana_hasta}${v.corte ? ', con corte' : ''} · ${v.dias_ordinarios} días ordinarios de ${v.tipo === 'zafra' ? 'lunes a sábado' : 'lunes a viernes'} · ${v.trabajadores.length} trabajadores` + (v.parcial ? ' · el ciclo no ha terminado: el cálculo crece con cada nómina' : '');
   $('#vac-excel').hidden = false; buscarVac();
@@ -804,6 +810,7 @@ function buscarVac() {
     ...(x.vac_del ? [fila('Se disfrutan', `del ${fdia(x.vac_del)} al ${fdia(x.vac_al)}`)] : []));
   const h2 = el('div', 'hallazgo');
   h2.append(fila('Sueldo promedio', pesos(x.sueldo_prom)), fila('Factor extras', pesos(x.factor_extras)), fila('Vacaciones', pesos(x.vacaciones)), fila('Prima vacacional 65 %', pesos(x.prima)));
+  if (x.diferencia_destajo) h2.append(fila('Destajo diario', pesos(x.destajo_diario)), fila('Días con destajo', dd(x.dias_destajo)), fila('Más: diferencia por destajo', pesos(x.diferencia_destajo), 'ok'));
   if (x.comision) h2.append(fila('Subtotal sin comisión', pesos(x.total)), fila('Comisión sindical en el ciclo', pesos(x.comision)), fila('Más: diferencia por comisión', pesos(x.diferencia_comision), 'ok'), fila('Total con comisión', pesos(x.total_con_comision), 'ok'));
   box.replaceChildren(el('div', 'pin-nom', x.nombre), el('div', 'pin-ibm', `IBM ${soc.replace(/^1/, '').replace(/^0+/, '')}`), tot, h, el('div', null, ''), h2,
     ...(x.revisar ? [el('p', 'err', x.revisar)] : []));
