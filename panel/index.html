@@ -724,14 +724,20 @@ async function cargarVac() {
   } catch (e) { box.replaceChildren(el('p', 'err', e.message)); }
 }
 const SVG = d => `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+function miercolesSanto(y) {      // domingo de Pascua (cómputo gregoriano) menos 4 días
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3),
+    h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451),
+    mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(y, mes - 1, dia - 4, 12).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+}
 function vacDatos(id) {
   const anio = (id.match(/\d{4}/) || [''])[0];
-  if (/^aguinaldo-/.test(id)) return { titulo: 'Aguinaldo ' + anio, sub: 'Zafra y reparación · se paga antes del 20 de diciembre', color: '#2E9E4B', ico: SVG('<rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M12 8c-2-4-6-4-6-1.5S10 8 12 8zM12 8c2-4 6-4 6-1.5S14 8 12 8z"/>') };
-  if (/^recreacion-/.test(id)) return { titulo: 'Recreación familiar ' + anio, sub: 'Del 1 de abril al 31 de marzo · a la fecha', color: '#E53935', ico: SVG('<circle cx="8" cy="7" r="2.5"/><circle cx="16" cy="7" r="2.5"/><path d="M3 20v-4a4 4 0 0 1 4-4h2a4 4 0 0 1 3 1.4A4 4 0 0 1 15 12h2a4 4 0 0 1 4 4v4"/>') };
-  if (/^utiles-/.test(id)) return { titulo: 'Útiles escolares ' + anio, sub: 'Reparación y zafra · se paga en agosto · a la fecha', color: '#7E57C2', ico: SVG('<path d="M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M4 17a2 2 0 0 1 2-2h12M9 7h5"/>') };
-  if (/^gratificacion-/.test(id)) return { titulo: 'Gratificación 3.5 días', sub: 'Fin de zafra ' + id.replace(/^gratificacion-zafra-/, '').replace('-', '-') + ' · a la fecha', color: '#0068B8', ico: SVG('<path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/>') };
+  if (/^aguinaldo-/.test(id)) return { titulo: 'Aguinaldo ' + anio, sub: `Se paga a más tardar el 20 de diciembre de ${anio} · Art. 94`, color: '#2E9E4B', ico: SVG('<rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M12 8c-2-4-6-4-6-1.5S10 8 12 8zM12 8c2-4 6-4 6-1.5S14 8 12 8z"/>') };
+  if (/^recreacion-/.test(id)) return { titulo: 'Recreación familiar ' + anio, sub: `Se paga a más tardar el miércoles santo, ${miercolesSanto(+anio)} · Art. 31`, color: '#E53935', ico: SVG('<circle cx="8" cy="7" r="2.5"/><circle cx="16" cy="7" r="2.5"/><path d="M3 20v-4a4 4 0 0 1 4-4h2a4 4 0 0 1 3 1.4A4 4 0 0 1 15 12h2a4 4 0 0 1 4 4v4"/>') };
+  if (/^utiles-/.test(id)) return { titulo: 'Útiles escolares ' + anio, sub: `Se paga en la primera quincena de agosto de ${anio} · Art. 31`, color: '#7E57C2', ico: SVG('<path d="M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M4 17a2 2 0 0 1 2-2h12M9 7h5"/>') };
+  if (/^gratificacion-/.test(id)) return { titulo: 'Gratificación 3.5 días', sub: 'Se paga al terminar la zafra ' + id.replace(/^gratificacion-zafra-/, '') + ' · convenio de 1989', color: '#0068B8', ico: SVG('<path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/>') };
   const nom = id.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()).replace('Reparacion', 'Reparación').replace(/^Zafra (\d+) (\d+)$/, 'Zafra $1-$2');
-  return { titulo: 'Vacaciones ' + nom, sub: 'Días, prima vacacional 65 % y comisión sindical', color: '#E8A317', ico: SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>') };
+  return { titulo: 'Vacaciones ' + nom, sub: 'Se pagan en los 15 días antes de que termine el ciclo · Art. 40', color: '#E8A317', ico: SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>') };
 }
 function abrirVac(id) {
   $('#vac-ciclos').hidden = true; $('#vac-det').hidden = false; $('#vac-h1').textContent = vacDatos(id).titulo;
