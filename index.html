@@ -3020,7 +3020,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261119195124';
+const APP_VERSION = '20261119200425';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
@@ -3179,24 +3179,39 @@ function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.sty
   const choca = (b, x, y) => b.some(([i, j]) => { const X = x + i, Y = y + j; return X < 0 || X >= C || Y >= F || (Y >= 0 && G.t[Y][X]); });
   const salvar = () => { try { if (G && !G.fin) localStorage.setItem(ALM, JSON.stringify(G)); else localStorage.removeItem(ALM); } catch (e) {} };
   function nuevo() { G = { t: Array.from({ length: F }, () => Array(C).fill(0)), p: sacar(), sig: sacar(), pts: 0, lin: 0, niv: 1, fin: false, pausa: false }; acum = 0; salvar(); pintar(); }
-  const vel = () => Math.max(90, 800 - (G.niv - 1) * 70);
+  const vel = () => Math.max(90, 1100 - (G.niv - 1) * 85);   // nivel 1 tranquilo, cada nivel un poco más rápido
+  const ANIM = 520;   // duración de la animación al completar líneas
   function girar() {
-    if (!G || G.fin || G.pausa || G.p.k === 1) return;
+    if (!G || G.fin || G.pausa || G.anim || G.p.k === 1) return;
     const n = G.p.k === 0 ? 4 : 3, b = G.p.b.map(([i, j]) => [n - 1 - j, i]);
     for (const dx of [0, -1, 1, -2, 2]) if (!choca(b, G.p.x + dx, G.p.y)) { G.p.b = b; G.p.x += dx; vibrar(); pintar(); return; }
   }
-  function mover(dx) { if (!G || G.fin || G.pausa) return; if (!choca(G.p.b, G.p.x + dx, G.p.y)) { G.p.x += dx; pintar(); } }
+  function mover(dx) { if (!G || G.fin || G.pausa || G.anim) return; if (!choca(G.p.b, G.p.x + dx, G.p.y)) { G.p.x += dx; pintar(); } }
   function bajar(suave) {
-    if (!G || G.fin || G.pausa) return false;
+    if (!G || G.fin || G.pausa || G.anim) return false;
     if (!choca(G.p.b, G.p.x, G.p.y + 1)) { G.p.y++; if (suave) G.pts += 1; pintar(); return true; }
     fijar(); return false;
   }
-  function soltar() { if (!G || G.fin || G.pausa) return; let n = 0; while (!choca(G.p.b, G.p.x, G.p.y + 1)) { G.p.y++; n++; } G.pts += n * 2; vibrar(); fijar(); }
+  function soltar() { if (!G || G.fin || G.pausa || G.anim) return; let n = 0; while (!choca(G.p.b, G.p.x, G.p.y + 1)) { G.p.y++; n++; } G.pts += n * 2; vibrar(); fijar(); }
   function fijar() {
     G.p.b.forEach(([i, j]) => { const Y = G.p.y + j; if (Y >= 0) G.t[Y][G.p.x + i] = P[G.p.k].c; });
     if (G.p.b.some(([, j]) => G.p.y + j < 0)) return terminar();
-    let n = 0; for (let y = F - 1; y >= 0; y--) if (G.t[y].every(Boolean)) { G.t.splice(y, 1); G.t.unshift(Array(C).fill(0)); n++; y++; }
-    if (n) { G.pts += [0, 100, 300, 500, 800][n] * G.niv; G.lin += n; G.niv = 1 + Math.floor(G.lin / 10); try { navigator.vibrate && navigator.vibrate(n > 1 ? [20, 40, 20] : 20); } catch (e) {} }
+    const filas = []; G.t.forEach((f, y) => f.every(Boolean) && filas.push(y));
+    if (filas.length) {
+      // como el clásico: las líneas destellan y se borran del centro hacia los lados; luego cae lo de arriba
+      G.anim = { filas, t: 0 };
+      try { navigator.vibrate && navigator.vibrate(filas.length > 1 ? [20, 40, 20] : 20); } catch (e) {}
+      pintar(); return;
+    }
+    siguiente();
+  }
+  function quitarFilas() {
+    const filas = G.anim.filas, n = filas.length; G.anim = null;
+    filas.forEach(y => { G.t.splice(y, 1); G.t.unshift(Array(C).fill(0)); });
+    G.pts += [0, 100, 300, 500, 800][n] * G.niv; G.lin += n; G.niv = 1 + Math.floor(G.lin / 10);
+    siguiente();
+  }
+  function siguiente() {
     G.p = G.sig; G.sig = sacar();
     if (choca(G.p.b, G.p.x, G.p.y)) return terminar();
     salvar(); pintar();
@@ -3224,8 +3239,18 @@ function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.sty
     cx.strokeStyle = osc ? 'rgba(140,190,255,.08)' : 'rgba(0,58,110,.07)'; cx.lineWidth = 1;
     for (let i = 1; i < C; i++) { cx.beginPath(); cx.moveTo(i * s, 0); cx.lineTo(i * s, cv.height); cx.stroke(); }
     for (let j = 1; j < F; j++) { cx.beginPath(); cx.moveTo(0, j * s); cx.lineTo(cv.width, j * s); cx.stroke(); }
-    G.t.forEach((f, y) => f.forEach((c, x) => c && bloque(cx, x * s, y * s, s, c)));
-    if (!G.fin) {
+    const A = G.anim, pr = A ? Math.min(1, A.t / ANIM) : 0;
+    // columnas ya borradas: del centro hacia afuera, de dos en dos
+    const borradas = A ? Math.floor(pr * (C / 2 + 1)) : 0, fuera = x => Math.abs(x - (C - 1) / 2) < borradas;
+    G.t.forEach((f, y) => f.forEach((c, x) => { if (!c) return; if (A && A.filas.includes(y) && fuera(x)) return; bloque(cx, x * s, y * s, s, c); }));
+    if (A) {
+      // destello blanco que se apaga
+      const brillo = Math.max(0, 1 - pr * 1.6) * (Math.floor(A.t / 70) % 2 ? .55 : .85);
+      cx.fillStyle = `rgba(255,255,255,${brillo})`;
+      A.filas.forEach(y => cx.fillRect(0, y * s, cv.width, s));
+      if (A.filas.length === 4) { cx.fillStyle = `rgba(255,255,255,${Math.max(0, .25 - pr * .3)})`; cx.fillRect(0, 0, cv.width, cv.height); }
+    }
+    if (!G.fin && !A) {
       let gy = G.p.y; while (!choca(G.p.b, G.p.x, gy + 1)) gy++;
       G.p.b.forEach(([i, j]) => gy + j >= 0 && bloque(cx, (G.p.x + i) * s, (gy + j) * s, s, P[G.p.k].c, true));
       G.p.b.forEach(([i, j]) => G.p.y + j >= 0 && bloque(cx, (G.p.x + i) * s, (G.p.y + j) * s, s, P[G.p.k].c));
@@ -3292,6 +3317,7 @@ function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.sty
     if (!vista || !vista.isConnected) { bucle = null; salir(); return; }
     bucle = requestAnimationFrame(paso);
     if (!G || G.fin || G.pausa || document.hidden) { ult = t; return; }
+    if (G.anim) { G.anim.t += t - (ult || t); ult = t; if (G.anim.t >= ANIM) quitarFilas(); else pintar(); acum = 0; return; }
     acum += t - (ult || t); ult = t;
     if (acum >= vel()) { acum = 0; bajar(false); }
   }
@@ -3303,7 +3329,7 @@ function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.sty
     vista = construir(); abrirSub('home', base, vista);
     document.querySelectorAll('body > .est-ctrl').forEach(x => x.remove()); document.body.append(vista.querySelector('.est-ctrl'));
     let g = null; try { g = JSON.parse(localStorage.getItem(ALM) || 'null'); } catch (e) {}
-    if (g && !g.fin && g.t && g.p) { G = g; G.pausa = true; acum = 0; } else nuevo();   // partida guardada: sigue en pausa hasta tocar ▶
+    if (g && !g.fin && g.t && g.p) { G = g; G.pausa = true; acum = 0; if (G.anim) quitarFilas(); } else nuevo();   // partida guardada: sigue en pausa hasta tocar ▶
     requestAnimationFrame(() => requestAnimationFrame(medir));
     if (!bucle) bucle = requestAnimationFrame(paso);
     try { history.pushState({ s: 'home', sub: 1 }, ''); } catch (e) {}
