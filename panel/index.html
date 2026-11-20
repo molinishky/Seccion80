@@ -115,6 +115,12 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .pin-nom{font-size:17px;font-weight:700}.pin-ibm{font-size:13px;color:var(--mu)}
 .vac-tarj{grid-column:1/-1;min-height:0;margin-top:0;width:100%}
 .vac-ciclos{display:flex;gap:8px;flex-wrap:wrap}
+.fal-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.fal-kpi{border:1px solid var(--borde);border-radius:12px;padding:8px 10px;border-left:4px solid var(--c)}
+.fal-kpi small{display:block;font-size:11.5px;opacity:.75}.fal-kpi b{font-size:22px;color:var(--c)}
+.fal-sem{display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--borde);font-size:13px}
+.fal-sem b{text-align:center}.fal-dias{display:flex;gap:4px}.fal-dias i{width:20px;height:20px;border-radius:5px;display:grid;place-items:center;font-style:normal;font-size:10.5px;font-weight:800;color:#fff}
+.fal-ley{display:flex;flex-wrap:wrap;gap:10px;font-size:11.5px;margin-top:10px;opacity:.85}.fal-ley span{display:flex;align-items:center;gap:4px}.fal-ley i{width:11px;height:11px;border-radius:3px;display:inline-block}
 .vac-ciclos button{height:40px;padding:0 16px;border-radius:999px;border:1px solid var(--borde);background:var(--caja);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);font-size:14px;font-weight:700;cursor:pointer}
 .vac-ciclos button.on{background:var(--azul);border-color:var(--azul);color:#fff}
 .vac-tot{display:flex;flex-direction:column;align-items:center;gap:2px;margin:6px 0 10px}
@@ -191,6 +197,7 @@ html,body{overflow-x:hidden}
       <button class="vidrio tarjeta" data-tipo="esc_raya"><span class="f1"><span class="circ"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span><b>Escalafones y lista de raya</b><span class="sub" id="c-cumple">—</span></button>
     </div>
     <button class="vidrio tarjeta vac-tarj" data-vac="1"><span class="f1"><span class="circ" style="background:#E8A317"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span><b>Prestaciones</b><span class="sub">Aguinaldo, vacaciones, recreación familiar, útiles escolares y gratificación de cada ciclo</span></button>
+    <button class="vidrio tarjeta vac-tarj" data-faltas="1"><span class="f1"><span class="circ" style="background:#D32F2F"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M9.5 14l5 5M14.5 14l-5 5"/></svg></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span><b>Faltas por ciclo</b><span class="sub">Faltas, incapacidades y permisos de cada trabajador, semana por semana, con reporte en PDF</span></button>
   </div>
 </main>
 
@@ -245,6 +252,21 @@ html,body{overflow-x:hidden}
     <button class="btn sec" id="vac-excel" type="button" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg><span>Descargar Excel de todos</span></button>
     <p class="nota">Cálculo bruto, sin ISR ni descuentos, con las nóminas publicadas. En zafra el destajo en envase se integra como dice el convenio de envases de 2025: todo el destajo del ciclo entre los días trabajados. Los permisos con goce por defunción, nacimiento o alumbramiento y matrimonio, y las incapacidades, cuentan como días del ciclo y no como faltas, según el Art. 42. Art. 40 del Contrato Ley: zafra 15 días y reparación 11, proporcionales a los días del ciclo; +1 día a los 29 años de antigüedad y +1 cada 5 años más; prima vacacional 65 %.</p>
     </div>
+  </div>
+</main>
+
+<!-- ============ FALTAS ============ -->
+<main id="s-faltas" class="app" hidden>
+  <div class="top-s"><button class="ico" data-ir="inicio" aria-label="Regresar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><h1>Faltas por ciclo</h1><img src="../escudo.png" alt="" aria-hidden="true"></div>
+  <div class="franjas"><i></i><i></i><i></i><i></i></div>
+  <div class="pila">
+    <div class="vac-ciclos" id="fal-ciclos"></div>
+    <section class="vidrio aviso pro" id="fal-info" hidden><span class="pt"></span><div><b></b><p></p></div></section>
+    <form id="f-fal" autocomplete="off"><div class="campo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--azul)" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="fal-ibm" inputmode="numeric" placeholder="IBM del trabajador" enterkeyhint="search"></div></form>
+    <section class="vidrio" id="fal-res" style="padding:16px" hidden></section>
+    <button class="btn" id="fal-pdf" type="button" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg><span>PDF de este trabajador</span></button>
+    <button class="btn sec" id="fal-todos" type="button" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg><span>PDF de todos (faltas del ciclo)</span></button>
+    <p class="nota">Días ordinarios: lunes a viernes en reparación (el sábado se paga como sexto día) y lunes a sábado en zafra. Falta = día ordinario sin trabajar en una semana en la que sí trabajó otros días y que no es incapacidad, permiso con goce ni festivo. Las semanas en que el trabajador sale en la nómina sin ningún día pagado, o no sale, no se cuentan como faltas: se marcan aparte para revisarlas. Las incapacidades del IMSS se toman del Excel de vacaciones de la empresa cuando la nómina no las trae.</p>
   </div>
 </main>
 
@@ -317,8 +339,8 @@ async function subirArchivo(ruta, buf, msg) {
 async function corridas() { const r = await gh(`/repos/${REPO}/actions/workflows/actualizar.yml/runs?per_page=5&t=${Date.now()}`); return (await r.json()).workflow_runs || []; }
 
 /* ======================= Pantallas ======================= */
-const PANT = ['entrar', 'llave', 'inicio', 'subir', 'proceso', 'historial', 'pin', 'vac'];
-const ORDEN = { entrar: 0, llave: 0, inicio: 0, subir: 1, historial: 2, proceso: 2, pin: 4, vac: 1 };
+const PANT = ['entrar', 'llave', 'inicio', 'subir', 'proceso', 'historial', 'pin', 'vac', 'faltas'];
+const ORDEN = { entrar: 0, llave: 0, inicio: 0, subir: 1, historial: 2, proceso: 2, pin: 4, vac: 1, faltas: 1 };
 const NAV = $('#nav'), BURB = el('span', 'burbuja'); NAV.prepend(BURB);
 const TABS = [...NAV.querySelectorAll('button')];
 let actual = null;
@@ -340,6 +362,7 @@ function ir(p, dir) {
   if (p === 'historial') cargarHistorial();
   if (p === 'pin') setTimeout(() => $('#buscar-ibm').focus(), 300);
   if (p === 'vac') { cerrarVacDet(); cargarVac(); }
+  if (p === 'faltas') cargarFaltas();
 }
 window.addEventListener('resize', () => marcarBurbuja(actual, true));
 function irA(p) { if (p === 'subir') elegirTipo('auto'); ir(p); }
@@ -349,6 +372,7 @@ document.addEventListener('click', e => {
   const a = e.target.closest('[data-abrir]'); if (a) { e.preventDefault(); window.open(a.dataset.abrir, '_blank', 'noopener'); return; }
   const t = e.target.closest('.tarjeta[data-tipo]'); if (t) { elegirTipo(t.dataset.tipo); ir('subir'); return; }
   if (e.target.closest('[data-vac]')) ir('vac');
+  if (e.target.closest('[data-faltas]')) ir('faltas');
 });
 // Arrastrar la burbuja por la barra de abajo
 (() => {
@@ -858,6 +882,69 @@ $('#vac-excel').addEventListener('click', async () => {
   } catch (e) { alert(/No encontré/.test(e.message) ? 'El Excel de este cálculo se arma con la próxima nómina que se suba.' : e.message); }
   finally { txt.textContent = antes; btn.disabled = false; }
 });
+
+/* ======================= Faltas por ciclo (faltas/<ciclo>.json y faltas/pdf/<ciclo>/, los arma GitHub con cada nómina) ======================= */
+let FAL = null, FALC = null; const FALS = {};
+const FCOL = { T: '#2E9E4B', F: '#D32F2F', N: '#F0A020', I: '#1E6FBF', P: '#8E44AD', X: '#9AA5B1', '-': '#C9D1DB' };
+const FNOM = { T: 'Trabajó', F: 'Falta', N: 'Sin días en la nómina', I: 'Incapacidad', P: 'Permiso', X: 'Festivo' };
+async function cargarFaltas() {
+  const box = $('#fal-ciclos');
+  try {
+    if (!FALC) { box.replaceChildren(el('p', 'nota', 'Cargando ciclos…')); FALC = ((await leerJSON('faltas/ciclos.json')) || { ciclos: [] }).ciclos.slice().reverse(); }
+    if (!FALC.length) { box.replaceChildren(el('p', 'nota', 'Todavía no hay reportes de faltas: se arman con la próxima nómina que se suba.')); return; }
+    box.replaceChildren(...FALC.map(c => { const b = el('button', null, c.nombre); b.type = 'button'; b.onclick = () => elegirFaltas(c.id); return b; }));
+    elegirFaltas(FAL ? FAL.ciclo : FALC[0].id);
+  } catch (e) { box.replaceChildren(el('p', 'err', e.message)); }
+}
+async function elegirFaltas(id) {
+  [...$('#fal-ciclos').children].forEach((b, i) => b.classList.toggle('on', FALC[i] && FALC[i].id === id));
+  const info = $('#fal-info'); info.hidden = false; info.querySelector('b').textContent = 'Cargando…'; info.querySelector('p').textContent = '';
+  try { if (!FALS[id]) FALS[id] = await leerJSON(`faltas/${id}.json`); } catch (e) { info.querySelector('b').textContent = e.message; return; }
+  FAL = FALS[id]; const T = FAL.trabajadores, fch = f => new Date(f + 'T12:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+  info.querySelector('b').textContent = `${FAL.nombre}: semanas ${FAL.semana_desde} a ${FAL.semana_hasta}`;
+  info.querySelector('p').textContent = `Del ${fch(FAL.desde)} al ${fch(FAL.hasta)} · ${T.length} trabajadores · ${T.filter(t => t.faltas).length} con faltas · ${T.reduce((a, t) => a + t.faltas, 0)} faltas en total`;
+  $('#fal-todos').hidden = false; buscarFaltas();
+}
+function buscarFaltas() {
+  const box = $('#fal-res'), v = $('#fal-ibm').value.trim(); $('#fal-pdf').hidden = true;
+  if (!v || !FAL) { box.hidden = true; return; }
+  const soc = normSocio(v), t = FAL.trabajadores.find(x => x.socio === soc); box.hidden = false;
+  if (!t) { box.replaceChildren(el('p', 'err', `El IBM ${v} no tiene nóminas en ${FAL.nombre}.`)); return; }
+  const k = (lbl, val, c) => { const d = el('div', 'fal-kpi'); d.style.setProperty('--c', c); d.append(el('small', null, lbl), el('b', null, String(val))); return d; };
+  const kp = el('div', 'fal-kpis'); kp.append(k('Días ordinarios', t.ordinarios, '#0B3D6E'), k('Trabajados', t.trabajados, FCOL.T), k('Faltas', t.faltas, FCOL.F),
+    k('Sin nómina', t.sin_nomina, FCOL.N), k('Incapacidades', t.incap, FCOL.I), k('Permisos', t.permisos, FCOL.P));
+  const DIAS = 'LMMJVS'.slice(0, FAL.lab), lista = el('div');
+  const cab = el('div', 'fal-sem'); cab.append(el('b', null, 'Sem.'), (() => { const d = el('div', 'fal-dias'); [...DIAS].forEach(x => { const i = el('i', null, x); i.style.background = 'transparent'; i.style.color = 'inherit'; d.append(i); }); return d; })(), el('b', null, 'Faltas')); lista.append(cab);
+  t.semanas.forEach(s => {
+    const f = el('div', 'fal-sem'), d = el('div', 'fal-dias');
+    [...s.e].forEach(ch => { const i = el('i', null, { F: 'F', N: 'S', I: 'I', P: 'P', X: 'X' }[ch] || ''); i.style.background = FCOL[ch] || FCOL['-']; i.title = FNOM[ch] || ''; d.append(i); });
+    const nf = [...s.e].filter(c => c === 'F').length; const nb = el('b', null, nf ? String(nf) : '—'); if (nf) nb.style.color = FCOL.F;
+    f.append(el('b', null, String(s.w > 1000 ? s.w % 100 : s.w)), d, nb); lista.append(f);
+  });
+  const ley = el('div', 'fal-ley'); Object.entries(FNOM).forEach(([c, n]) => { const sp = el('span'); const i = el('i'); i.style.background = FCOL[c]; sp.append(i, n); ley.append(sp); });
+  const DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+  const fechas = t.fechas_faltas.map(f => { const d = new Date(f + 'T12:00'); return `${DS[d.getDay()]} ${d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}`; });
+  box.replaceChildren(el('div', 'pin-nom', t.nombre), el('div', 'pin-ibm', `IBM ${+t.socio - 10000}${t.tipo ? ' · ' + t.tipo : ''}${t.puesto ? ' · ' + titulo(t.puesto) : ''}`), kp, lista, ley,
+    ...(fechas.length ? [el('p', 'nota', `Faltas: ${fechas.join(', ')}.`)] : [el('p', 'nota', 'Sin faltas en el ciclo.')]),
+    ...(t.semanas_sin_nomina.length ? [el('p', 'nota', `Semanas sin días en la nómina (no se cuentan como faltas, hay que revisarlas): ${t.semanas_sin_nomina.join(', ')}.`)] : []));
+  const b = $('#fal-pdf'); b.hidden = false; b.dataset.ibm = String(+t.socio - 10000); b.dataset.nombre = t.nombre;
+}
+$('#f-fal').addEventListener('submit', e => { e.preventDefault(); $('#fal-ibm').blur(); buscarFaltas(); });
+let tFal; $('#fal-ibm').addEventListener('input', () => { clearTimeout(tFal); tFal = setTimeout(buscarFaltas, 300); });
+async function bajarArchivo(ruta, nombre, tipo, btn) {
+  nombre = nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '');   // sin acentos: algunos navegadores cambian el nombre si los lleva
+  const txt = btn.querySelector('span'), antes = txt.textContent; txt.textContent = 'Preparando…'; btn.disabled = true;
+  try {
+    const r = await gh(`/repos/${REPO}/contents/${encodeURI(ruta)}?t=${Date.now()}`, { headers: { Accept: 'application/vnd.github.raw+json' }, cache: 'no-store' });
+    const blob = new Blob([await r.arrayBuffer()], { type: tipo });
+    const file = new File([blob], nombre, { type: tipo }), solo = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+    if (solo && navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: nombre }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([blob], { type: 'application/octet-stream' })); a.download = nombre; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  } catch (e) { alert(/No encontré/.test(e.message) ? 'Este reporte se arma con la próxima nómina que se suba.' : e.message); }
+  finally { txt.textContent = antes; btn.disabled = false; }
+}
+$('#fal-pdf').addEventListener('click', e => { const b = e.currentTarget; if (FAL) bajarArchivo(`faltas/pdf/${FAL.ciclo}/${b.dataset.ibm}.pdf`, `Asistencia ${FAL.nombre} - IBM ${b.dataset.ibm} ${b.dataset.nombre}.pdf`, 'application/pdf', b); });
+$('#fal-todos').addEventListener('click', e => { if (FAL) bajarArchivo(`faltas/pdf/${FAL.ciclo}/todos.pdf`, `Faltas ${FAL.nombre}.pdf`, 'application/pdf', e.currentTarget); });
 
 /* ======================= Buscar PIN ======================= */
 let PINS = null, NOMBRES = null;   // se leen del repositorio privado y viven solo en memoria
