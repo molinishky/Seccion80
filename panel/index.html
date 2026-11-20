@@ -395,7 +395,13 @@ document.addEventListener('click', e => {
     const destino = vecino(actual, dx < 0 ? 1 : -1);
     if (destino && (Math.abs(dx) > window.innerWidth * 0.28 || v > 0.5)) {
       x.scr.style.transition = 'transform .18s ease-in, opacity .18s'; x.scr.style.transform = `translateX(${dx < 0 ? -40 : 40}%)`; x.scr.style.opacity = '0';
-      setTimeout(() => { vibrar(); irA(destino); }, 170);
+      setTimeout(() => {
+        vibrar();
+        if (actual === 'vac' && !$('#vac-det').hidden && dx > 0) {          // dentro de un cálculo: regresa a las tarjetas
+          cerrarVacDet(); x.scr.style.transition = 'none'; x.scr.style.transform = 'translateX(-30px)'; x.scr.style.opacity = '0';
+          requestAnimationFrame(() => { x.scr.style.transition = 'transform .25s ease-out, opacity .25s'; x.scr.style.transform = ''; x.scr.style.opacity = ''; });
+        } else irA(destino);
+      }, 170);
     } else { x.scr.style.transition = 'transform .3s cubic-bezier(.3,1.3,.5,1), opacity .3s'; x.scr.style.transform = ''; x.scr.style.opacity = ''; }
   });
 })();
@@ -731,7 +737,7 @@ function abrirVac(id) {
   $('#vac-ciclos').hidden = true; $('#vac-det').hidden = false; $('#vac-h1').textContent = vacDatos(id).titulo;
   $('#vac-res').hidden = true; $('#vac-info').hidden = true; scrollTo(0, 0); elegirVac(id);
 }
-function cerrarVacDet() { $('#vac-det').hidden = true; $('#vac-ciclos').hidden = false; $('#vac-h1').textContent = 'Prestaciones'; scrollTo(0, 0); }
+function cerrarVacDet() { $('#vac-ibm').value = ''; $('#vac-res').hidden = true; $('#vac-res').replaceChildren(); $('#vac-det').hidden = true; $('#vac-ciclos').hidden = false; $('#vac-h1').textContent = 'Prestaciones'; scrollTo(0, 0); }
 $('#vac-atras').addEventListener('click', e => { if (!$('#vac-det').hidden) { e.preventDefault(); e.stopPropagation(); cerrarVacDet(); } }, true);
 async function elegirVac(id) {
   if (!VACS[id]) VACS[id] = await leerJSON(`vacaciones/${id}.json`);
