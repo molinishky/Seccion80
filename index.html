@@ -2631,15 +2631,14 @@ async function chatPrestacion(q) {
   if (!lista.length || /prestaciones/.test(q)) lista = P.lista;
   if (!lista.length) { bot('Esa prestación todavía no está calculada para ti.'); return; }
   const fd = s => { const d = new Date(s + 'T12:00'); return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }); };
-  const pideDias = /(cuantos dias|dias me)/.test(q);
   for (const x of lista) {
     const bx = el('div', 'msg-acc');
     const cab = el('div'); const b = el('b', null, x.titulo); cab.append(b); bx.append(cab);
-    const tot = el('div', null, `${pideDias && x.dias != null ? `Te tocan unos ${x.dias} días: ` : ''}aproximadamente ${money(x.total)}`.replace(/^a/, 'A') + `${x.parcial ? ', a la fecha' : ''} (bruto, sin ISR).`);
+    const tot = el('div', null, `Aproximadamente ${money(x.total)}${x.parcial ? ', a la fecha' : ''} (bruto, sin ISR).`);
     tot.style.marginTop = '6px'; bx.append(tot);
     x.lineas.forEach(l => { const d = el('div', 'ley-nota', l); d.style.marginTop = '6px'; bx.append(d); });
     const pg = el('div', 'ley-nota', 'Cuándo: ' + x.pago + '.' + (x.parcial ? ' El ciclo no ha terminado: la cantidad crece con cada nómina.' : '')); pg.style.marginTop = '6px'; bx.append(pg);
-    if (x.revisar) { const r = el('div', 'ley-nota', 'Ojo: ' + x.revisar); r.style.marginTop = '6px'; bx.append(r); }
+    if (x.revisar) { const r = el('div', 'ley-nota', 'Ojo: tu caso tiene una particularidad y este cálculo puede variar más; si tienes dudas, pregúntale al Secretario de Relaciones.'); r.style.marginTop = '6px'; bx.append(r); }
     bot(bx);
   }
   const av = el('div', 'msg-acc');
@@ -3067,7 +3066,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261120125554';
+const APP_VERSION = '20261120130034';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
