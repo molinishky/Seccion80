@@ -601,8 +601,16 @@ async function revisar(archivos) {
         const { texto, paginas } = p1; const m = /PERIODO\s*=\s*(\d+)/.exec(texto), p = /del\s+\d+\s+al\s+\d+\s+de\s+\w+/i.exec(texto);
         if (!m) throw new Error('No encontré "PERIODO = …": ¿es la verificación de nómina?');
         const w = +m[1], ya = app.nomina === w;
+        const fol = /FOLIO\s*=\s*([\s\S]*?)(?:,\s*FECHA_MOV|$)/.exec(texto.replace(/\s+/g, ' '));
+        if ((fol && /VACACION/i.test(fol[1])) || /vacacion/i.test(f.name)) {      // nómina de vacaciones: va aparte, no reemplaza la semana
+          const F = ((fol ? fol[1] : '') + ' ' + f.name).toUpperCase(), rep = /REPARA/.test(F), z = /ZAFRA\s*(\d{2})\s*[-/ ]?\s*(\d{2})/.exec(F), a = /(20\d{2})/.exec(F);
+          const nom = rep ? 'Vacaciones Reparación ' + (a ? a[1] : '') : 'Vacaciones Zafra ' + (z ? z[1] + '-' + z[2] : '');
+          partes.push(tarjetaArchivo(f, paginas + ' páginas'), hallazgos([['Nómina de vacaciones', nom.trim()], ['Periodo', w + (p ? ' · ' + p[0] : '')], ['En la app', 'Sale aparte en el desglose como «' + nom.trim() + '»; no reemplaza la semana ' + w, 'ok']]));
+          listos.push({ ruta: `entrada/nomina/${f.name}`, buf, titulo: `Nómina de ${nom.trim().toLowerCase()}` });
+        } else {
         partes.push(tarjetaArchivo(f, paginas + ' páginas'), hallazgos([['Semana', w + (p ? ' · ' + p[0] : '')], ['¿Ya estaba publicada?', ya ? 'Sí, se reemplaza' : 'No, es nueva', ya ? 'rev' : 'ok']]));
         listos.push({ ruta: `entrada/nomina/${f.name}`, buf, titulo: `Nómina semana ${w}` });
+        }
       } else if (k === 'fondo') {
         const { texto, paginas } = await textoPDF(buf, [-1]); const m = /Total por Ejercicio\s*:\s*[\d,]+\.\d{2}\s+[\d,]+\.\d{2}\s+([\d,]+\.\d{2})/.exec(texto), s = /sem[\s_]*\d+[\s_]*a[\s_]*(\d+)/i.exec(f.name);
         if (!m) throw new Error('No encontré el "Total por Ejercicio": ¿es el acumulado de fondo de ahorro?');
