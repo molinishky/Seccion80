@@ -243,7 +243,7 @@ html,body{overflow-x:hidden}
     <form id="f-vac" autocomplete="off"><div class="campo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--azul)" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="vac-ibm" inputmode="numeric" placeholder="IBM del trabajador" enterkeyhint="search"></div></form>
     <section class="vidrio" id="vac-res" style="padding:16px" hidden></section>
     <button class="btn sec" id="vac-excel" type="button" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg><span>Descargar Excel de todos</span></button>
-    <p class="nota">Cálculo bruto, sin ISR ni descuentos, con las nóminas publicadas. En zafra el destajo en envase se integra como dice el convenio de envases de 2025: todo el destajo entre los días que lo devengó. Los permisos con goce por defunción, nacimiento o alumbramiento y matrimonio, y las incapacidades, cuentan como días del ciclo y no como faltas, según el Art. 42. Art. 40 del Contrato Ley: zafra 15 días y reparación 11, proporcionales a los días del ciclo; +1 día a los 29 años de antigüedad y +1 cada 5 años más; prima vacacional 65 %.</p>
+    <p class="nota">Cálculo bruto, sin ISR ni descuentos, con las nóminas publicadas. En zafra el destajo en envase se integra como dice el convenio de envases de 2025: todo el destajo del ciclo entre los días trabajados. Los permisos con goce por defunción, nacimiento o alumbramiento y matrimonio, y las incapacidades, cuentan como días del ciclo y no como faltas, según el Art. 42. Art. 40 del Contrato Ley: zafra 15 días y reparación 11, proporcionales a los días del ciclo; +1 día a los 29 años de antigüedad y +1 cada 5 años más; prima vacacional 65 %.</p>
     </div>
   </div>
 </main>
@@ -716,7 +716,10 @@ async function cargarVac() {
       for (const f of fs) VACS[f.name.replace('.json', '')] = null;
     }
     const ids = Object.keys(VACS); if (!ids.length) { box.replaceChildren(el('p', 'nota', 'Todavía no hay cálculos de vacaciones.')); return; }
-    const ORDEN = id => /^aguinaldo/.test(id) ? 0 : /^recreacion/.test(id) ? 2 : /^utiles/.test(id) ? 3 : /^gratificacion/.test(id) ? 4 : 1; ids.sort((a, b) => ORDEN(a) - ORDEN(b));
+    // en el orden en que se pagan de enero a diciembre: recreación (semana santa), vacaciones de zafra (antes de terminar
+    // la zafra), gratificación 3.5 días (fin de zafra), útiles (agosto), vacaciones de reparación (noviembre), aguinaldo (20 dic)
+    const ORDEN = id => /^recreacion/.test(id) ? 1 : /^zafra/.test(id) ? 2 : /^gratificacion/.test(id) ? 3 : /^utiles/.test(id) ? 4 : /^repar/.test(id) ? 5 : /^aguinaldo/.test(id) ? 6 : 7;
+    ids.sort((a, b) => ORDEN(a) - ORDEN(b));
     box.replaceChildren(...ids.map(id => { const d = vacDatos(id), b = el('button', 'vidrio tarjeta'); b.type = 'button';
       b.innerHTML = `<span class="f1"><span class="circ" style="background:${d.color}">${d.ico}</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span><b></b><span class="sub"></span>`;
       b.querySelector('b').textContent = d.titulo; b.querySelector('.sub').textContent = d.sub; b.onclick = () => abrirVac(id); return b; }));
@@ -810,7 +813,7 @@ function buscarVac() {
     ...(x.vac_del ? [fila('Se disfrutan', `del ${fdia(x.vac_del)} al ${fdia(x.vac_al)}`)] : []));
   const h2 = el('div', 'hallazgo');
   h2.append(fila('Sueldo promedio', pesos(x.sueldo_prom)), fila('Factor extras', pesos(x.factor_extras)), fila('Vacaciones', pesos(x.vacaciones)), fila('Prima vacacional 65 %', pesos(x.prima)));
-  if (x.diferencia_destajo) h2.append(fila('Destajo diario', pesos(x.destajo_diario)), fila('Días con destajo', dd(x.dias_destajo)), fila('Más: diferencia por destajo', pesos(x.diferencia_destajo), 'ok'));
+  if (x.diferencia_destajo) h2.append(fila('Destajo diario', pesos(x.destajo_diario)), fila('Más: diferencia por destajo', pesos(x.diferencia_destajo), 'ok'));
   if (x.comision) h2.append(fila('Subtotal sin comisión', pesos(x.total)), fila('Comisión sindical en el ciclo', pesos(x.comision)), fila('Más: diferencia por comisión', pesos(x.diferencia_comision), 'ok'), fila('Total con comisión', pesos(x.total_con_comision), 'ok'));
   box.replaceChildren(el('div', 'pin-nom', x.nombre), el('div', 'pin-ibm', `IBM ${soc.replace(/^1/, '').replace(/^0+/, '')}`), tot, h, el('div', null, ''), h2,
     ...(x.revisar ? [el('p', 'err', x.revisar)] : []));
