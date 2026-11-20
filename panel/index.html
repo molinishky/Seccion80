@@ -239,7 +239,7 @@ html,body{overflow-x:hidden}
     <form id="f-vac" autocomplete="off"><div class="campo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--azul)" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="vac-ibm" inputmode="numeric" placeholder="IBM del trabajador" enterkeyhint="search"></div></form>
     <section class="vidrio" id="vac-res" style="padding:16px" hidden></section>
     <button class="btn sec" id="vac-excel" type="button" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg><span>Descargar Excel de todos</span></button>
-    <p class="nota">Cálculo bruto (sin ISR ni descuentos), con las nóminas publicadas. Art. 40 del Contrato Ley: zafra 15 días y reparación 11, proporcionales a los días del ciclo; +1 día a los 29 años de antigüedad y +1 cada 5 años más; prima vacacional 65 %.</p>
+    <p class="nota">Cálculo bruto (sin ISR ni descuentos), con las nóminas publicadas. Los permisos con goce (defunción, nacimiento o alumbramiento, matrimonio) y las incapacidades cuentan como días del ciclo, no como faltas (Art. 42). Art. 40 del Contrato Ley: zafra 15 días y reparación 11, proporcionales a los días del ciclo; +1 día a los 29 años de antigüedad y +1 cada 5 años más; prima vacacional 65 %.</p>
   </div>
 </main>
 
@@ -725,7 +725,7 @@ function buscarVac() {
   const fila = (a, b, c) => { const f = el('div', 'fila'); f.append(el('span', null, a), el('span', c || null, b)); return f; };
   const tot = el('div', 'vac-tot'); tot.append(el('span', null, x.comision ? 'TOTAL BRUTO A PAGAR (CON COMISIÓN SINDICAL)' : 'TOTAL BRUTO A PAGAR'), el('b', null, pesos(x.comision ? x.total_con_comision : x.total)));
   const h = el('div', 'hallazgo');
-  h.append(fila('Días trabajados (101)', dd(x.dias_trab)), fila('Incapacidades / permisos', `${dd(x.incap)} / ${dd(x.permisos)}`), fila('Días que cuentan del ciclo', `${dd(x.dias_ciclo)} de ${VAC.dias_ordinarios}`),
+  h.append(fila('Días trabajados (101)', dd(x.dias_trab)), fila('Incapacidades / permisos', `${dd(x.incap)} / ${dd(x.permisos)}`), ...(x.conceptos && x.conceptos.length ? [fila('Conceptos de la nómina', x.conceptos.map(c => titulo(c.replace(/^\d+\s*/, ''))).join(', '))] : []), fila('Días que cuentan del ciclo', `${dd(x.dias_ciclo)} de ${VAC.dias_ordinarios}`),
     fila('Antigüedad', x.anios != null ? `${x.anios} años${x.dias_antig ? ` (+${x.dias_antig} día${x.dias_antig > 1 ? 's' : ''})` : ''}` : 'sin dato'), ...(x.antig_fuente ? [fila('Antigüedad tomada de', x.antig_fuente.replace('Escalafón de antigüedades', 'Escalafón'))] : []),
     fila('Días de vacaciones', dd(x.dias_vac)), fila('Descansos pagados', dd(x.descansos)), fila('Total de días', dd(x.total_dias), 'ok'));
   const h2 = el('div', 'hallazgo');
@@ -742,7 +742,7 @@ $('#vac-excel').addEventListener('click', () => {
   const filas = VAC.trabajadores.map(x => ({ IBM: +x.socio.replace(/^1/, ''), 'No. empleado': +x.socio, Nombre: x.nombre, Antigüedad: x.anios ?? '', 'Antigüedad tomada de': x.antig_fuente || '',
     'Días trab. (101)': x.dias_trab, Incapacidades: x.incap, Permisos: x.permisos, 'Días del ciclo': x.dias_ciclo, 'Días vac.': x.dias_vac, 'Días antig.': x.dias_antig, Descansos: x.descansos, 'Total días': x.total_dias,
     'Percepciones 101': x.percepciones, 'Extras 107+108': x.extras, 'Sueldo prom.': x.sueldo_prom, 'Factor extras': x.factor_extras, Vacaciones: x.vacaciones, 'Prima vac. 65%': x.prima, 'Total a pagar': x.total,
-    'Comisión 112': x.comision || 0, 'Diferencia comisión': x.diferencia_comision || 0, 'Total con comisión': x.comision ? x.total_con_comision : x.total, Revisar: x.revisar || '' }));
+    'Comisión 112': x.comision || 0, 'Diferencia comisión': x.diferencia_comision || 0, 'Total con comisión': x.comision ? x.total_con_comision : x.total, 'Permisos/incapacidad (conceptos)': (x.conceptos || []).join(', '), Revisar: x.revisar || '' }));
   const ws = XLSX.utils.json_to_sheet(filas), wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Vacaciones');
   XLSX.writeFile(wb, `Vacaciones ${VAC.nombre} sem ${VAC.semana_desde}-${VAC.semana_hasta}.xlsx`);
 });
