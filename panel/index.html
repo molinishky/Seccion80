@@ -350,6 +350,15 @@ function marcarBurbuja(p, sinAnim) {
   if (sinAnim || !BURB.style.width) { BURB.classList.add('sin'); requestAnimationFrame(() => requestAnimationFrame(() => BURB.classList.remove('sin'))); }
   BURB.style.width = t.offsetWidth + 'px'; BURB.style.transform = `translateX(${t.offsetLeft}px)`;
 }
+/* ---------- Actualización automática: si hay versión nueva del panel, se recarga solo (evita la copia guardada del navegador) ---------- */
+const PANEL_V = '20261120182422';
+async function revisarVersion() {
+  try {
+    const v = (await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json()).v;
+    if (v && v !== PANEL_V && sessionStorage.getItem('panel_v') !== v) { sessionStorage.setItem('panel_v', v); location.replace(location.pathname + '?v=' + v + location.hash); }
+  } catch (e) {}
+}
+revisarVersion(); document.addEventListener('visibilitychange', () => { if (!document.hidden) revisarVersion(); });
 function ir(p, dir) {
   const antes = actual; actual = p;
   document.body.classList.toggle('difumina', !['inicio', 'entrar', 'llave'].includes(p));
