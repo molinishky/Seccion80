@@ -2601,6 +2601,8 @@ async function enviarChat(raw) {
   yo(text);
   const q = text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   if (chatStage === 'loan' || chatStage === 'loanConfirm') return pasoPrestamo(text, q);
+  if (chatStage === 'tab') { const r = await pasoTabulador(q); if (r !== false) return; }
+  if (pideTabulador(q)) return chatTabulador(q);
   if (/(hablar|platicar|comunicar|contactar|llamar).*(alguien|persona|secretari|delegado|sindicato|comite|humano)|\b(secretario|humano|una persona)\b/.test(q) && !/(prestamo|oficio)/.test(q)) {
     const bx = el('div', 'msg-acc');
     bx.append(el('div', null, 'Claro. Toca el botón y se abrirá tu WhatsApp con un mensaje para el Secretario de Relaciones con tu nombre, tu IBM y lo que hemos platicado. Solo revisa y toca enviar.'), botonSecretario('para pedir orientación'));
@@ -2678,6 +2680,55 @@ async function chatPrestacion(q) {
   av.append(el('div', null, `Estos resultados son aproximados: salen del cálculo de la Sección 80 con las nóminas publicadas al ${fd(P.generado)}. Las cantidades son brutas: el cálculo es sin ISR, así que lo que recibas será menos después del impuesto. No tenemos registro de tus incapacidades del IMSS (no vienen en la nómina), así que si tuviste alguna, la cantidad puede cambiar. La cantidad final la determina la empresa al pagar; si ves algo que no cuadra, coméntaselo al Secretario de Relaciones.`), botonSecretario('sobre el cálculo de mis prestaciones'));
   bot(av);
   chips(['¿Cuánto me toca de aguinaldo?', '¿Cuánto me toca de vacaciones?', 'Mis prestaciones', 'Mi saldo']);
+}
+/* ================= Tabulador de salarios (información general del contrato) ================= */
+let TAB = null;
+const sinAc = t => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+function pideTabulador(q) {
+  if (/(que dice|articulo|clausula)/.test(q)) return false;
+  return /tabulador|^otro departamento$/.test(q) || (/(salario|sueldo|cuanto (gana|pagan|se paga))/.test(q) && /(escalaf|categoria|puesto|departamento|plaza|tabla|lista)/.test(q));
+}
+async function cargarTab() { if (TAB) return TAB; const r = await fetch('tabulador.json?v=' + ((DATA && DATA.meta && DATA.meta.version) || ''), { cache: 'no-store' }); if (!r.ok) throw new Error('tab'); return (TAB = await r.json()); }
+const nomDep = d => capital(d.nombre.replace(/\bMANTTO\b|\bMANTO\b/g, 'MANTENIMIENTO').replace(/\bREPN\b|\bREP\b/g, 'REPARACIÓN').replace(/\bFCA\b/g, 'FÁBRICA').replace(/\bELECTR\b/g, 'ELÉCTRICA').replace(/\bCTO HTAS\b/g, 'CUARTO DE HERRAMIENTAS').replace(/\bEDIF\b/g, 'EDIFICIOS').replace(/\bCONST\b/g, 'CONSTRUCCIÓN').replace(/\bSIST\b/g, 'SISTEMA').replace(/\bALIMENT\b/g, 'ALIMENTACIÓN').replace(/\bSUPTCIA\b/g, 'SUPERINTENDENCIA').replace(/\bEQ\b/g, 'EQUIPO').replace(/\bHERRER\b/g, 'HERRERÍA').replace(/PAILERIA/g, 'PAILERÍA').replace(/CLARIFICACION/g, 'CLARIFICACIÓN').replace(/EVAPORACION/g, 'EVAPORACIÓN').replace(/CRISTALIZACION/g, 'CRISTALIZACIÓN').replace(/ELECTRICA\b/g, 'ELÉCTRICA').replace(/ELECTRICO/g, 'ELÉCTRICO').replace(/QUIMICO/g, 'QUÍMICO').replace(/ALMACEN/g, 'ALMACÉN').replace(/AZUCAR/g, 'AZÚCAR').replace(/IRRIGACION/g, 'IRRIGACIÓN').replace(/MISCELANEOS/g, 'MISCELÁNEOS').replace(/CARPINTERIA/g, 'CARPINTERÍA').replace(/FABRICA\b/g, 'FÁBRICA'));
+function buscarDep(q) {
+  const n = /(?:depto|departamento|dpto|num|numero|no)?\.?\s*(\d{1,2})\b/.exec(q);
+  if (n) { const d = TAB.deptos.find(x => x.n === +n[1]); if (d) return d; }
+  const pal = sinAc(q).split(/[^a-z]+/).filter(w => w.length > 3 && !/^(departamento|depto|tabulador|salario|salarios|sueldo|escalafon|quiero|busco|cual|cuales|dame|lista|para|del|los|las)$/.test(w));
+  let mejor = null, pts = 0;
+  for (const d of TAB.deptos) { const nd = sinAc(nomDep(d) + ' ' + d.nombre); const p = pal.filter(w => nd.includes(w) || nd.split(' ').some(x => x.length > 3 && w.startsWith(x.slice(0, 5)))).length; if (p > pts) { mejor = d; pts = p; } }
+  return mejor;
+}
+async function chatTabulador(q) {
+  try { await cargarTab(); } catch (e) { bot('No pude abrir el tabulador de salarios. Revisa tu conexión a internet.'); return; }
+  const d = /^otro departamento/.test(q) ? null : buscarDep(q.replace(/tabulador|salarios?|escalaf\w*/g, ''));
+  if (d) return mostrarTab(d);
+  chatStage = 'tab';
+  bot('Claro. ¿De qué departamento quieres el tabulador de salarios? Escribe el nombre o el número, o elige uno:');
+  chips([...TAB.deptos.map(x => `${x.n} · ${nomDep(x)}`), 'Cancelar']);
+}
+async function pasoTabulador(q) {
+  if (/cancel|ya no|olvida/.test(q)) { chatStage = 'chat'; bot('Listo.'); chips(baseChips()); return true; }
+  try { await cargarTab(); } catch (e) { chatStage = 'chat'; return false; }
+  const d = buscarDep(q);
+  if (d) { chatStage = 'chat'; mostrarTab(d); return true; }
+  if (q.split(/\s+/).length > 5) { chatStage = 'chat'; return false; }       // parece otra pregunta: se atiende normal
+  bot('No encontré ese departamento. Escribe el número (por ejemplo 17) o parte del nombre (por ejemplo «soldadura»).'); return true;
+}
+function mostrarTab(d) {
+  const sube = d.cats.filter(c => c.antes).map(c => c.ahora / c.antes - 1), pct = sube.length ? (sube.reduce((a, b) => a + b, 0) / sube.length * 100) : 0;
+  const bx = el('div', 'msg-acc');
+  const t = el('div'); t.append(el('b', null, `Tabulador de salarios · Departamento ${d.n} · ${nomDep(d)}`)); bx.append(t);
+  const intro = el('div', null, `Salario diario de cada categoría. Desde el 16 de octubre de 2026 hubo un aumento de ${pct.toFixed(1)} % parejo a todas las categorías; entre paréntesis va el salario anterior, el que estuvo vigente del 16 de octubre de 2025 al 15 de octubre de 2026.`);
+  intro.style.margin = '6px 0'; bx.append(intro);
+  d.cats.forEach(c => {
+    const f = el('div'); f.style.cssText = 'margin-top:7px;line-height:1.35';
+    const n = el('div'); n.append(el('b', null, `${c.c} · ${capital(c.nombre)}`)); f.append(n);
+    f.append(el('div', null, c.antes ? `${money(c.ahora)} (antes ${money(c.antes)}, +${money(c.ahora - c.antes)})` : money(c.ahora)));
+    bx.append(f);
+  });
+  bx.append(el('div', 'ley-nota', 'Es el tabulador general del contrato: el salario de cada trabajador depende de la categoría que cubra cada día. El número de categoría es el mismo que sale en tu desglose de nómina, junto al puesto.'));
+  bot(bx);
+  chips(['Otro departamento', ...baseChips()]);
 }
 /* ================= Escalafones (zafra, reparación, antigüedades) ================= */
 let escCache = null, escDe = null;
@@ -3102,7 +3153,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261123101634';
+const APP_VERSION = '20261123153727';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
