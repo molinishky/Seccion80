@@ -369,7 +369,7 @@ function marcarBurbuja(p, sinAnim) {
   BURB.style.width = t.offsetWidth + 'px'; BURB.style.transform = `translateX(${t.offsetLeft}px)`;
 }
 /* ---------- Actualización automática: si hay versión nueva del panel, se recarga solo (evita la copia guardada del navegador) ---------- */
-const PANEL_V = '20261123170141';
+const PANEL_V = '20261123170237';
 async function revisarVersion() {
   try {
     const v = (await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json()).v;
@@ -963,7 +963,7 @@ async function buildDesglose(D, etiqueta, nombreDado, escudo) {
   if (per.length) P.filas('Percepciones', per.map(r => [`${r.code} ${r.name}`, money2(r.imp), { detalle: det(r) }]));
   if (ded.length) P.filas('Deducciones', ded.map(r => [`${r.code} ${r.name}`, '-' + money2(r.imp), { detalle: det(r), color: 'neg' }]));
   P.filas('Totales', [['Total de percepciones', money2(D.tot[0])], ['Total de deducciones', '-' + money2(D.tot[1]), { color: 'neg' }], ['Neto', money2(D.tot[2]), { color: 'ok', negrita: true }]]);
-  P.parrafo('Copia del desglose de la nómina publicada por la empresa, presentada por la Sección 80 para consulta del trabajador. Ante cualquier diferencia, vale el recibo oficial de la empresa.', 'nota');
+  P.parrafo('Esta es la copia de la verificación de nómina enviada por la empresa, a la Sección 80.', 'nota');
   return P.cerrar();
 }
 /* ===== fin de la copia ===== */

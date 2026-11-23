@@ -1272,7 +1272,7 @@ async function buildDesglose(D, etiqueta, nombreDado, escudo) {
   if (per.length) P.filas('Percepciones', per.map(r => [`${r.code} ${r.name}`, money2(r.imp), { detalle: det(r) }]));
   if (ded.length) P.filas('Deducciones', ded.map(r => [`${r.code} ${r.name}`, '-' + money2(r.imp), { detalle: det(r), color: 'neg' }]));
   P.filas('Totales', [['Total de percepciones', money2(D.tot[0])], ['Total de deducciones', '-' + money2(D.tot[1]), { color: 'neg' }], ['Neto', money2(D.tot[2]), { color: 'ok', negrita: true }]]);
-  P.parrafo('Copia del desglose de la nómina publicada por la empresa, presentada por la Sección 80 para consulta del trabajador. Ante cualquier diferencia, vale el recibo oficial de la empresa.', 'nota');
+  P.parrafo('Esta es la copia de la verificación de nómina enviada por la empresa, a la Sección 80.', 'nota');
   return P.cerrar();
 }
 
@@ -3320,7 +3320,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261123170141';
+const APP_VERSION = '20261123170237';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
