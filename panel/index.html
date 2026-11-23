@@ -369,7 +369,7 @@ function marcarBurbuja(p, sinAnim) {
   BURB.style.width = t.offsetWidth + 'px'; BURB.style.transform = `translateX(${t.offsetLeft}px)`;
 }
 /* ---------- Actualización automática: si hay versión nueva del panel, se recarga solo (evita la copia guardada del navegador) ---------- */
-const PANEL_V = '20261123171254';
+const PANEL_V = '20261123172350';
 async function revisarVersion() {
   try {
     const v = (await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json()).v;
@@ -907,6 +907,30 @@ async function pdfSeccion({ encabezado = '', titulo = '', sub = '', nombre = '',
     });
     P.pg.drawLine({ start: { x: M, y: P.y }, end: { x: W - M, y: P.y }, thickness: 0.6, color: C.LINEA }); P.y -= 12;
   };
+  // Tabla con encabezado de columnas. cols: [título, ancho relativo, 'r' si va a la derecha]. o.grupo: renglones del mismo grupo (p. ej. el mismo día)
+  // comparten color y solo el primero muestra la primera columna; o.color[i] = 'neg' pinta esa columna en rojo; o.total: renglón final en negritas
+  P.tabla = (titulo, cols, filas, o = {}) => {
+    P.barra(titulo, 30);
+    const AN = W - 2 * M, suma = cols.reduce((s, c) => s + c[1], 0), cw = cols.map(c => c[1] * AN / suma), Z = o.compacto ? 7.8 : 8.5, LH = o.compacto ? 9.6 : 11, PAD = o.compacto ? 3 : 5;
+    const celda = (txt, i, x, y, f, col) => { const der = cols[i][2] === 'r'; P.envolver(txt, f, Z, cw[i] - 12).forEach((l, q) => P.tx(l, der ? x + cw[i] - 6 - P.an(l, f, Z) : x + 6, y - PAD - Z - LH * q + 1.5, f, Z, col)); };
+    P.pg.drawRectangle({ x: M, y: P.y - 15, width: AN, height: 15, color: C.SUAVE });
+    let x = M; cols.forEach((c, i) => { const der = c[2] === 'r'; P.tx(c[0], der ? x + cw[i] - 6 - P.an(c[0], B, 7.5) : x + 6, P.y - 10.5, B, 7.5, C.AZUL); x += cw[i]; }); P.y -= 15;
+    let zeb = 0, prev;
+    filas.forEach((f, j) => {
+      const g = o.grupo ? o.grupo[j] : j, mismo = j > 0 && g === prev; if (j > 0 && !mismo) zeb ^= 1; prev = g;
+      const vals = f.map((v, i) => i === 0 && mismo && o.grupo ? '' : String(v == null ? '' : v));
+      const h = PAD * 2 - 1.5 + Z + LH * (Math.max(...vals.map((v, i) => P.envolver(v, R, Z, cw[i] - 12).length)) - 1);
+      if (zeb) P.pg.drawRectangle({ x: M, y: P.y - h, width: AN, height: h, color: C.ZEB });
+      if (!mismo && j > 0 && o.grupo) P.pg.drawLine({ start: { x: M, y: P.y }, end: { x: M + AN, y: P.y }, thickness: .4, color: C.LINEA });
+      let x = M; vals.forEach((v, i) => { const der = cols[i][2] === 'r'; const fuerte = i === 0 && !o.normal; celda(v, i, x, P.y, fuerte || der ? B : R, o.color && o.color[i] === 'neg' ? C.ROJO : fuerte ? C.AZUL : C.NEGRO); x += cw[i]; });
+      P.y -= h;
+    });
+    if (o.total) {
+      P.pg.drawLine({ start: { x: M, y: P.y }, end: { x: M + AN, y: P.y }, thickness: .8, color: C.AZUL });
+      let x = M; o.total.forEach((v, i) => { if (v) celda(v, i, x, P.y - 1, B, o.color && o.color[i] === 'neg' ? C.ROJO : C.NEGRO); x += cw[i]; }); P.y -= 17;
+    }
+    P.pg.drawLine({ start: { x: M, y: P.y }, end: { x: M + AN, y: P.y }, thickness: 0.6, color: C.LINEA }); P.y -= 12;
+  };
   // Párrafo de texto corrido: tipo 'p' normal, 'h' negrita, 'h2' negrita gris, 'nota' cursiva chica, 'x' texto de ley
   P.parrafo = (t, tipo = 'p') => {
     const st = { p: [R, 10, C.NEGRO, 13, 6], h: [B, 11, C.AZUL, 14, 3], h2: [B, 9.5, C.GRIS, 12.5, 3], nota: [I, 8, C.GRIS, 10.5, 6], x: [R, 9.5, C.NEGRO, 12.5, 6], rev: [B, 9, C.AMBAR, 12, 6] }[tipo] || [R, 10, C.NEGRO, 13, 6];
@@ -939,33 +963,89 @@ async function pdfSeccion({ encabezado = '', titulo = '', sub = '', nombre = '',
   return P;
 }
 
+/* ---------- Nombres completos: categorías (del tabulador) y conceptos de la nómina, sin abreviaturas ---------- */
+const ABREV = { OP: 'operador', AYTE: 'ayudante', ENGR: 'engrasador', CONDUCT: 'conductores', ENC: 'encargado', FCA: 'fábrica', AUX: 'auxiliar',
+  MEC: 'mecánico', INSTRUM: 'instrumentista', GRAL: 'general', PTA: 'planta', CTO: 'cuarto', OF: 'oficial', ESP: 'especialidad', ELECT: 'eléctrico',
+  REP: 'reparación', CLASIF: 'clasificado', INSTRUMENTIS: 'instrumentista', CENTR: 'centrífugas', ALB: 'albañil', CALD: 'calderas', TRAZ: 'trazador',
+  ELECTRICO: 'eléctrico', MECANICO: 'mecánico', MECANICA: 'mecánica', CLARIFICACION: 'clarificación', FILTRACION: 'filtración', AUTOMATICOS: 'automáticos',
+  AUTOMATICO: 'automático', AUTOMATICAS: 'automáticas', CENTRIFUGAS: 'centrífugas', AZUCAR: 'azúcar', BASCULA: 'báscula', REFINERIA: 'refinería',
+  CARBON: 'carbón', ALIMENTACION: 'alimentación', CRISTALIZACION: 'cristalización', ALMACEN: 'almacén', PEON: 'peón', ALBANIL: 'albañil',
+  ALBANILERIA: 'albañilería', ALABANILERIA: 'albañilería', ELECTRISISTA: 'electricista', ENBOBINADOR: 'embobinador', EMBOBINAD: 'embobinador', RIO: 'río',
+  GRUA: 'grúa', IRRIGACION: 'irrigación', REPARACION: 'reparación', TECNICAS: 'técnicas', DIA: 'día', SEPTIMO: 'séptimo', APORTACION: 'aportación',
+  PRESTAMO: 'préstamo', SECCION: 'sección', SABADO: 'sábado', CUOTA: 'cuota', VACACION: 'vacación', VACACIONES: 'vacaciones', PRIMA: 'prima',
+  ISR: 'ISR', IMSS: 'IMSS', INFONAVIT: 'INFONAVIT', FONACOT: 'FONACOT', DESC: 'descuento', TIEMPO: 'tiempo', TRANS: 'transporte', COMPENSACION: 'compensación',
+  GRATIFICACION: 'gratificación', ANTIGUEDAD: 'antigüedad', JUBILACION: 'jubilación', DEFUNCION: 'defunción', HABITACION: 'habitación', ECONOMICO: 'económico',
+  LABORADO: 'laborado', FESTIVO: 'festivo', ENCARGADO: 'encargado', MAQUINA: 'máquina', UTILES: 'útiles', RECREACION: 'recreación', GUARDERIA: 'guardería',
+  DEPOSITO: 'depósito', PENSION: 'pensión', ALIMENTICIA: 'alimenticia', CREDITO: 'crédito', TURNO: 'turno', HORA: 'hora', HORAS: 'horas', EXTRA: 'extra', EXTRAS: 'extras', INTEG: 'integración', DESCTO: 'descuento', EJERC: 'ejercicio', EJ: 'ejercicio', ANT: 'anterior', ESTIMULO: 'estímulo', ISPT: 'ISPT', SOFOM: 'SOFOM', ENR: 'ENR', HR: 'hora', TNO: 'turno', BONIFICACION: 'bonificación', COMISION: 'comisión', FISICA: 'física', DEVOLUCION: 'devolución', AHORRO: 'ahorro', CAJA: 'caja', MIN: 'min', ELECTRICA: 'eléctrica', INSTRUMENTACION: 'instrumentación', B: 'B', C: 'C' };
+const ORD = { '1A': '1ª', '1RA': '1ª', '2A': '2ª', '2DA': '2ª', '3A': '3ª', '3RA': '3ª', '1O': '1º', '1RO': '1º', '2O': '2º', '2DO': '2º' };
+function nombreLargo(t) {
+  let s = String(t || '').toUpperCase().replace(/\b1 2 (HORA|HR)\b/g, 'MEDIA $1').replace(/^\s*\d+\s+/, '').replace(/I S R/g, 'ISR').replace(/I M S S/g, 'IMSS').replace(/\b\d+(?=[A-Z]{4})/g, '').replace(/#/g, 'Ñ')
+    .replace(/\./g, '. ').replace(/,/g, ', ').replace(/\s+/g, ' ').trim();
+  const out = s.split(' ').map(p => {
+    const w = p.replace(/[.,]/g, ''), coma = /,$/.test(p) ? ',' : '';
+    if (!w) return '';
+    if (ORD[w]) return ORD[w] + coma;
+    if (ABREV[w]) return ABREV[w] + coma;
+    if (w.length <= 3 && /\d/.test(w) || (w.length <= 2 && !/^(DE|Y|A|E|LA|EL|EN|AL|O|U|SU|LO)$/.test(w))) return w + coma;   // siglas cortas (CP, P25, TE)
+    return w.toLowerCase() + coma;
+  }).filter(Boolean);
+  // "de 1ª" cuando el ordinal va pegado al oficio (p. ej. "Ayudante eléctrico 1ª" → "Ayudante eléctrico de 1ª")
+  for (let i = 1; i < out.length; i++) if (/^[123][ªº]$/.test(out[i]) && !/^(de|del)$/.test(out[i - 1]) && !/^(oficial)$/.test(out[i - 1])) out.splice(i, 0, 'de'), i++;
+  if (out.length > 1 && out[out.length - 1] === 'a') out[out.length - 1] = 'A';   // "… de crudo A": letra de la variante, no preposición
+  const r = out.join(' ').replace(/\s+,/g, ',').replace(/\bde de\b/g, 'de');
+  return r.charAt(0).toUpperCase() + r.slice(1);
+}
+let TABC = null;
+async function categoriasTabulador(url) {
+  if (TABC) return TABC;
+  try { const t = await (await fetch(url, { cache: 'no-store' })).json(); const m = {}; (t.deptos || []).forEach(d => d.cats.forEach(c => { m[c.c] = c.nombre; })); return (TABC = m); }
+  catch (e) { return {}; }
+}
+const nombreCategoria = (puesto, cats) => { const m = String(puesto || '').match(/^\s*(\d+)\s*(.*)$/); if (!m) return nombreLargo(puesto); return `${m[1]} · ${nombreLargo((cats || {})[+m[1]] || m[2])}`; };
+
 /* ---------- PDF del desglose de nómina (se arma al momento de pedirlo) ---------- */
 async function buildDesglose(D, etiqueta, nombreDado, escudo) {
   const I = D.info, money2 = v => '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const rows = D.rows.map(r => ({ code: r[0], name: r[1], origen: r[2], fecha: r[3], tno: r[4], puesto: r[5], tno_p: r[6], dias: r[7], ctro: r[8], imp: r[9] }));
-  const cnt = {}; let best = null;
-  const cand = rows.filter(r => r.tno_p).length ? rows.filter(r => r.tno_p) : rows;
-  cand.forEach(r => { const k = [r.tno, r.puesto, r.tno_p, r.ctro].join('|'); cnt[k] = (cnt[k] || 0) + 1; if (!best || cnt[k] > cnt[best]) best = k; });
-  const [tno, pu, , ct] = (best || '|||').split('|');
+  const cats = await categoriasTabulador(String(escudo || 'escudo.png').replace(/escudo\.png$/, 'tabulador.json'));
+  const rows = D.rows.map(r => ({ code: r[0], name: r[1], origen: r[2], fecha: r[3], tno: r[4], puesto: r[5], tno_p: r[6], dias: r[7], ctro: r[8], imp: +r[9] }));
+  const per = rows.filter(r => parseInt(r.code, 10) < 500), ded = rows.filter(r => parseInt(r.code, 10) >= 500);
   let nombre = nombreDado || '';
   if (!nombre) try { if (typeof session !== 'undefined' && session && session.data && typeof nombreCompleto === 'function') nombre = nombreCompleto(session.data); } catch (e) {}
   if (!nombre) nombre = typeof titulo === 'function' ? titulo(D.nombre || '') : (D.nombre || '');
   const ibm = 'IBM ' + corto(D.id), etq = etiqueta || `Semana ${I.periodo}`;
   const P = await pdfSeccion({
-    encabezado: `Desglose de nómina: ${etq}, del periodo ${I.periodo_txt || ''}`.replace(/, del periodo $/, ''),
     titulo: 'Desglose de nómina', sub: [etq, I.periodo_txt ? 'Del periodo ' + I.periodo_txt : '', I.folio ? 'Folio ' + I.folio : ''].filter(Boolean).join(' · '),
     nombre, ibm, pie: 'desglose de nómina', escudo, docTitulo: `Desglose de nómina ${etq} - ${corto(D.id)}`
   });
   P.cabecera();
   P.total('NETO A PAGAR', money2(D.tot[2]));
-  const datos = [['Periodo', I.periodo_txt || String(I.periodo || '')], ['Ejercicio', String(I.ejercicio || '')], ['Folio', String(I.folio || '')],
-    ['Turno', tno], ['Puesto', pu], ['Centro de trabajo', ct], ['Factor', D.factor ? String(D.factor) : '']].filter(x => x[1]);
-  P.filas('Datos de la nómina', datos);
-  const det = r => [r.origen, r.fecha, r.puesto && r.puesto !== pu ? 'Puesto ' + r.puesto : '', r.dias ? r.dias + ' días' : ''].filter(Boolean).join(' · ');
-  const per = rows.filter(r => parseInt(r.code, 10) < 500), ded = rows.filter(r => parseInt(r.code, 10) >= 500);
-  if (per.length) P.filas('Percepciones', per.map(r => [`${r.code} ${r.name}`, money2(r.imp), { detalle: det(r) }]));
-  if (ded.length) P.filas('Deducciones', ded.map(r => [`${r.code} ${r.name}`, '-' + money2(r.imp), { detalle: det(r), color: 'neg' }]));
-  P.filas('Totales', [['Total de percepciones', money2(D.tot[0])], ['Total de deducciones', '-' + money2(D.tot[1]), { color: 'neg' }], ['Neto', money2(D.tot[2]), { color: 'ok', negrita: true }]]);
+  // Categorías que trabajó en la semana, con los días que se le pagaron en cada una
+  const porCat = {};
+  const DIA_PAGADO = new Set(['101', '102', '103', '104', '105', '106', '112', '149', '150', '153', '154']);   // conceptos que son un día de salario (primas y medias horas no suman días)
+  per.forEach(r => { if (!r.puesto) return; const k = r.puesto; porCat[k] = porCat[k] || { dias: 0, imp: 0 }; if (DIA_PAGADO.has(String(r.code))) porCat[k].dias += parseFloat(r.dias) || 0; porCat[k].imp += r.imp; });
+  const catsSem = Object.entries(porCat).sort((a, b) => b[1].dias - a[1].dias);
+  const turnos = [...new Set(per.map(r => r.tno).filter(Boolean))];
+  const fmtD = n => (Math.round(n * 100) / 100).toString();
+  P.filas('Datos de la semana', [
+    ['Periodo', I.periodo_txt || String(I.periodo || '')],
+    ...(turnos.length ? [[turnos.length > 1 ? 'Turnos' : 'Turno', turnos.join(', ')]] : []),
+  ]);
+  if (catsSem.length) P.tabla('Categorías trabajadas en la semana', [['Categoría (número y puesto)', 330], ['Días pagados', 80, 'r'], ['Importe', 90, 'r']],
+    catsSem.map(([k, v]) => [nombreCategoria(k, cats), fmtD(v.dias), money2(v.imp)]), { normal: true });
+  // Percepciones: un renglón por día, con su concepto, la categoría de ese día, los días y el importe
+  const DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'], MS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  const fecha = f => { const m = String(f || '').match(/^(\d\d)\/(\d\d)\/(\d{4})$/); if (!m) return f || ''; const d = new Date(+m[3], +m[2] - 1, +m[1]); return `${DS[d.getDay()]} ${+m[1]} ${MS[+m[2] - 1]}`; };
+  const clave = f => { const m = String(f || '').match(/^(\d\d)\/(\d\d)\/(\d{4})$/); return m ? m[3] + m[2] + m[1] : '99999999'; };
+  // mismo día, mismo concepto y misma categoría: un solo renglón (la nómina a veces lo parte en pedacitos)
+  const junta = {}, perOrd = [];
+  per.forEach(r => { const k = [r.fecha, r.code, r.puesto].join('|'); if (junta[k]) { junta[k].dias = String((parseFloat(junta[k].dias) || 0) + (parseFloat(r.dias) || 0)); junta[k].imp += r.imp; } else perOrd.push(junta[k] = { ...r }); });
+  perOrd.sort((a, b) => clave(a.fecha).localeCompare(clave(b.fecha)) || a.code.localeCompare(b.code) || String(a.puesto).localeCompare(String(b.puesto)));
+  if (perOrd.length) P.tabla('Percepciones', [['Día', 58], ['Concepto', 158], ['Categoría (puesto de ese día)', 190], ['Días', 34, 'r'], ['Importe', 68, 'r']],
+    perOrd.map(r => [fecha(r.fecha), nombreLargo(r.name), r.puesto ? nombreCategoria(r.puesto, cats) : '—', DIA_PAGADO.has(String(r.code)) && parseFloat(r.dias) ? fmtD(parseFloat(r.dias)) : '', money2(r.imp)]),
+    { grupo: perOrd.map(r => clave(r.fecha)), compacto: perOrd.length > 22, total: ['', 'Total de percepciones', '', '', money2(D.tot[0])] });
+  if (ded.length) P.tabla('Deducciones', [['Concepto', 448], ['Importe', 72, 'r']],
+    ded.map(r => [nombreLargo(r.name), '-' + money2(r.imp)]), { color: [null, 'neg'], normal: true, compacto: per.length + ded.length > 30, total: ['Total de deducciones', '-' + money2(D.tot[1])] });
+  P.filas('Resumen', [['Percepciones', money2(D.tot[0])], ['Deducciones', '-' + money2(D.tot[1]), { color: 'neg' }], ['Neto a pagar', money2(D.tot[2]), { color: 'ok', negrita: true }]]);
   P.parrafo('Esta es la copia de la verificación de nómina enviada por la empresa, a la Sección 80.', 'nota');
   return P.cerrar();
 }
