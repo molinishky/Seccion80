@@ -369,7 +369,7 @@ function marcarBurbuja(p, sinAnim) {
   BURB.style.width = t.offsetWidth + 'px'; BURB.style.transform = `translateX(${t.offsetLeft}px)`;
 }
 /* ---------- Actualización automática: si hay versión nueva del panel, se recarga solo (evita la copia guardada del navegador) ---------- */
-const PANEL_V = '20261123172350';
+const PANEL_V = '20261123173113';
 async function revisarVersion() {
   try {
     const v = (await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json()).v;
@@ -912,19 +912,38 @@ async function pdfSeccion({ encabezado = '', titulo = '', sub = '', nombre = '',
   P.tabla = (titulo, cols, filas, o = {}) => {
     P.barra(titulo, 30);
     const AN = W - 2 * M, suma = cols.reduce((s, c) => s + c[1], 0), cw = cols.map(c => c[1] * AN / suma), Z = o.compacto ? 7.8 : 8.5, LH = o.compacto ? 9.6 : 11, PAD = o.compacto ? 3 : 5;
-    const celda = (txt, i, x, y, f, col) => { const der = cols[i][2] === 'r'; P.envolver(txt, f, Z, cw[i] - 12).forEach((l, q) => P.tx(l, der ? x + cw[i] - 6 - P.an(l, f, Z) : x + 6, y - PAD - Z - LH * q + 1.5, f, Z, col)); };
+    const COL = { neg: C.ROJO, ok: C.VERDE, inc: hex('#1D5FBF'), per: hex('#7B3FB5'), gris: C.GRIS };
+    const xDe = (l, i, x, f) => cols[i][2] === 'r' ? x + cw[i] - 6 - P.an(l, f, Z) : cols[i][2] === 'c' ? x + (cw[i] - P.an(l, f, Z)) / 2 : x + 6;
+    const lineas = (v, i, f) => P.envolver(String(v == null ? '' : v), f, Z, cw[i] - 12);
+    const celda = (txt, i, x, yTop, f, col) => lineas(txt, i, f).forEach((l, q) => P.tx(l, xDe(l, i, x, f), yTop - PAD - Z - LH * q + 1.5, f, Z, col));
     P.pg.drawRectangle({ x: M, y: P.y - 15, width: AN, height: 15, color: C.SUAVE });
-    let x = M; cols.forEach((c, i) => { const der = c[2] === 'r'; P.tx(c[0], der ? x + cw[i] - 6 - P.an(c[0], B, 7.5) : x + 6, P.y - 10.5, B, 7.5, C.AZUL); x += cw[i]; }); P.y -= 15;
-    let zeb = 0, prev;
-    filas.forEach((f, j) => {
-      const g = o.grupo ? o.grupo[j] : j, mismo = j > 0 && g === prev; if (j > 0 && !mismo) zeb ^= 1; prev = g;
-      const vals = f.map((v, i) => i === 0 && mismo && o.grupo ? '' : String(v == null ? '' : v));
-      const h = PAD * 2 - 1.5 + Z + LH * (Math.max(...vals.map((v, i) => P.envolver(v, R, Z, cw[i] - 12).length)) - 1);
-      if (zeb) P.pg.drawRectangle({ x: M, y: P.y - h, width: AN, height: h, color: C.ZEB });
-      if (!mismo && j > 0 && o.grupo) P.pg.drawLine({ start: { x: M, y: P.y }, end: { x: M + AN, y: P.y }, thickness: .4, color: C.LINEA });
-      let x = M; vals.forEach((v, i) => { const der = cols[i][2] === 'r'; const fuerte = i === 0 && !o.normal; celda(v, i, x, P.y, fuerte || der ? B : R, o.color && o.color[i] === 'neg' ? C.ROJO : fuerte ? C.AZUL : C.NEGRO); x += cw[i]; });
-      P.y -= h;
-    });
+    let x = M; cols.forEach((c, i) => { const f = B; const t = c[0]; P.tx(t, c[2] === 'r' ? x + cw[i] - 6 - P.an(t, f, 7.5) : c[2] === 'c' ? x + (cw[i] - P.an(t, f, 7.5)) / 2 : x + 6, P.y - 10.5, f, 7.5, C.AZUL); x += cw[i]; }); P.y -= 15;
+    const agrupa = !!o.grupo, fuerte0 = !o.normal;
+    // alto de cada renglón (la primera columna agrupada no cuenta: va centrada en el alto de su grupo)
+    const hs = filas.map(f => PAD * 2 - 1.5 + Z + LH * (Math.max(...f.map((v, i) => agrupa && i === 0 ? 1 : lineas(v, i, (i === 0 && fuerte0) || cols[i][2] === 'r' ? B : R).length)) - 1));
+    let zeb = 0, j = 0;
+    while (j < filas.length) {
+      let k = j + 1; if (agrupa) while (k < filas.length && o.grupo[k] === o.grupo[j]) k++;
+      const altoG = hs.slice(j, k).reduce((s, h) => s + h, 0), top = P.y;
+      if (zeb) P.pg.drawRectangle({ x: M, y: top - altoG, width: AN, height: altoG, color: C.ZEB });
+      if (j > 0) P.pg.drawLine({ start: { x: M, y: top }, end: { x: M + AN, y: top }, thickness: .4, color: C.LINEA });
+      for (let r = j; r < k; r++) {
+        const tono = o.tonos && o.tonos[r] ? COL[o.tonos[r]] : null;
+        let x = M + (agrupa ? cw[0] : 0);
+        filas[r].forEach((v, i) => {
+          if (agrupa && i === 0) return;
+          const der = cols[i][2] === 'r', f = (i === 0 && fuerte0) || der || tono ? B : R;
+          const col = o.color && o.color[i] === 'neg' && !tono ? C.ROJO : tono || (i === 0 && fuerte0 ? C.AZUL : C.NEGRO);
+          celda(v, i, x, P.y, f, col); x += cw[i];
+        });
+        P.y -= hs[r];
+      }
+      if (agrupa) {   // día: centrado a lo alto y a lo ancho de su grupo
+        const ls = lineas(filas[j][0], 0, B), hT = Z + LH * (ls.length - 1), y0 = top - (altoG - hT) / 2 - Z + 1.5;
+        ls.forEach((l, q) => P.tx(l, M + (cw[0] - P.an(l, B, Z)) / 2, y0 - LH * q, B, Z, o.tonos && o.tonos[j] && k - j === 1 ? COL[o.tonos[j]] : C.AZUL));
+      }
+      zeb ^= 1; j = k;
+    }
     if (o.total) {
       P.pg.drawLine({ start: { x: M, y: P.y }, end: { x: M + AN, y: P.y }, thickness: .8, color: C.AZUL });
       let x = M; o.total.forEach((v, i) => { if (v) celda(v, i, x, P.y - 1, B, o.color && o.color[i] === 'neg' ? C.ROJO : C.NEGRO); x += cw[i]; }); P.y -= 17;
@@ -1001,7 +1020,7 @@ async function categoriasTabulador(url) {
   try { const t = await (await fetch(url, { cache: 'no-store' })).json(); const m = {}; (t.deptos || []).forEach(d => d.cats.forEach(c => { m[c.c] = c.nombre; })); return (TABC = m); }
   catch (e) { return {}; }
 }
-const nombreCategoria = (puesto, cats) => { const m = String(puesto || '').match(/^\s*(\d+)\s*(.*)$/); if (!m) return nombreLargo(puesto); return `${m[1]} · ${nombreLargo((cats || {})[+m[1]] || m[2])}`; };
+const nombreCategoria = (puesto, cats) => { const m = String(puesto || '').match(/^\s*(\d+)\s*(.*)$/); if (!m) return nombreLargo(puesto); return `${m[1]} - ${nombreLargo((cats || {})[+m[1]] || m[2])}`; };
 
 /* ---------- PDF del desglose de nómina (se arma al momento de pedirlo) ---------- */
 async function buildDesglose(D, etiqueta, nombreDado, escudo) {
@@ -1029,20 +1048,36 @@ async function buildDesglose(D, etiqueta, nombreDado, escudo) {
   P.filas('Datos de la semana', [
     ['Periodo', I.periodo_txt || String(I.periodo || '')],
     ...(turnos.length ? [[turnos.length > 1 ? 'Turnos' : 'Turno', turnos.join(', ')]] : []),
+    ...['F', 'P', 'I'].map(c => { const n = D.fal && D.fal.e ? [...D.fal.e].filter(x => x === c).length : 0; return n ? [{ F: 'Faltas', P: 'Permisos', I: 'Incapacidades' }[c], String(n) + (n === 1 ? ' día' : ' días'), { color: c === 'F' ? 'neg' : '' }] : null; }).filter(Boolean),
   ]);
-  if (catsSem.length) P.tabla('Categorías trabajadas en la semana', [['Categoría (número y puesto)', 330], ['Días pagados', 80, 'r'], ['Importe', 90, 'r']],
+  if (catsSem.length) P.tabla('Categorías trabajadas en la semana', [['Categoría - puesto', 330], ['Días pagados', 80, 'r'], ['Importe', 90, 'r']],
     catsSem.map(([k, v]) => [nombreCategoria(k, cats), fmtD(v.dias), money2(v.imp)]), { normal: true });
   // Percepciones: un renglón por día, con su concepto, la categoría de ese día, los días y el importe
   const DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'], MS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
   const fecha = f => { const m = String(f || '').match(/^(\d\d)\/(\d\d)\/(\d{4})$/); if (!m) return f || ''; const d = new Date(+m[3], +m[2] - 1, +m[1]); return `${DS[d.getDay()]} ${+m[1]} ${MS[+m[2] - 1]}`; };
   const clave = f => { const m = String(f || '').match(/^(\d\d)\/(\d\d)\/(\d{4})$/); return m ? m[3] + m[2] + m[1] : '99999999'; };
-  // mismo día, mismo concepto y misma categoría: un solo renglón (la nómina a veces lo parte en pedacitos)
+  // Un renglón por día y concepto: si ese día se pagó en varias categorías van juntas, separadas con « / » (y sus días en el mismo orden)
   const junta = {}, perOrd = [];
-  per.forEach(r => { const k = [r.fecha, r.code, r.puesto].join('|'); if (junta[k]) { junta[k].dias = String((parseFloat(junta[k].dias) || 0) + (parseFloat(r.dias) || 0)); junta[k].imp += r.imp; } else perOrd.push(junta[k] = { ...r }); });
-  perOrd.sort((a, b) => clave(a.fecha).localeCompare(clave(b.fecha)) || a.code.localeCompare(b.code) || String(a.puesto).localeCompare(String(b.puesto)));
-  if (perOrd.length) P.tabla('Percepciones', [['Día', 58], ['Concepto', 158], ['Categoría (puesto de ese día)', 190], ['Días', 34, 'r'], ['Importe', 68, 'r']],
-    perOrd.map(r => [fecha(r.fecha), nombreLargo(r.name), r.puesto ? nombreCategoria(r.puesto, cats) : '—', DIA_PAGADO.has(String(r.code)) && parseFloat(r.dias) ? fmtD(parseFloat(r.dias)) : '', money2(r.imp)]),
-    { grupo: perOrd.map(r => clave(r.fecha)), compacto: perOrd.length > 22, total: ['', 'Total de percepciones', '', '', money2(D.tot[0])] });
+  per.forEach(r => {
+    const k = [r.fecha, r.code].join('|');
+    if (!junta[k]) perOrd.push(junta[k] = { fecha: r.fecha, code: r.code, name: r.name, imp: 0, partes: [] });
+    const g = junta[k]; g.imp += r.imp;
+    const p = g.partes.find(x => x.puesto === r.puesto); if (p) p.dias += parseFloat(r.dias) || 0; else g.partes.push({ puesto: r.puesto, dias: parseFloat(r.dias) || 0 });
+  });
+  // Faltas, permisos e incapacidades de la semana (del reporte de asistencia), cada una en su día
+  const AUS = { F: ['Falta', 'neg'], I: ['Incapacidad', 'inc'], P: ['Permiso', 'per'] }, aus = [];
+  if (D.fal && D.fal.del && D.fal.e) {
+    const [y0, m0, d0] = D.fal.del.split('-').map(Number);
+    [...D.fal.e].forEach((ch, i) => { if (!AUS[ch]) return; const d = new Date(y0, m0 - 1, d0 + i);
+      const f = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+      aus.push({ fecha: f, code: '000', name: AUS[ch][0], tono: AUS[ch][1], imp: null, partes: [] }); });
+  }
+  const todas = [...perOrd, ...aus].sort((a, b) => clave(a.fecha).localeCompare(clave(b.fecha)) || a.code.localeCompare(b.code));
+  if (todas.length) P.tabla('Percepciones', [['Día', 64, 'c'], ['Concepto', 112], ['Categoría - puesto de ese día', 222], ['Días', 54, 'r'], ['Importe', 62, 'r']],
+    todas.map(r => r.imp == null ? [fecha(r.fecha), r.name, '—', '', '—'] : [fecha(r.fecha), nombreLargo(r.name),
+      r.partes.filter(p => p.puesto).map(p => nombreCategoria(p.puesto, cats)).join(' / ') || '—',
+      DIA_PAGADO.has(String(r.code)) ? r.partes.filter(p => p.dias).map(p => fmtD(p.dias)).join(' / ') : '', money2(r.imp)]),
+    { grupo: todas.map(r => clave(r.fecha)), tonos: todas.map(r => r.tono || null), compacto: todas.length > 22, total: ['', 'Total de percepciones', '', '', money2(D.tot[0])] });
   if (ded.length) P.tabla('Deducciones', [['Concepto', 448], ['Importe', 72, 'r']],
     ded.map(r => [nombreLargo(r.name), '-' + money2(r.imp)]), { color: [null, 'neg'], normal: true, compacto: per.length + ded.length > 30, total: ['Total de deducciones', '-' + money2(D.tot[1])] });
   P.filas('Resumen', [['Percepciones', money2(D.tot[0])], ['Deducciones', '-' + money2(D.tot[1]), { color: 'neg' }], ['Neto a pagar', money2(D.tot[2]), { color: 'ok', negrita: true }]]);
@@ -1093,7 +1128,8 @@ async function desgloseSemana(w, t, btn) {
     const e = N.emps.find(x => String(x.id) === String(t.socio));
     if (!e) throw new Error(`El IBM ${ibm} no aparece en la nómina de la semana ${n}.`);
     const D = { id: e.id, nombre: e.nombre, factor: e.factor || '', tot: e.tot, info: N.info,
-      rows: e.rows.map(r => ['code', 'name', 'origen', 'fecha', 'tno', 'puesto', 'tno_p', 'dias', 'ctro', 'imp'].map(k => r[k])) };
+      rows: e.rows.map(r => ['code', 'name', 'origen', 'fecha', 'tno', 'puesto', 'tno_p', 'dias', 'ctro', 'imp'].map(k => r[k])),
+      fal: (() => { const s = t.semanas.find(x => x.w === w), sem = FAL && (FAL.semanas || []).find(x => x.w === w); return s && sem ? { del: sem.del, e: s.e } : null; })() };
     await entregarPDF(await buildDesglose(D, `Semana ${n}`, t.nombre, '../escudo.png'), `Desglose semana ${n} - IBM ${ibm} ${t.nombre}.pdf`);
   } catch (e) { alert(e.message); }
   finally { btn.disabled = false; btn.classList.remove('cargando'); }
