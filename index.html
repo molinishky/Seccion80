@@ -1139,20 +1139,23 @@ async function unseal(socio, pin, d) {
 
 /* ---------- Formato de PDF de la Sección 80: el mismo del cálculo de prestaciones del panel ----------
    Escudo, nombre del sindicato, SECCIÓN 80 y una línea de contexto; título, trabajador, recuadro del total,
-   bloques con barra azul y renglones en cebra; pie con nombre, IBM, nota, fecha y página. */
-async function pdfSeccion({ encabezado = '', titulo = '', sub = '', nombre = '', ibm = '', pie = '', docTitulo = '' }) {
+   bloques con barra azul y renglones en cebra; pie con nombre, IBM, nota y fecha.
+   SIEMPRE EN UNA SOLA HOJA: el cuerpo se dibuja en un lienzo largo y al cerrar se acomoda (reducido si hace
+   falta, sigue siendo texto nítido) entre el encabezado y el pie de una hoja carta. */
+async function pdfSeccion({ encabezado = '', titulo = '', sub = '', nombre = '', ibm = '', pie = '', docTitulo = '', escudo = 'escudo.png' }) {
   await loadPdfLib();
   const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
   const hex = h => rgb(parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255);
   const C = { AZUL: hex('#0B3D6E'), GRIS: hex('#5B6575'), LINEA: hex('#D5DCE6'), ZEB: hex('#F3F6FA'), VERDE: hex('#1B7A35'), ROJO: hex('#B3261E'),
     NEGRO: hex('#111111'), BLANCO: rgb(1, 1, 1), AMBAR: hex('#B45309'), AMA: hex('#FFF1A8'), SUAVE: hex('#E8EEF6') };
-  const doc = await PDFDocument.create();
-  const R = await doc.embedFont(StandardFonts.Helvetica), B = await doc.embedFont(StandardFonts.HelveticaBold), I = await doc.embedFont(StandardFonts.HelveticaOblique);
-  let esc = null; try { esc = await doc.embedPng(await (await fetch('escudo.png')).arrayBuffer()); } catch (e) {}
+  const doc = await PDFDocument.create(), lz = await PDFDocument.create();   // la hoja final y el lienzo del cuerpo
+  const R = await lz.embedFont(StandardFonts.Helvetica), B = await lz.embedFont(StandardFonts.HelveticaBold), I = await lz.embedFont(StandardFonts.HelveticaOblique);
+  const FR = await doc.embedFont(StandardFonts.Helvetica), FB = await doc.embedFont(StandardFonts.HelveticaBold);
+  let esc = null; try { esc = await doc.embedPng(await (await fetch(escudo)).arrayBuffer()); } catch (e) {}
   const OK = '—–‘’“”•…€';
   const limpio = t => String(t == null ? '' : t).replace(/−/g, '-').replace(/[≥]/g, '>=').replace(/[≤]/g, '<=').replace(/[→]/g, '->').replace(/[«»]/g, '"')
     .split('').filter(c => c.charCodeAt(0) <= 255 || OK.includes(c)).join('').replace(/[ \t]+/g, ' ').trim();
-  const W = 612, H = 792, M = 46, ABAJO = 60;
+  const W = 612, H = 792, M = 46, LH = 14400, ARRIBA = H - 108, PISO = 44;
   const P = { doc, R, B, I, C, W, H, M, rgb, y: 0, pg: null, limpio };
   P.tx = (t, x, yy, f, z, c) => P.pg.drawText(limpio(t), { x, y: yy, size: z, font: f, color: c || C.NEGRO });
   P.an = (t, f, z) => f.widthOfTextAtSize(limpio(t), z);
@@ -1167,16 +1170,9 @@ async function pdfSeccion({ encabezado = '', titulo = '', sub = '', nombre = '',
     while (out.length > 1 && !out[out.length - 1]) out.pop();
     return out;
   };
-  P.pagina = () => {
-    P.pg = doc.addPage([W, H]);
-    if (esc) { const d = esc.scaleToFit(54, 54); P.pg.drawImage(esc, { x: M, y: H - 92 + (54 - d.height) / 2, width: d.width, height: d.height }); }
-    P.tx('SINDICATO DE TRABAJADORES DE LA INDUSTRIA AZUCARERA Y SIMILARES DE LA R.M. (C.T.M.)', M + 64, H - 52, B, 8.6, C.AZUL);
-    P.tx('SECCIÓN 80', M + 64, H - 68, B, 13, C.AZUL);
-    if (encabezado) P.tx(P.recorta(encabezado, R, 8.5, W - 2 * M - 64), M + 64, H - 82, R, 8.5, C.GRIS);
-    P.pg.drawLine({ start: { x: M, y: H - 100 }, end: { x: W - M, y: H - 100 }, thickness: 1.4, color: C.AZUL });
-    P.y = H - 128;
-  };
-  P.espacio = (h, alSaltar) => { if (P.y - h < ABAJO) { P.pagina(); if (alSaltar) alSaltar(); return true; } return false; };
+  P.pg = lz.addPage([W, LH]); P.y = LH - 20;
+  P.pagina = () => {};                     // una sola hoja: nunca se abre otra
+  P.espacio = () => false;
   // Título, subtítulo, nombre e IBM (como "Aguinaldo 2026 / Se paga a más tardar… / Nombre / IBM")
   P.cabecera = () => {
     for (const l of P.envolver(titulo, B, 18, W - 2 * M)) { P.tx(l, M, P.y, B, 18); P.y -= 21; }
@@ -1222,42 +1218,49 @@ async function pdfSeccion({ encabezado = '', titulo = '', sub = '', nombre = '',
   };
   // Párrafo de texto corrido: tipo 'p' normal, 'h' negrita, 'h2' negrita gris, 'nota' cursiva chica, 'x' texto de ley
   P.parrafo = (t, tipo = 'p') => {
-    const st = { p: [R, 10, C.NEGRO, 13, 6], h: [B, 11, C.AZUL, 14, 3], h2: [B, 9.5, C.GRIS, 12.5, 3], nota: [I, 8, C.GRIS, 10.5, 6], x: [R, 9.5, C.NEGRO, 12.5, 6] }[tipo] || [R, 10, C.NEGRO, 13, 6];
+    const st = { p: [R, 10, C.NEGRO, 13, 6], h: [B, 11, C.AZUL, 14, 3], h2: [B, 9.5, C.GRIS, 12.5, 3], nota: [I, 8, C.GRIS, 10.5, 6], x: [R, 9.5, C.NEGRO, 12.5, 6], rev: [B, 9, C.AMBAR, 12, 6] }[tipo] || [R, 10, C.NEGRO, 13, 6];
     const [f, z, c, lh, gap] = st;
     for (const l of P.envolver(t, f, z, W - 2 * M - 20)) { P.espacio(lh); P.tx(l, M + 10, P.y - z, f, z, c); P.y -= lh; }
     P.y -= gap;
   };
   P.cerrar = async () => {
     const hoy = new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
-    const pags = doc.getPages();
-    pags.forEach((pg, i) => {
-      P.pg = pg; const t = `Página ${i + 1}${pags.length > 1 ? ' de ' + pags.length : ''}`, tw = P.an(t, R, 7.5);
-      P.tx(P.recorta(['Sección 80', nombre, ibm, pie, hoy].filter(Boolean).join(' · '), R, 7.5, W - 2 * M - tw - 16), M, 28, R, 7.5, C.GRIS);
-      P.tx(t, W - M - tw, 28, R, 7.5, C.GRIS);
-    });
+    const pg = doc.addPage([W, H]);
+    const tx = (t, x, y, f, z, c) => pg.drawText(limpio(t), { x, y, size: z, font: f, color: c || C.NEGRO });
+    const cabe = (t, f, z, w) => { t = limpio(t); if (f.widthOfTextAtSize(t, z) <= w) return t; while (t.length > 1 && f.widthOfTextAtSize(t + '…', z) > w) t = t.slice(0, -1); return t + '…'; };
+    if (esc) { const d = esc.scaleToFit(54, 54); pg.drawImage(esc, { x: M, y: H - 92 + (54 - d.height) / 2, width: d.width, height: d.height }); }
+    tx('SINDICATO DE TRABAJADORES DE LA INDUSTRIA AZUCARERA Y SIMILARES DE LA R.M. (C.T.M.)', M + 64, H - 52, FB, 8.6, C.AZUL);
+    tx('SECCIÓN 80', M + 64, H - 68, FB, 13, C.AZUL);
+    if (encabezado) tx(cabe(encabezado, FR, 8.5, W - 2 * M - 64), M + 64, H - 82, FR, 8.5, C.GRIS);
+    pg.drawLine({ start: { x: M, y: H - 100 }, end: { x: W - M, y: H - 100 }, thickness: 1.4, color: C.AZUL });
+    // cuerpo: del lienzo a la hoja, reducido solo si no cabe
+    const abajo = Math.max(0, P.y - 2), alto = LH - abajo, s = Math.min(1, (ARRIBA - PISO) / alto);
+    const lzL = await window.PDFLib.PDFDocument.load(await lz.save());   // guardar primero: así el lienzo lleva sus letras
+    const emb = await doc.embedPage(lzL.getPage(0), { left: 0, bottom: abajo, right: W, top: LH });
+    pg.drawPage(emb, { x: (W - W * s) / 2, y: ARRIBA - alto * s, width: W * s, height: alto * s });
+    tx(cabe(['Sección 80', nombre, ibm, pie, hoy].filter(Boolean).join(' · '), FR, 7.5, W - 2 * M), M, 28, FR, 7.5, C.GRIS);
     doc.setTitle(limpio(docTitulo || [titulo, nombre].filter(Boolean).join(' - '))); doc.setAuthor('Sección 80');
     return doc.save();
   };
-  P.pagina();
   return P;
 }
 
 /* ---------- PDF del desglose de nómina (se arma al momento de pedirlo) ---------- */
-async function buildDesglose(D, etiqueta) {
+async function buildDesglose(D, etiqueta, nombreDado, escudo) {
   const I = D.info, money2 = v => '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const rows = D.rows.map(r => ({ code: r[0], name: r[1], origen: r[2], fecha: r[3], tno: r[4], puesto: r[5], tno_p: r[6], dias: r[7], ctro: r[8], imp: r[9] }));
   const cnt = {}; let best = null;
   const cand = rows.filter(r => r.tno_p).length ? rows.filter(r => r.tno_p) : rows;
   cand.forEach(r => { const k = [r.tno, r.puesto, r.tno_p, r.ctro].join('|'); cnt[k] = (cnt[k] || 0) + 1; if (!best || cnt[k] > cnt[best]) best = k; });
   const [tno, pu, , ct] = (best || '|||').split('|');
-  let nombre = '';
-  try { if (typeof session !== 'undefined' && session && session.data && typeof nombreCompleto === 'function') nombre = nombreCompleto(session.data); } catch (e) {}
+  let nombre = nombreDado || '';
+  if (!nombre) try { if (typeof session !== 'undefined' && session && session.data && typeof nombreCompleto === 'function') nombre = nombreCompleto(session.data); } catch (e) {}
   if (!nombre) nombre = typeof titulo === 'function' ? titulo(D.nombre || '') : (D.nombre || '');
   const ibm = 'IBM ' + corto(D.id), etq = etiqueta || `Semana ${I.periodo}`;
   const P = await pdfSeccion({
     encabezado: `Desglose de nómina: ${etq}, del periodo ${I.periodo_txt || ''}`.replace(/, del periodo $/, ''),
     titulo: 'Desglose de nómina', sub: [etq, I.periodo_txt ? 'Del periodo ' + I.periodo_txt : '', I.folio ? 'Folio ' + I.folio : ''].filter(Boolean).join(' · '),
-    nombre, ibm, pie: 'desglose de nómina', docTitulo: `Desglose de nómina ${etq} - ${corto(D.id)}`
+    nombre, ibm, pie: 'desglose de nómina', escudo, docTitulo: `Desglose de nómina ${etq} - ${corto(D.id)}`
   });
   P.cabecera();
   P.total('NETO A PAGAR', money2(D.tot[2]));
@@ -2942,46 +2945,55 @@ async function buildEscalafon(k, E) {
   const base = k === 'antig'
     ? [['No.', 40], ['I.B.M.', 60], ['NOMBRE DEL TRABAJADOR', 360], ['CLASIF.', 72]]
     : [['PROG.', 40], ['ESC. GRAL.', 54], ['CLASIF.', 44], ['AÑO ANT.', 54], ['I.B.M.', 50], ['No.', 34], ['NOMBRE DEL TRABAJADOR', 256]];
-  const suma = base.reduce((s, c) => s + c[1], 0), cols = base.map(([t, w]) => [t, w * ANCHO / suma]);
-  let subActual = '', enc = '';
-  const cabTabla = () => {
-    P.pg.drawRectangle({ x: M, y: P.y - 16, width: ANCHO, height: 16, color: C.SUAVE });
-    let x = M; cols.forEach(([t, w]) => { P.tx(t, x + 4, P.y - 11, B, 7, C.AZUL); x += w; }); P.y -= 18;
+  const suma = base.reduce((s, c) => s + c[1], 0);
+  // Una sola hoja: si en una columna no cabría legible, se acomoda en dos columnas con letra más compacta
+  const nFil = k === 'antig' ? E.antig.reduce((s, a) => s + a.trab.length, 0) : E[k].reduce((s, d) => s + d.puestos.reduce((x, p) => x + p.trab.length, 0), 0);
+  const nPue = k === 'antig' ? 0 : E[k].reduce((s, d) => s + d.puestos.length, 0);
+  const dos = k !== 'antig' && (180 + nFil * 15 + nPue * 47) > 640 / 0.8;
+  const GAP = 14, CW = dos ? (ANCHO - GAP) / 2 : ANCHO, FS = dos ? 6.6 : 8.5, RH = dos ? 10 : 15, FH = dos ? 6 : 7;
+  const CORTO = { 'PROG.': 'PROG', 'ESC. GRAL.': 'GRAL', 'CLASIF.': 'CL', 'AÑO ANT.': 'AÑO', 'I.B.M.': 'IBM', 'NOMBRE DEL TRABAJADOR': 'NOMBRE' };
+  const cols = base.map(([t, w]) => [dos ? (CORTO[t] || t) : t, w * CW / suma]);
+  const cabTabla = (x0, y) => {
+    P.pg.drawRectangle({ x: x0, y: y - RH - 1, width: CW, height: RH + 1, color: C.SUAVE });
+    let x = x0; cols.forEach(([t, w]) => { P.tx(t, x + 3, y - RH + 3, B, FH, C.AZUL); x += w; }); return y - RH - 3;
   };
-  const continuar = () => { P.barra(subActual + ' (continúa)'); if (enc) { P.tx(P.recorta(enc, B, 9, ANCHO - 8), M + 4, P.y - 12, B, 9, C.AZUL); P.y -= 17; } cabTabla(); };
-  const fila = (vals, mia) => {
-    P.espacio(15, continuar);
-    if (mia) P.pg.drawRectangle({ x: M, y: P.y - 15, width: ANCHO, height: 15, color: C.AMA });
-    let x = M; vals.forEach((v, i) => { P.tx(P.recorta(v, mia ? B : R, 8.5, cols[i][1] - 7), x + 4, P.y - 11, mia ? B : R, 8.5, C.NEGRO); x += cols[i][1]; });
-    P.pg.drawLine({ start: { x: M, y: P.y - 15 }, end: { x: W - M, y: P.y - 15 }, thickness: .5, color: C.LINEA }); P.y -= 15;
+  const fila = (x0, y, vals, mia) => {
+    if (mia) P.pg.drawRectangle({ x: x0, y: y - RH, width: CW, height: RH, color: C.AMA });
+    let x = x0; vals.forEach((v, i) => { P.tx(P.recorta(v, mia ? B : R, FS, cols[i][1] - 5), x + 3, y - RH + (RH - FS) / 2 + 1, mia ? B : R, FS, C.NEGRO); x += cols[i][1]; });
+    P.pg.drawLine({ start: { x: x0, y: y - RH }, end: { x: x0 + CW, y: y - RH }, thickness: .4, color: C.LINEA }); return y - RH;
+  };
+  const altoPuesto = p => 4 + (FS + 7) + (RH + 3) + p.trab.length * RH + 7;
+  const puesto = (x0, y, p) => {
+    y -= 4;
+    const sal = `$${Number(p.salario).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, zs = FS + 0.4;
+    P.tx(P.recorta(p.nombre + (p.cat ? `  ·  Cat. ${p.cat}` : ''), B, zs, CW - P.an(sal, R, FS) - 12), x0 + 3, y - zs, B, zs, C.AZUL);
+    P.tx(sal, x0 + CW - 3 - P.an(sal, R, FS), y - zs, R, FS, C.GRIS); y -= FS + 7;
+    y = cabTabla(x0, y);
+    p.trab.forEach(t => { y = fila(x0, y, [t.prog, t.gral, t.clas, t.anio, t.ibm, t.n, t.nombre], t.ibm === E.ibm); });
+    return y - 7;
   };
   P.cabecera();
-  // leyenda
   P.pg.drawRectangle({ x: M, y: P.y - 9, width: 9, height: 9, color: C.AMA, borderColor: C.LINEA, borderWidth: .5 });
   P.tx('Tu renglón va resaltado · P Permanente · T Temporal', M + 14, P.y - 8, R, 8, C.GRIS); P.y -= 22;
   if (k === 'antig') {
     E.antig.forEach(a => {
-      subActual = `Año de clasificación ${a.anio} · ${a.trab.length} trabajadores`; enc = '';
-      P.barra(subActual, 60); cabTabla();
-      a.trab.forEach(t => fila([t.prog, t.ibm, t.nombre, t.clas === 'P' ? 'P (Permanente)' : t.clas === 'T' ? 'T (Temporal)' : t.clas], t.ibm === E.ibm));
-      P.y -= 12;
+      P.barra(`Año de clasificación ${a.anio} · ${a.trab.length} trabajadores`);
+      let y = cabTabla(M, P.y);
+      a.trab.forEach(t => { y = fila(M, y, [t.prog, t.ibm, t.nombre, t.clas === 'P' ? 'P (Permanente)' : t.clas === 'T' ? 'T (Temporal)' : t.clas], t.ibm === E.ibm); });
+      P.y = y - 12;
     });
   } else {
     E[k].forEach(d => {
-      subActual = `Departamento No. ${d.num} · ${capital(d.nombre)}`; enc = '';
-      P.barra(subActual, 60);
+      P.barra(`Departamento No. ${d.num} · ${capital(d.nombre)}`); P.y -= 2;
+      if (!dos) { let y = P.y; d.puestos.forEach(p => { y = puesto(M, y, p); }); P.y = y - 6; return; }
+      // dos columnas, repartidas para que terminen parejas
+      const total = d.puestos.reduce((s, p) => s + altoPuesto(p), 0); let y1 = P.y, y2 = P.y, acc = 0, col = 0;
       d.puestos.forEach(p => {
-        P.espacio(70, () => P.barra(subActual + ' (continúa)'));
-        enc = p.nombre + (p.cat ? `  ·  Cat. ${p.cat}` : '');
-        const sal = `Salario $${Number(p.salario).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        P.y -= 4;
-        P.tx(P.recorta(enc, B, 9, ANCHO - 120), M + 4, P.y - 12, B, 9, C.AZUL);
-        P.tx(sal, W - M - 4 - P.an(sal, R, 8.5), P.y - 12, R, 8.5, C.GRIS); P.y -= 17;
-        cabTabla();
-        p.trab.forEach(t => fila([t.prog, t.gral, t.clas, t.anio, t.ibm, t.n, t.nombre], t.ibm === E.ibm));
-        P.y -= 8;
+        const h = altoPuesto(p);
+        if (col === 0 && acc > 0 && acc + h / 2 > total / 2) col = 1;
+        if (col === 0) { y1 = puesto(M, y1, p); acc += h; } else y2 = puesto(M + CW + GAP, y2, p);
       });
-      P.y -= 6;
+      P.y = Math.min(y1, y2) - 6;
     });
   }
   P.parrafo('Copia del escalafón vigente que lleva la Sección 80. Si encuentras un error en tu lugar, coméntaselo al Secretario de Relaciones.', 'nota');
@@ -3308,7 +3320,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261123164312';
+const APP_VERSION = '20261123170141';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
