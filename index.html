@@ -1229,9 +1229,12 @@ async function pdfSeccion({ encabezado = '', titulo = '', sub = '', nombre = '',
     const tx = (t, x, y, f, z, c) => pg.drawText(limpio(t), { x, y, size: z, font: f, color: c || C.NEGRO });
     const cabe = (t, f, z, w) => { t = limpio(t); if (f.widthOfTextAtSize(t, z) <= w) return t; while (t.length > 1 && f.widthOfTextAtSize(t + '…', z) > w) t = t.slice(0, -1); return t + '…'; };
     if (esc) { const d = esc.scaleToFit(54, 54); pg.drawImage(esc, { x: M, y: H - 92 + (54 - d.height) / 2, width: d.width, height: d.height }); }
-    tx('SINDICATO DE TRABAJADORES DE LA INDUSTRIA AZUCARERA Y SIMILARES DE LA R.M. (C.T.M.)', M + 64, H - 52, FB, 8.6, C.AZUL);
-    tx('SECCIÓN 80', M + 64, H - 68, FB, 13, C.AZUL);
-    if (encabezado) tx(cabe(encabezado, FR, 8.5, W - 2 * M - 64), M + 64, H - 82, FR, 8.5, C.GRIS);
+    // Encabezado: nombre completo de la sección en dos renglones parejos y SECCIÓN 80, centrados junto al escudo
+    const NOM = 'SECCIÓN NÚMERO 80 DEL SINDICATO DE TRABAJADORES DE LA INDUSTRIA AZUCARERA Y SIMILARES DE LA REPÚBLICA MEXICANA';
+    const cx = (M + 64 + W - M) / 2, pal = NOM.split(' '), anc = t => FB.widthOfTextAtSize(limpio(t), 9.2);
+    let mejor = null; for (let i = 1; i < pal.length; i++) { const a = pal.slice(0, i).join(' '), b = pal.slice(i).join(' '), m = Math.max(anc(a), anc(b)); if (!mejor || m < mejor[0]) mejor = [m, a, b]; }
+    [mejor[1], mejor[2]].forEach((l, i) => tx(l, cx - anc(l) / 2, H - 52 - 12 * i, FB, 9.2, C.AZUL));
+    tx('SECCIÓN 80', cx - FB.widthOfTextAtSize('SECCIÓN 80', 15) / 2, H - 86, FB, 15, C.AZUL);
     pg.drawLine({ start: { x: M, y: H - 100 }, end: { x: W - M, y: H - 100 }, thickness: 1.4, color: C.AZUL });
     // cuerpo: del lienzo a la hoja, reducido solo si no cabe
     const abajo = Math.max(0, P.y - 2), alto = LH - abajo, s = Math.min(1, (ARRIBA - PISO) / alto);
@@ -3320,7 +3323,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261123170237';
+const APP_VERSION = '20261123171254';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
