@@ -2824,6 +2824,8 @@ async function pasoPrestamo(text, q) {
   const t = escribiendo();
   let bytes = null; try { bytes = await buildLetter({ nombre, nomina, monto, fecha }); } catch (e) { bytes = null; }
   t.remove(); loan = null;
+  // la solicitud queda registrada para la Secretaría (panel → Préstamo del fondo); sin señal se manda al volver el internet
+  if (DATA && DATA.meta && DATA.meta.registro) mandarRegistro(DATA.meta.registro, JSON.stringify({ tipo: 'prestamo', id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), ibm: corto(nomina), socio: nomina, nombre, monto, saldo: d.saldo || 0, fecha: new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10), pdf: !!bytes }));
   const texto = `Solicitud de préstamo del Fondo de Ahorro\nNombre: ${nombre}\nIBM: ${nomina}\nCantidad: ${cantidadConLetra(monto)}\nFecha: ${fecha}`;
   const box = el('div', 'msg-acc');
   if (!bytes) {
@@ -3100,7 +3102,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261120193150';
+const APP_VERSION = '20261123101634';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
