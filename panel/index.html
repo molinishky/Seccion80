@@ -366,7 +366,7 @@ function marcarBurbuja(p, sinAnim) {
   BURB.style.width = t.offsetWidth + 'px'; BURB.style.transform = `translateX(${t.offsetLeft}px)`;
 }
 /* ---------- Actualización automática: si hay versión nueva del panel, se recarga solo (evita la copia guardada del navegador) ---------- */
-const PANEL_V = '20261123101541';
+const PANEL_V = '20261123123148';
 async function revisarVersion() {
   try {
     const v = (await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json()).v;
@@ -1078,17 +1078,20 @@ $('#fal-pdf').addEventListener('click', e => { const b = e.currentTarget; if (FA
 $('#fal-todos').addEventListener('click', e => { if (FAL) bajarArchivo(`faltas/pdf/${FAL.ciclo}/todos.pdf`, `Faltas ${FAL.nombre}.pdf`, 'application/pdf', e.currentTarget); });
 
 /* ======================= Préstamo del fondo de ahorro: tope 80 % del saldo, oficio en PDF y registro (prestamos_fondo/registro.json) ======================= */
-let PFREG = null, PFAPP = null, PF_URL = null; const PF_RUTA = 'prestamos_fondo/registro.json';
+let PFREG = null, PFAPP = null, PF_URL = null, PFERR = ''; const PF_RUTA = 'prestamos_fondo/registro.json';
 // Solicitudes que los trabajadores generan en la app: las guarda el registro de accesos (Apps Script); se leen con la llave del panel
 async function appPF(cuerpo) {
   if (!PF_URL) PF_URL = (((await (await fetch('../meta.json?t=' + Date.now(), { cache: 'no-store' })).json()).meta) || {}).registro;
   if (!PF_URL) throw new Error('sin registro');
   const r = await fetch(PF_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ ...cuerpo, llave }) });
-  const j = await r.json(); if (j.error) throw new Error(j.error); return j;
+  const t = await r.text(); let j;
+  try { j = JSON.parse(t); } catch (e) { throw new Error(/^ok|^error/.test(t.trim()) ? 'el registro todavía corre el código anterior: en Apps Script falta «Administrar implementaciones → ✏️ Editar → Nueva versión → Implementar» en la implementación ACTIVA' : 'respuesta inesperada del registro'); }
+  if (j.error) throw new Error(/sin permiso/.test(j.error) ? 'la llave del panel no tiene acceso al repositorio privado' : /autorizar/.test(j.error) ? 'falta dar el permiso: en Apps Script elige la función «autorizar» y presiona ▶ Ejecutar' : j.error);
+  return j;
 }
 async function cargarAppPF() {
-  try { PFAPP = (await appPF({ tipo: 'listar_prestamos' })).prestamos || []; }
-  catch (e) { PFAPP = null; }
+  try { PFAPP = (await appPF({ tipo: 'listar_prestamos' })).prestamos || []; PFERR = ''; }
+  catch (e) { PFAPP = null; PFERR = e instanceof TypeError ? 'no pude conectarme con el registro de Google' : e.message; }
   pintarPFLista();
 }
 const pfDinero = n => '$' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1124,7 +1127,7 @@ function pintarPFLista() {
   box.hidden = false;
   const ya = new Set((PFREG ? PFREG.prestamos : []).map(x => x.id));
   const pend = (PFAPP || []).filter(x => x.estado === 'Solicitado' && !ya.has(x.id)).reverse();
-  const app = [el('div', 'pin-nom', 'Solicitudes desde la app'), el('div', 'pin-ibm', PFAPP == null ? 'No pude leer las solicitudes de la app (revisa el internet o que el registro esté actualizado).' : pend.length ? `${pend.length} por revisar` : 'No hay solicitudes nuevas de la app.')];
+  const app = [el('div', 'pin-nom', 'Solicitudes desde la app'), el('div', 'pin-ibm', PFAPP == null ? `No pude leer las solicitudes de la app: ${PFERR || 'revisa el internet'}.` : pend.length ? `${pend.length} por revisar` : 'No hay solicitudes nuevas de la app.')];
   pend.forEach(x => {
     const f = el('div', 'pf-reg'); const nom = x.nombre || ('IBM ' + x.ibm);
     f.append(el('b', null, nom), el('b', null, pfDinero(x.monto)), el('span', 'pin-ibm', `IBM ${x.ibm} · ${x.fecha ? pfFechaLarga(x.fecha) : x.registrado} · saldo ${pfDinero(x.saldo)}`), el('span', 'pin-ibm', 'Solicitado en la app'));
