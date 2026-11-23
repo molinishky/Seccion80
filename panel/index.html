@@ -366,7 +366,7 @@ function marcarBurbuja(p, sinAnim) {
   BURB.style.width = t.offsetWidth + 'px'; BURB.style.transform = `translateX(${t.offsetLeft}px)`;
 }
 /* ---------- Actualización automática: si hay versión nueva del panel, se recarga solo (evita la copia guardada del navegador) ---------- */
-const PANEL_V = '20261123123148';
+const PANEL_V = '20261123164128';
 async function revisarVersion() {
   try {
     const v = (await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json()).v;
@@ -845,7 +845,7 @@ async function pdfCalculo(btn) {
       if (pg) pie(); pg = doc.addPage([W, H]); npag++;
       if (esc) { const d = esc.scaleToFit(54, 54); pg.drawImage(esc, { x: M, y: H - 92 + (54 - d.height) / 2, width: d.width, height: d.height }); }
       tx('SINDICATO DE TRABAJADORES DE LA INDUSTRIA AZUCARERA Y SIMILARES DE LA R.M. (C.T.M.)', M + 64, H - 52, B, 8.6, AZUL);
-      tx('SECCIÓN 80 · INGENIO TAMAZULA', M + 64, H - 68, B, 13, AZUL);
+      tx('SECCIÓN 80', M + 64, H - 68, B, 13, AZUL);
       tx((VAC.info && VAC.info.titulo) || ($('#vac-info b') || {}).textContent || info.titulo, M + 64, H - 82, R, 8.5, GRIS);
       pg.drawLine({ start: { x: M, y: H - 100 }, end: { x: W - M, y: H - 100 }, thickness: 1.4, color: AZUL });
       y = H - 128;
