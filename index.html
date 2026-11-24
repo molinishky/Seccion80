@@ -183,7 +183,7 @@ body.en-chat .deco img{opacity:.12}
 .rec-tot{border-top:1px solid var(--ln2);padding:12px 16px;background:#FAFBFD}
 .rec-tl{display:flex;justify-content:space-between;font-size:14.5px;padding:4px 0;font-variant-numeric:tabular-nums}
 .rec-tl.neto{font-size:17px;font-weight:800;color:var(--azul);border-top:1px solid var(--ln2);margin-top:6px;padding-top:10px}
-#descargar,#fondo-body .btn-pri{margin-top:16px}
+#descargar{margin-top:16px}
 
 /* Préstamos */
 .pre{--ac:var(--azul);--ac-cl:var(--azul-cl);background:#fff;border:1.5px solid var(--ln2);border-radius:18px;overflow:hidden;margin-bottom:16px;box-shadow:var(--flota)}
@@ -400,6 +400,7 @@ body.teclado .deco{opacity:0}
 .pre-ver.boton{border:0;width:100%;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;text-align:left;transition:transform .15s,background .15s}
 .pre-ver.boton:active{transform:scale(.97);background:rgba(var(--ac-rgb,0,104,184),.2)}
 .pre-ver-f{font-size:22px;line-height:1;font-weight:600}
+.pre-ver.pre-pdf{margin-top:8px}.pre-ver.pre-pdf .pre-ver-f svg{width:20px;height:20px;display:block}
 .pre-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .pre-st{flex:1 1 30%;min-width:96px;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:rgba(var(--ac-rgb,0,104,184),.08)}
 .pre-st span{font-size:12px;color:var(--mu);font-weight:600}
@@ -2392,6 +2393,17 @@ async function renderFondo() {
       ver.addEventListener('click', () => { vibrar(); abrirAportaciones(); });
       m.append(ver);
     }
+    if (conBoton && movs.length) {   // reporte detallado en PDF, con el mismo formato y la misma descarga que el desglose de nómina
+      const bd = el('button', 'pre-ver boton pre-pdf'); bd.type = 'button'; bd.dataset.pdf = '1';
+      const t = el('span', null, 'Descargar reporte detallado (PDF)'), ic = el('span', 'pre-ver-f'); ic.innerHTML = ICON.dl; bd.append(t, ic);
+      bd.addEventListener('click', async () => {
+        vibrar(); const antes = t.textContent; bd.disabled = true; t.textContent = 'Preparando PDF…';
+        try { await guardarPDF(await buildFondoPDF(d), `Reporte_fondo_ahorro_IBM${corto(d.socio)}.pdf`); }
+        catch (e) { toast('No pude generar el PDF. Inténtalo de nuevo.'); }
+        t.textContent = antes; bd.disabled = false;
+      });
+      m.append(bd);
+    }
     c.append(hd, m);
     return c;
   };
@@ -2428,16 +2440,6 @@ async function renderFondo() {
     abrirSub('fondo', base, det);
   }
   const base = el('div', 'sub-base'); base.append(tarjeta(true));
-  if (movs.length) {   // reporte detallado en PDF, con el mismo formato y la misma descarga que el desglose de nómina
-    const bd = el('button', 'btn-pri'); bd.type = 'button'; bd.dataset.pdf = '1'; bd.innerHTML = ICON.dl + '<span>Descargar reporte detallado (PDF)</span>';
-    bd.addEventListener('click', async () => {
-      const t = bd.querySelector('span'), antes = t.textContent; bd.disabled = true; t.textContent = 'Preparando PDF…';
-      try { await guardarPDF(await buildFondoPDF(d), `Reporte_fondo_ahorro_IBM${corto(d.socio)}.pdf`); }
-      catch (e) { toast('No pude generar el PDF. Inténtalo de nuevo.'); }
-      t.textContent = antes; bd.disabled = false;
-    });
-    base.append(bd);
-  }
   box.replaceChildren(base);
 }
 /* PDF del fondo de ahorro: saldo, resumen y cada aportación semana por semana con su saldo acumulado */
@@ -3478,7 +3480,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261124014502';
+const APP_VERSION = '20261124015151';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
