@@ -369,7 +369,7 @@ function marcarBurbuja(p, sinAnim) {
   BURB.style.width = t.offsetWidth + 'px'; BURB.style.transform = `translateX(${t.offsetLeft}px)`;
 }
 /* ---------- Actualización automática: si hay versión nueva del panel, se recarga solo (evita la copia guardada del navegador) ---------- */
-const PANEL_V = '20261124021000';
+const PANEL_V = '20261124023000';
 async function revisarVersion() {
   try {
     const v = (await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json()).v;
@@ -1040,7 +1040,7 @@ async function buildDesglose(D, etiqueta, nombreDado, escudo) {
   // Categorías que trabajó en la semana, con los días que se le pagaron en cada una
   const porCat = {};
   const DIA_PAGADO = new Set(['101', '102', '103', '104', '105', '106', '112', '149', '150', '153', '154']);   // conceptos que son un día de salario (primas y medias horas no suman días)
-  per.forEach(r => { if (!r.puesto) return; const k = r.puesto; porCat[k] = porCat[k] || { dias: 0, imp: 0 }; if (DIA_PAGADO.has(String(r.code))) porCat[k].dias += parseFloat(r.dias) || 0; porCat[k].imp += r.imp; });
+  per.forEach(r => { if (!r.puesto || +r.code >= 300) return; const k = r.puesto; porCat[k] = porCat[k] || { dias: 0, imp: 0 }; if (DIA_PAGADO.has(String(r.code))) porCat[k].dias += parseFloat(r.dias) || 0; porCat[k].imp += r.imp; });
   const catsSem = Object.entries(porCat).sort((a, b) => b[1].dias - a[1].dias);
   const turnos = [...new Set(per.map(r => r.tno).filter(Boolean))];
   const fmtD = n => (Math.round(n * 100) / 100).toString();
@@ -1056,10 +1056,13 @@ async function buildDesglose(D, etiqueta, nombreDado, escudo) {
   const fecha = f => { const m = String(f || '').match(/^(\d\d)\/(\d\d)\/(\d{4})$/); if (!m) return f || ''; const d = new Date(+m[3], +m[2] - 1, +m[1]); return `${DS[d.getDay()]} ${+m[1]} ${MS[+m[2] - 1]}`; };
   const clave = f => { const m = String(f || '').match(/^(\d\d)\/(\d\d)\/(\d{4})$/); return m ? m[3] + m[2] + m[1] : '99999999'; };
   // Un renglón por día y concepto: si ese día se pagó en varias categorías van juntas, separadas con « / » (y sus días en el mismo orden)
+  // Conceptos de la semana (comisión sindical, integraciones, premios, fondo de ahorro, estímulo…): no son de un día trabajado,
+  // van al final sin día; los de 300 en adelante tampoco llevan categoría
+  const SEMANAL = c => String(c) === '112' || +c >= 200, SIN_CAT = c => +c >= 300;
   const junta = {}, perOrd = [];
   per.forEach(r => {
-    const k = [r.fecha, r.code].join('|');
-    if (!junta[k]) perOrd.push(junta[k] = { fecha: r.fecha, code: r.code, name: r.name, imp: 0, partes: [] });
+    const sem = SEMANAL(r.code), k = [sem ? '' : r.fecha, r.code].join('|');
+    if (!junta[k]) perOrd.push(junta[k] = { fecha: sem ? '' : r.fecha, code: r.code, name: r.name, imp: 0, partes: [] });
     const g = junta[k]; g.imp += r.imp;
     const p = g.partes.find(x => x.puesto === r.puesto); if (p) p.dias += parseFloat(r.dias) || 0; else g.partes.push({ puesto: r.puesto, dias: parseFloat(r.dias) || 0 });
   });
@@ -1074,7 +1077,7 @@ async function buildDesglose(D, etiqueta, nombreDado, escudo) {
   const todas = [...perOrd, ...aus].sort((a, b) => clave(a.fecha).localeCompare(clave(b.fecha)) || a.code.localeCompare(b.code));
   if (todas.length) P.tabla('Percepciones', [['Día', 64, 'c'], ['Concepto', 112], ['Categoría - puesto de ese día', 222], ['Días', 54, 'r'], ['Importe', 62, 'r']],
     todas.map(r => r.imp == null ? [fecha(r.fecha), r.name, '—', '', '—'] : [fecha(r.fecha), nombreLargo(r.name),
-      r.partes.filter(p => p.puesto).map(p => nombreCategoria(p.puesto, cats)).join(' / ') || '—',
+      SIN_CAT(r.code) ? '' : r.partes.filter(p => p.puesto).map(p => nombreCategoria(p.puesto, cats)).join(' / ') || '—',
       DIA_PAGADO.has(String(r.code)) ? r.partes.filter(p => p.dias).map(p => fmtD(p.dias)).join(' / ') : '', money2(r.imp)]),
     { grupo: todas.map(r => clave(r.fecha)), tonos: todas.map(r => r.tono || null), compacto: todas.length > 22, total: ['', 'Total de percepciones', '', '', money2(D.tot[0])] });
   if (ded.length) P.tabla('Deducciones', [['Concepto', 448], ['Importe', 72, 'r']],
