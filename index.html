@@ -1353,7 +1353,7 @@ async function buildDesglose(D, etiqueta, nombreDado, escudo) {
   const DIA_PAGADO = new Set(['101', '102', '103', '104', '105', '106', '112', '149', '150', '153', '154']);   // conceptos que son un día de salario (primas y medias horas no suman días)
   per.forEach(r => { if (!r.puesto || +r.code >= 300) return; const k = r.puesto; porCat[k] = porCat[k] || { dias: 0, imp: 0 }; if (DIA_PAGADO.has(String(r.code))) porCat[k].dias += parseFloat(r.dias) || 0; porCat[k].imp += r.imp; });
   const catsSem = Object.entries(porCat).sort((a, b) => b[1].dias - a[1].dias);
-  const turnos = [...new Set(per.map(r => r.tno).filter(Boolean))];
+  const turnos = [...new Set(per.filter(r => String(r.code) !== '112' && +r.code < 200).map(r => r.tno).filter(Boolean))];   // turnos de los días trabajados y pagados
   const fmtD = n => (Math.round(n * 100) / 100).toString();
   P.filas('Datos de la semana', [
     ['Periodo', I.periodo_txt || String(I.periodo || '')],
@@ -1375,7 +1375,7 @@ async function buildDesglose(D, etiqueta, nombreDado, escudo) {
     const sem = SEMANAL(r.code), k = [sem ? '' : r.fecha, r.code].join('|');
     if (!junta[k]) perOrd.push(junta[k] = { fecha: sem ? '' : r.fecha, code: r.code, name: r.name, imp: 0, partes: [] });
     const g = junta[k]; g.imp += r.imp;
-    const p = g.partes.find(x => x.puesto === r.puesto); if (p) p.dias += parseFloat(r.dias) || 0; else g.partes.push({ puesto: r.puesto, dias: parseFloat(r.dias) || 0 });
+    const p = g.partes.find(x => x.puesto === r.puesto); if (p) { p.dias += parseFloat(r.dias) || 0; if (r.tno && !p.tno.includes(String(r.tno))) p.tno.push(String(r.tno)); } else g.partes.push({ puesto: r.puesto, dias: parseFloat(r.dias) || 0, tno: r.tno ? [String(r.tno)] : [] });
   });
   // Faltas, permisos e incapacidades de la semana (del reporte de asistencia), cada una en su día
   const AUS = { F: ['Falta', 'neg'], I: ['Incapacidad', 'inc'], P: ['Permiso', 'per'] }, aus = [];
@@ -1386,11 +1386,12 @@ async function buildDesglose(D, etiqueta, nombreDado, escudo) {
       aus.push({ fecha: f, code: '000', name: AUS[ch][0], tono: AUS[ch][1], imp: null, partes: [] }); });
   }
   const todas = [...perOrd, ...aus].sort((a, b) => clave(a.fecha).localeCompare(clave(b.fecha)) || a.code.localeCompare(b.code));
-  if (todas.length) P.tabla('Percepciones', [['Día', 64, 'c'], ['Concepto', 112], ['Categoría - puesto de ese día', 222], ['Días', 54, 'r'], ['Importe', 62, 'r']],
-    todas.map(r => r.imp == null ? [fecha(r.fecha), r.name, '—', '', '—'] : [fecha(r.fecha), nombreLargo(r.name),
+  if (todas.length) P.tabla('Percepciones', [['Día', 64, 'c'], ['Concepto', 112], ['Categoría - puesto de ese día', 182], ['Turno', 40, 'c'], ['Días', 54, 'r'], ['Importe', 62, 'r']],
+    todas.map(r => r.imp == null ? [fecha(r.fecha), r.name, '—', '', '', '—'] : [fecha(r.fecha), nombreLargo(r.name),
       SIN_CAT(r.code) ? '' : r.partes.filter(p => p.puesto).map(p => nombreCategoria(p.puesto, cats)).join(' / ') || '—',
+      SEMANAL(r.code) ? '' : r.partes.filter(p => p.puesto).map(p => p.tno.join(', ') || '—').join(' / '),   // turno en que se trabajó (o se pagó el sexto y séptimo día)
       DIA_PAGADO.has(String(r.code)) ? r.partes.filter(p => p.dias).map(p => fmtD(p.dias)).join(' / ') : '', money2(r.imp)]),
-    { grupo: todas.map(r => clave(r.fecha)), tonos: todas.map(r => r.tono || null), compacto: todas.length > 22, total: ['', 'Total de percepciones', '', '', money2(D.tot[0])] });
+    { grupo: todas.map(r => clave(r.fecha)), tonos: todas.map(r => r.tono || null), compacto: todas.length > 22, total: ['', 'Total de percepciones', '', '', '', money2(D.tot[0])] });
   if (ded.length) P.tabla('Deducciones', [['Concepto', 448], ['Importe', 72, 'r']],
     ded.map(r => [nombreLargo(r.name), '-' + money2(r.imp)]), { color: [null, 'neg'], normal: true, compacto: per.length + ded.length > 30, total: ['Total de deducciones', '-' + money2(D.tot[1])] });
   P.filas('Resumen', [['Percepciones', money2(D.tot[0])], ['Deducciones', '-' + money2(D.tot[1]), { color: 'neg' }], ['Neto a pagar', money2(D.tot[2]), { color: 'ok', negrita: true }]]);
@@ -3483,7 +3484,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261124022445';
+const APP_VERSION = '20261124023344';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
