@@ -400,7 +400,7 @@ body.teclado .deco{opacity:0}
 .pre-ver.boton{border:0;width:100%;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;text-align:left;transition:transform .15s,background .15s}
 .pre-ver.boton:active{transform:scale(.97);background:rgba(var(--ac-rgb,0,104,184),.2)}
 .pre-ver-f{font-size:22px;line-height:1;font-weight:600}
-.pre-ver.pre-pdf{margin-top:8px}.pre-ver.pre-pdf .pre-ver-f svg{width:20px;height:20px;display:block}
+.pre-ver + .pre-ver.pre-pdf{margin-top:8px}.pre-ver.pre-pdf .pre-ver-f svg{width:20px;height:20px;display:block}
 .pre-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .pre-st{flex:1 1 30%;min-width:96px;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:rgba(var(--ac-rgb,0,104,184),.08)}
 .pre-st span{font-size:12px;color:var(--mu);font-weight:600}
@@ -2393,7 +2393,7 @@ async function renderFondo() {
       ver.addEventListener('click', () => { vibrar(); abrirAportaciones(); });
       m.append(ver);
     }
-    if (conBoton && movs.length) {   // reporte detallado en PDF, con el mismo formato y la misma descarga que el desglose de nómina
+    if (movs.length) {   // reporte detallado en PDF (también dentro de «Tus aportaciones»), con el mismo formato y la misma descarga que el desglose de nómina
       const bd = el('button', 'pre-ver boton pre-pdf'); bd.type = 'button'; bd.dataset.pdf = '1';
       const t = el('span', null, 'Descargar reporte detallado (PDF)'), ic = el('span', 'pre-ver-f'); ic.innerHTML = ICON.dl; bd.append(t, ic);
       bd.addEventListener('click', async () => {
@@ -3480,7 +3480,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261124015151';
+const APP_VERSION = '20261124015531';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
