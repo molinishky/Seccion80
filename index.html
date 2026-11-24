@@ -2641,7 +2641,7 @@ async function renderDesglose() {
   m.append(stats);
   const ver = el('button', 'pre-ver boton'); ver.type = 'button'; const verT = el('span'); ver.append(verT, el('span', 'pre-ver-f', '›')); m.append(ver);
   c.append(hd, m); base.append(c);
-  const abrir = () => { vibrar(); abrirDesgloseSemana(); };
+  const abrir = () => { vibrar(); Promise.resolve().then(abrirDesgloseSemana).catch(e => toast('No pude abrir el desglose: ' + ((e && e.message) || e))); };
   ver.addEventListener('click', abrir);
   tag.addEventListener('click', e => { e.stopPropagation(); vibrar(); menuSemanas(tag, sem, semanaSel, w => { semanaSel = w; pintar(w); }); });
   box.replaceChildren(base);
@@ -2770,6 +2770,9 @@ async function enviarPDF(bytes, nombre, texto) {
   if (link) window.open(link, '_blank', 'noopener');
 }
 let toastT = null;
+// Si algo falla en un teléfono, el aviso dice qué fue (para poder corregirlo con una captura de pantalla)
+window.addEventListener('error', e => { try { if (session && e && e.message && !/Script error/i.test(e.message)) toast('Error: ' + e.message); } catch (x) {} });
+window.addEventListener('unhandledrejection', e => { try { const m = e && e.reason && (e.reason.message || String(e.reason)); if (session && m && !/abort|red|Load failed|Failed to fetch/i.test(m)) toast('Error: ' + m); } catch (x) {} });
 function toast(t) { const x = $('#toast'); x.textContent = t; x.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { x.hidden = true; }, 3200); }
 
 /* ================= Chat ================= */
@@ -3512,7 +3515,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261124174432';
+const APP_VERSION = '20261124175220';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
