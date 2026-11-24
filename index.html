@@ -183,7 +183,7 @@ body.en-chat .deco img{opacity:.12}
 .rec-tot{border-top:1px solid var(--ln2);padding:12px 16px;background:#FAFBFD}
 .rec-tl{display:flex;justify-content:space-between;font-size:14.5px;padding:4px 0;font-variant-numeric:tabular-nums}
 .rec-tl.neto{font-size:17px;font-weight:800;color:var(--azul);border-top:1px solid var(--ln2);margin-top:6px;padding-top:10px}
-#descargar{margin-top:16px}
+#descargar,#fondo-body .btn-pri{margin-top:16px}
 
 /* Préstamos */
 .pre{--ac:var(--azul);--ac-cl:var(--azul-cl);background:#fff;border:1.5px solid var(--ln2);border-radius:18px;overflow:hidden;margin-bottom:16px;box-shadow:var(--flota)}
@@ -2428,7 +2428,47 @@ async function renderFondo() {
     abrirSub('fondo', base, det);
   }
   const base = el('div', 'sub-base'); base.append(tarjeta(true));
+  if (movs.length) {   // reporte detallado en PDF, con el mismo formato y la misma descarga que el desglose de nómina
+    const bd = el('button', 'btn-pri'); bd.type = 'button'; bd.dataset.pdf = '1'; bd.innerHTML = ICON.dl + '<span>Descargar reporte detallado (PDF)</span>';
+    bd.addEventListener('click', async () => {
+      const t = bd.querySelector('span'), antes = t.textContent; bd.disabled = true; t.textContent = 'Preparando PDF…';
+      try { await guardarPDF(await buildFondoPDF(d), `Reporte_fondo_ahorro_IBM${corto(d.socio)}.pdf`); }
+      catch (e) { toast('No pude generar el PDF. Inténtalo de nuevo.'); }
+      t.textContent = antes; bd.disabled = false;
+    });
+    base.append(bd);
+  }
   box.replaceChildren(base);
+}
+/* PDF del fondo de ahorro: saldo, resumen y cada aportación semana por semana con su saldo acumulado */
+async function buildFondoPDF(d) {
+  const h = d.historial || [], last = h[h.length - 1], movs = (d.movs || []).slice().sort((a, b) => String(a.f).localeCompare(String(b.f)));
+  const tr = round2(movs.reduce((a, x) => a + (x.tr || 0), 0)), pa = round2(movs.reduce((a, x) => a + (x.pa || 0), 0)), tot = round2(movs.reduce((a, x) => a + (x.m || 0), 0));
+  const saldoDe = {}; h.forEach(x => { saldoDe[x.p + '|' + (x.f || '').slice(0, 4)] = x.s; });
+  const nombre = nombreCompleto(d), ibm = 'IBM ' + corto(d.socio), al = fdate(d.actualizado, { day: 'numeric', month: 'long', year: 'numeric' });
+  const P = await pdfSeccion({ titulo: 'Reporte del fondo de ahorro', sub: `Saldo al ${al}${last && last.p ? ' · semana ' + last.p : ''} · ${movs.length} aportaciones registradas`, nombre, ibm,
+    pie: 'Reporte del fondo de ahorro', docTitulo: `Reporte del fondo de ahorro - ${nombre}` });
+  P.cabecera();
+  P.total('Saldo acumulado del fondo de ahorro', money(d.saldo));
+  const fil = [['Tu aportación (concepto 557)', money(tr)], ['Aportación de la empresa (concepto 604)', money(pa)], ['Total aportado', money(tot), { negrita: true, color: 'ok' }]];
+  if (Math.abs(tot - (d.saldo || 0)) > 0.05) fil.push(['Diferencia con el saldo (retiros, préstamos o ajustes)', money(round2((d.saldo || 0) - tot)), { color: 'rev' }]);
+  if (movs.length) fil.push(['Primera aportación registrada', fdate(movs[0].f, { day: 'numeric', month: 'long', year: 'numeric' })], ['Última aportación registrada', fdate(movs[movs.length - 1].f, { day: 'numeric', month: 'long', year: 'numeric' })]);
+  P.filas('Resumen', fil);
+  const anios = [...new Set(movs.map(x => String(x.f).slice(0, 4)))];
+  const cols = [['Semana', 0.8, 'c'], ['Periodo', 2.4], ['Fecha', 1.3, 'c'], ['Trabajador', 1.2, 'r'], ['Empresa', 1.2, 'r'], ['Total', 1.2, 'r'], ['Saldo', 1.3, 'r']];
+  anios.forEach(y => {
+    const ls = movs.filter(x => String(x.f).slice(0, 4) === y);
+    const filas = ls.map(x => {
+      const mt = String(x.c || '').match(/semana\s*(\d+)\s*·?\s*(.*)$/i), sem = mt ? +mt[1] : null, per = mt ? mt[2] : String(x.c || '');
+      const s = sem != null ? saldoDe[sem + '|' + y] : null;
+      return [sem != null ? String(sem) : '—', per ? per.charAt(0).toUpperCase() + per.slice(1) : '', x.f ? fdate(x.f, { day: 'numeric', month: 'short', year: 'numeric' }) : '',
+        money(x.tr || 0), money(x.pa || 0), money(x.m || 0), s != null ? money(s) : '—'];
+    });
+    const sm = k => money(round2(ls.reduce((a, x) => a + (x[k] || 0), 0)));
+    P.tabla(`Aportaciones ${y}`, cols, filas, { compacto: filas.length > 26, total: ['Total', '', '', sm('tr'), sm('pa'), sm('m'), ''] });
+  });
+  P.parrafo('El saldo y las aportaciones salen del reporte semanal del fondo de ahorro que se publica con cada nómina. Cada semana se aporta lo mismo por parte del trabajador (557) y de la empresa (604).', 'nota');
+  return P.cerrar();
 }
 
 /* ================= Préstamos ================= */
@@ -3438,7 +3478,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261123173113';
+const APP_VERSION = '20261124014502';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {

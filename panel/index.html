@@ -369,7 +369,7 @@ function marcarBurbuja(p, sinAnim) {
   BURB.style.width = t.offsetWidth + 'px'; BURB.style.transform = `translateX(${t.offsetLeft}px)`;
 }
 /* ---------- Actualización automática: si hay versión nueva del panel, se recarga solo (evita la copia guardada del navegador) ---------- */
-const PANEL_V = '20261124013500';
+const PANEL_V = '20261124015500';
 async function revisarVersion() {
   try {
     const v = (await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json()).v;
@@ -1086,10 +1086,15 @@ async function buildDesglose(D, etiqueta, nombreDado, escudo) {
 /* ===== fin de la copia ===== */
 async function entregarPDF(bytes, nom) {
   nom = nom.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const blob = new Blob([bytes], { type: 'application/pdf' });
-  const file = new File([blob], nom, { type: 'application/pdf' }), solo = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-  if (solo && navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: nom }); return; } catch (e) { if (e.name === 'AbortError') return; } }
-  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' })); a.download = nom; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  guardarPDF(bytes, nom);
+}
+/* Todos los PDF del panel se abren igual que el desglose de nómina de la app: el PDF se abre en el visor del teléfono
+   (desde ahí se comparte o se guarda) y en la computadora se descarga. */
+function guardarPDF(bytes, nom) {
+  nom = String(nom).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+  const a = document.createElement('a'); a.href = url; a.download = nom; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 async function pdfCalculo(btn) {
   const box = $('#vac-res'); if (!VAC || box.hidden) return;
@@ -1311,7 +1316,9 @@ async function bajarArchivo(ruta, nombre, tipo, btn) {
   const txt = btn.querySelector('span'), antes = txt.textContent; txt.textContent = 'Preparando…'; btn.disabled = true;
   try {
     const r = await gh(`/repos/${REPO}/contents/${encodeURI(ruta)}?t=${Date.now()}`, { headers: { Accept: 'application/vnd.github.raw+json' }, cache: 'no-store' });
-    const blob = new Blob([await r.arrayBuffer()], { type: tipo });
+    const buf = await r.arrayBuffer();
+    if (tipo === 'application/pdf') { guardarPDF(new Uint8Array(buf), nombre); return; }
+    const blob = new Blob([buf], { type: tipo });
     const file = new File([blob], nombre, { type: tipo }), solo = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
     if (solo && navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: nombre }); return; } catch (e) { if (e.name === 'AbortError') return; } }
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([blob], { type: 'application/octet-stream' })); a.download = nombre; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
@@ -1469,9 +1476,7 @@ async function oficioPF(r, btn) {
     page.drawText(linea, { x: 386.2 - fw / 2, y: 251.3, size: 10, font: B, color: ink });
     doc.setTitle(`Solicitud de préstamo del Fondo de Ahorro - ${r.nombre}`);
     const bytes = await doc.save(), nom = `Prestamo fondo de ahorro - IBM ${+r.socio - 10000} ${r.nombre}.pdf`.normalize('NFD').replace(/[̀-ͯ]/g, '');
-    const file = new File([bytes], nom, { type: 'application/pdf' }), solo = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-    if (solo && navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: nom }); return; } catch (e) { if (e.name === 'AbortError') return; } }
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' })); a.download = nom; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+    guardarPDF(bytes, nom);
   } catch (e) { alert(e.message); }
   finally { t.textContent = antes; btn.disabled = false; }
 }
