@@ -1100,6 +1100,9 @@ html{overscroll-behavior:none}
 <div id="toast" role="status" hidden></div>
 </div>
 <script>
+/* Teléfonos con navegador viejo (p. ej. Redmi 12C con WebView sin actualizar): funciones que les faltan */
+if (!Array.prototype.at) Object.defineProperty(Array.prototype, 'at', { value: function (n) { n = Math.trunc(n) || 0; if (n < 0) n += this.length; return this[n]; }, configurable: true, writable: true });
+if (!String.prototype.at) Object.defineProperty(String.prototype, 'at', { value: function (n) { n = Math.trunc(n) || 0; if (n < 0) n += this.length; return this[n]; }, configurable: true, writable: true });
 const ITER = 210000;
 const normPin = s => String(s || '').replace(/\D/g, '').replace(/^0+(?=\d)/, '');
 const $ = s => document.querySelector(s);
@@ -2705,7 +2708,7 @@ async function abrirDesgloseSemana() {
   const d = session.data, sem = semanas(d), sel = $('#semana');
   const base = $('#desg-body .sub-base'); if (!base) return;
   if (!semanaSel || !sem.includes(semanaSel)) semanaSel = sem[0];
-  const grupos = []; sem.forEach(w => { const ci = cicloDe(w), g = grupos.at(-1); if (!g || g.ci !== ci) grupos.push({ ci, ws: [w] }); else g.ws.push(w); });
+  const grupos = []; sem.forEach(w => { const ci = cicloDe(w), g = grupos[grupos.length - 1]; if (!g || g.ci !== ci) grupos.push({ ci, ws: [w] }); else g.ws.push(w); });
   sel.replaceChildren(...grupos.map(g => { const og = el('optgroup'); og.label = g.ci ? g.ci.nombre : 'Semanas'; og.append(...g.ws.map(w => { const o = el('option', null, `${etqSem(w)}${periodo(w) ? ' · ' + periodo(w) : ''}`); o.value = w; return o; })); return og; }));
   sel.value = String(semanaSel);
   abrirSub('desglose', base, DESG_DET);
@@ -3509,7 +3512,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261124032611';
+const APP_VERSION = '20261124174432';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
