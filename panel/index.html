@@ -33,7 +33,6 @@ a{color:var(--azul)}
 .deco img{position:absolute;left:50%;transform:translateX(-50%);bottom:-14%;height:80%;max-width:none;width:auto}
 .deco img.oscuro{display:none}
 .deco img:not(.amb){transition:filter .35s ease,opacity .35s ease}
-body.difumina .deco img:not(.amb){filter:blur(16px) saturate(1.05);opacity:.5}   /* fuera de Inicio la imagen queda de fondo, difuminada */
 /* pantallas anchas (iPad, Windows): el mismo retrato difuminado llena los lados y la foto se funde con él, sin bordes negros */
 .deco img.amb{top:-8%;bottom:auto;left:-8%;transform:none;width:116%;height:116%;object-fit:cover;object-position:50% 45%;filter:blur(70px) saturate(1.15);opacity:.8}
 .deco img:not(.amb){-webkit-mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent),linear-gradient(180deg,transparent,#000 22%);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent),linear-gradient(180deg,transparent,#000 22%);mask-composite:intersect}   /* teléfono: bordes suaves, sin el cuadro de la foto */
@@ -370,7 +369,7 @@ function marcarBurbuja(p, sinAnim) {
   BURB.style.width = t.offsetWidth + 'px'; BURB.style.transform = `translateX(${t.offsetLeft}px)`;
 }
 /* ---------- Actualización automática: si hay versión nueva del panel, se recarga solo (evita la copia guardada del navegador) ---------- */
-const PANEL_V = '20261123224500';
+const PANEL_V = '20261124013500';
 async function revisarVersion() {
   try {
     const v = (await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json()).v;
@@ -380,7 +379,6 @@ async function revisarVersion() {
 revisarVersion(); document.addEventListener('visibilitychange', () => { if (!document.hidden) revisarVersion(); });
 function ir(p, dir) {
   const antes = actual; actual = p;
-  document.body.classList.toggle('difumina', !['inicio', 'entrar', 'llave'].includes(p));
   if (antes === 'faltas' && p !== 'faltas') limpiarFaltas();
   if (antes === 'pfondo' && p !== 'pfondo') limpiarPF();          // al salir se borra el IBM buscado
   if (dir == null) dir = antes == null ? 0 : Math.sign((ORDEN[p] ?? 0) - (ORDEN[antes] ?? 0));
