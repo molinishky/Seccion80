@@ -285,7 +285,7 @@ html,body{overflow-x:hidden}
     <form id="f-pf" autocomplete="off"><div class="campo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--azul)" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="pf-ibm" inputmode="numeric" placeholder="IBM del trabajador" enterkeyhint="search"></div></form>
     <section class="vidrio" id="pf-res" style="padding:16px" hidden></section>
     <section class="vidrio" id="pf-lista" style="padding:16px" hidden></section>
-    <p class="nota">Se puede prestar hasta el 80 % del saldo del fondo de ahorro del trabajador (el mismo tope que usa la app), menos los préstamos del fondo que tenga registrados y sin liquidar. El oficio sale con la plantilla de la Sección 80 y la fecha que elijas. Cada oficio generado queda registrado; márcalo como liquidado cuando se pague.</p>
+    <p class="nota">Se puede prestar hasta el 80 % del saldo del fondo de ahorro del trabajador (el mismo tope que usa la app). Solo se otorga un préstamo al año a cada trabajador (RLISR, Art. 49, fracc. III). El oficio sale con la plantilla de la Sección 80 y la fecha que elijas, y queda registrado.</p>
   </div>
 </main>
 
@@ -369,7 +369,7 @@ function marcarBurbuja(p, sinAnim) {
   BURB.style.width = t.offsetWidth + 'px'; BURB.style.transform = `translateX(${t.offsetLeft}px)`;
 }
 /* ---------- Actualización automática: si hay versión nueva del panel, se recarga solo (evita la copia guardada del navegador) ---------- */
-const PANEL_V = '20261124033500';
+const PANEL_V = '20261124152500';
 async function revisarVersion() {
   try {
     const v = (await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json()).v;
@@ -1385,7 +1385,11 @@ async function cargarPF() {
   } catch (e) { $('#pf-lista').hidden = false; $('#pf-lista').replaceChildren(el('p', 'err', e.message)); return; }
   pintarPFLista();
 }
-const pfVigentes = soc => (PFREG ? PFREG.prestamos : []).filter(x => x.socio === soc && !x.liquidado);
+// Un préstamo al año por trabajador: si ya tiene uno registrado en los últimos 12 meses, no se otorga otro (RLISR, Art. 49, fracc. III)
+const pfDelAño = (soc, fecha) => { const t = fecha ? new Date(fecha + 'T12:00').getTime() : Date.now(); return (PFREG ? PFREG.prestamos : []).filter(x => x.socio === soc && Math.abs(t - new Date(x.fecha + 'T12:00')) < 365 * 864e5); };
+const PF_ART49 = 'El Reglamento de la Ley del ISR, Art. 49, fracción III, dice: «Que en el caso de préstamos otorgados a trabajadores que tengan como garantía las aportaciones del fondo, dichos préstamos no excedan del monto que el trabajador tenga ahorrado y siempre que dichos préstamos sean otorgados una vez al año».';
+const pfRepetido = (soc, fecha) => { const y = pfDelAño(soc, fecha); if (!y.length) return null; const u = y[y.length - 1];
+  return `No se puede otorgar otro préstamo: ya tiene uno de ${pfDinero(u.monto)} del ${pfFechaLarga(u.fecha)}, y solo se otorga un préstamo al año. ${PF_ART49}`; };
 function pintarPFLista() {
   const box = $('#pf-lista'), L = (PFREG ? PFREG.prestamos : []).slice().reverse();
   box.hidden = false;
@@ -1395,10 +1399,11 @@ function pintarPFLista() {
   pend.forEach(x => {
     const f = el('div', 'pf-reg'); const nom = x.nombre || ('IBM ' + x.ibm);
     f.append(el('b', null, nom), el('b', null, pfDinero(x.monto)), el('span', 'pin-ibm', `IBM ${x.ibm} · ${x.fecha ? pfFechaLarga(x.fecha) : x.registrado} · saldo ${pfDinero(x.saldo)}`), el('span', 'pin-ibm', 'Solicitado en la app'));
+    if (pfDelAño(x.socio, x.fecha).length) f.append(el('p', 'err', pfRepetido(x.socio, x.fecha)));
     const acc = el('div', 'acc');
     const rg = el('button', null, 'Registrar préstamo'); rg.type = 'button';
-    rg.onclick = async () => { if (!confirm(`¿Registrar el préstamo de ${pfDinero(x.monto)} para ${nom}?`)) return; rg.disabled = true;
-      try { PFREG = (await leerJSON(PF_RUTA)) || { prestamos: [] }; PFREG.prestamos.push({ id: x.id, socio: x.socio, nombre: nom, monto: x.monto, fecha: x.fecha || new Date().toISOString().slice(0, 10), saldo: x.saldo, registrado: new Date().toISOString(), por: ($('#quien') || {}).textContent || '', origen: 'app', liquidado: false });
+    rg.onclick = async () => { { const rep = pfRepetido(x.socio, x.fecha); if (rep) { alert(rep); return; } } if (!confirm(`¿Registrar el préstamo de ${pfDinero(x.monto)} para ${nom}?`)) return; rg.disabled = true;
+      try { PFREG = (await leerJSON(PF_RUTA)) || { prestamos: [] }; { const rep = pfRepetido(x.socio, x.fecha); if (rep) { alert(rep); rg.disabled = false; return; } } PFREG.prestamos.push({ id: x.id, socio: x.socio, nombre: nom, monto: x.monto, fecha: x.fecha || new Date().toISOString().slice(0, 10), saldo: x.saldo, registrado: new Date().toISOString(), por: ($('#quien') || {}).textContent || '', origen: 'app', liquidado: false });
         await guardarPF(`Préstamo del fondo (solicitud de la app): IBM ${x.ibm} por ${pfDinero(x.monto)}`); x.estado = 'Registrado'; appPF({ tipo: 'estado_prestamo', id: x.id, estado: 'Registrado' }).catch(() => {}); pintarPFLista(); buscarPF(); }
       catch (e) { alert(e.message); rg.disabled = false; } };
     const pdf = el('button', null, 'Oficio PDF'); pdf.type = 'button'; pdf.onclick = () => oficioPF({ ...x, nombre: nom, fecha: x.fecha || new Date().toISOString().slice(0, 10) }, pdf);
@@ -1407,16 +1412,14 @@ function pintarPFLista() {
     acc.append(rg, pdf, ds); f.append(acc); app.push(f);
   });
   const sep = el('div'); sep.style.height = '14px'; app.push(sep);
-  const tot = L.filter(x => !x.liquidado).reduce((a, x) => a + x.monto, 0);
-  const cab = el('div', 'pin-nom', 'Préstamos registrados'); const sub = el('div', 'pin-ibm', L.length ? `${L.filter(x => !x.liquidado).length} sin liquidar · ${pfDinero(tot)}` : 'Todavía no hay préstamos del fondo registrados.');
+  const tot = L.reduce((a, x) => a + x.monto, 0);
+  const cab = el('div', 'pin-nom', 'Préstamos registrados'); const sub = el('div', 'pin-ibm', L.length ? `${L.length} préstamo${L.length > 1 ? 's' : ''} · ${pfDinero(tot)}` : 'Todavía no hay préstamos del fondo registrados.');
   box.replaceChildren(...app, cab, sub, ...L.slice(0, 40).map(x => {
-    const f = el('div', 'pf-reg' + (x.liquidado ? ' pf-liq' : ''));
-    f.append(el('b', null, `${x.nombre}`), el('b', null, pfDinero(x.monto)), el('span', 'pin-ibm', `IBM ${+x.socio - 10000} · ${pfFechaLarga(x.fecha)}`), el('span', 'pin-ibm', (x.liquidado ? 'Liquidado' : 'Sin liquidar') + (x.origen === 'app' ? ' · pedido en la app' : '')));
+    const f = el('div', 'pf-reg');
+    f.append(el('b', null, `${x.nombre}`), el('b', null, pfDinero(x.monto)), el('span', 'pin-ibm', `IBM ${+x.socio - 10000} · ${pfFechaLarga(x.fecha)}`), el('span', 'pin-ibm', x.origen === 'app' ? 'Pedido en la app' : 'Registrado en el panel'));
     const acc = el('div', 'acc');
     const pdf = el('button', null, 'Oficio PDF'); pdf.type = 'button'; pdf.onclick = () => oficioPF(x, pdf);
-    const lq = el('button', null, x.liquidado ? 'Marcar sin liquidar' : 'Marcar liquidado'); lq.type = 'button';
-    lq.onclick = async () => { lq.disabled = true; try { x.liquidado = !x.liquidado; await guardarPF(`Préstamo del fondo ${x.liquidado ? 'liquidado' : 'sin liquidar'}: IBM ${+x.socio - 10000}`); pintarPFLista(); buscarPF(); } catch (e) { x.liquidado = !x.liquidado; alert(e.message); lq.disabled = false; } };
-    acc.append(pdf, lq); f.append(acc); return f;
+    acc.append(pdf); f.append(acc); return f;
   }));
 }
 async function guardarPF(msg) {
@@ -1429,9 +1432,9 @@ function buscarPF() {
   if (!x) { box.replaceChildren(el('p', 'err', `No encontré el IBM ${v}.`)); return; }
   const nombre = (NOMBRES && NOMBRES[soc]) || titulo(x.nombre), ibm = +soc - 10000;
   if (!x.fondo || !(x.saldo > 0)) { box.replaceChildren(el('div', 'pin-nom', nombre), el('div', 'pin-ibm', `IBM ${ibm}`), el('p', 'err', 'No tiene saldo en el fondo de ahorro.')); return; }
-  const vig = pfVigentes(soc), prest = vig.reduce((a, p) => a + p.monto, 0), tope = Math.floor(x.saldo * 0.8 * 100) / 100, disp = Math.max(0, Math.floor((tope - prest) * 100) / 100);
+  const tope = Math.floor(x.saldo * 0.8 * 100) / 100, disp = tope;
   const k = (lbl, val, c) => { const d = el('div', 'fal-kpi'); d.style.setProperty('--c', c); d.append(el('small', null, lbl), el('b', null, val)); d.querySelector('b').style.fontSize = '19px'; return d; };
-  const kp = el('div', 'pf-kpis'); kp.append(k('Saldo del fondo', pfDinero(x.saldo), '#0B3D6E'), k('Tope 80 %', pfDinero(tope), '#5B6575'), k('Préstamos sin liquidar', pfDinero(prest), '#B45309'), k('Puede pedir hasta', pfDinero(disp), '#2E9E4B'));
+  const kp = el('div', 'pf-kpis'); kp.append(k('Saldo del fondo', pfDinero(x.saldo), '#0B3D6E'), k('Puede pedir hasta (80 %)', pfDinero(disp), '#2E9E4B'));
   const monto = el('input'); monto.inputMode = 'decimal'; monto.placeholder = 'Cantidad'; monto.id = 'pf-monto';
   const cm = el('div', 'campo'); cm.append(monto);
   const mx = el('button', 'btn sec', 'Máximo'); mx.type = 'button'; mx.style.cssText = 'width:auto;padding:0 16px;margin:0'; mx.onclick = () => { monto.value = disp.toFixed(2); aviso(); };
@@ -1441,21 +1444,20 @@ function buscarPF() {
   const msg = el('p', 'nota'); msg.style.textAlign = 'left';
   const gen = el('button', 'btn'); gen.type = 'button'; gen.style.marginTop = '10px';
   gen.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg><span>Generar oficio y registrar</span>';
-  const aviso = () => { const m = +String(monto.value).replace(/[$,\s]/g, ''); msg.textContent = m > 0 ? pfConLetra(m) : ''; msg.className = m > disp + 0.001 ? 'err' : 'nota'; if (m > disp + 0.001) msg.textContent = `La cantidad no puede pasar de ${pfDinero(disp)}.`; gen.disabled = !(m > 0) || m > disp + 0.001; };
+  const aviso = () => { const m = +String(monto.value).replace(/[$,\s]/g, ''), rep = pfRepetido(soc, fecha.value); msg.textContent = m > 0 ? pfConLetra(m) : ''; msg.className = m > disp + 0.001 || rep ? 'err' : 'nota'; if (m > disp + 0.001) msg.textContent = `La cantidad no puede pasar de ${pfDinero(disp)}.`; if (rep) msg.textContent = rep; gen.disabled = !!rep || !(m > 0) || m > disp + 0.001; };
+  fecha.addEventListener('change', aviso);
   monto.addEventListener('input', aviso); aviso();
   gen.onclick = async () => {
-    const m = Math.round(+String(monto.value).replace(/[$,\s]/g, '') * 100) / 100; if (!(m > 0) || m > disp + 0.001) return;
+    const m = Math.round(+String(monto.value).replace(/[$,\s]/g, '') * 100) / 100; if (!(m > 0) || m > disp + 0.001 || pfRepetido(soc, fecha.value)) return;
     if (!confirm(`¿Generar y registrar el préstamo de ${pfDinero(m)} para ${nombre} (IBM ${ibm})?`)) return;
     const reg = { id: Date.now().toString(36), socio: soc, nombre, monto: m, fecha: fecha.value, saldo: x.saldo, registrado: new Date().toISOString(), por: ($('#quien') || {}).textContent || '', liquidado: false };
     gen.disabled = true; const t = gen.querySelector('span'), antes = t.textContent; t.textContent = 'Registrando…';
-    try { PFREG = (await leerJSON(PF_RUTA)) || { prestamos: [] }; PFREG.prestamos.push(reg); await guardarPF(`Préstamo del fondo de ahorro: IBM ${ibm} por ${pfDinero(m)}`); }
+    try { PFREG = (await leerJSON(PF_RUTA)) || { prestamos: [] }; { const rep = pfRepetido(soc, fecha.value); if (rep) throw new Error(rep); } PFREG.prestamos.push(reg); await guardarPF(`Préstamo del fondo de ahorro: IBM ${ibm} por ${pfDinero(m)}`); }
     catch (e) { alert('No se pudo registrar: ' + e.message); t.textContent = antes; gen.disabled = false; return; }
     t.textContent = antes; pintarPFLista(); await oficioPF(reg, gen); buscarPF();
   };
   box.replaceChildren(el('div', 'pin-nom', nombre), el('div', 'pin-ibm', `IBM ${ibm}`), kp,
-    ...((() => { const año = (PFREG ? PFREG.prestamos : []).filter(p => p.socio === soc && (Date.now() - new Date(p.fecha + 'T12:00')) < 365 * 864e5); return año.length ? [el('p', 'err', `Ojo: ya tiene ${año.length} préstamo${año.length > 1 ? 's' : ''} del fondo en los últimos 12 meses (el último del ${pfFechaLarga(año.at(-1).fecha)}). El RLISR, Art. 49, dice que se otorgan una vez al año.`)] : []; })()),
     ...((PFAPP || []).filter(p => p.socio === soc && p.estado === 'Solicitado').map(p => el('p', 'nota', `Pidió en la app ${pfDinero(p.monto)} el ${p.fecha ? pfFechaLarga(p.fecha) : p.registrado} (está en «Solicitudes desde la app», abajo).`))),
-    ...(vig.length ? [el('p', 'nota', `Tiene ${vig.length} préstamo${vig.length > 1 ? 's' : ''} del fondo sin liquidar: ${vig.map(p => pfDinero(p.monto) + ' del ' + pfFechaLarga(p.fecha)).join(', ')}.`)] : []),
     fila, cf, msg, gen);
 }
 $('#f-pf').addEventListener('submit', e => { e.preventDefault(); $('#pf-ibm').blur(); buscarPF(); });
