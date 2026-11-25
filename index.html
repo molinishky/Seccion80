@@ -2938,6 +2938,7 @@ async function enviarChat(raw) {
   yo(text);
   const q = text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   if (chatStage === 'loan' || chatStage === 'loanConfirm') return pasoPrestamo(text, q);
+  if (chatStage === 'tabciclo') { const r = await pasoTabCiclo(q); if (r !== false) return; }
   if (chatStage === 'tab') { const r = await pasoTabulador(q); if (r !== false) return; }
   if (chatStage === 'escdep') { const r = await pasoEscDep(q); if (r !== false) return; }
   if (/^otro escalafon/.test(q)) { let E = null; try { E = await cargarEscalafon(); } catch (e) {} if (E && E.llave) { try { await cargarTab(); } catch (e) {} return preguntarDep('escdep', '¿De qué departamento quieres el escalafón? Escribe el nombre o el número, o elige uno:'); } }
@@ -3057,27 +3058,43 @@ async function misDeps() {   // departamentos donde el trabajador tiene planta, 
   let E = null; try { E = await cargarEscalafon(); } catch (e) {}
   return { E, mios: E ? ['zafra', 'reparacion'].flatMap(k => (E[k] || []).map(d => ({ k, d }))) : [] };
 }
-function preguntarDep(stage, texto) {
-  chatStage = stage;
+function preguntarDep(stage, texto, k) {
+  chatStage = stage; TAB_K = k || null;
   bot(texto);
-  chips([...depsEsc().map(chipDep), 'Cancelar']);
+  chips([...depsEsc().filter(x => !k || x.k === k).map(chipDep), 'Cancelar']);
 }
+let TAB_K = null, TAB_PEND = null;   // ciclo elegido para los salarios y la pregunta que quedó pendiente
+const cicloDeTexto = q => /zafra/.test(sinAc(q)) ? 'zafra' : /repara/.test(sinAc(q)) ? 'reparacion' : null;
+// Salarios: primero el ciclo (zafra o reparación), luego el departamento de su planta en ese ciclo o el que elija
 async function chatTabulador(q) {
   try { await cargarTab(); } catch (e) { bot('No pude abrir el tabulador de salarios. Revisa tu conexión a internet.'); return; }
-  const otro = /^otro departamento/.test(q);
-  const pedido = otro ? [] : buscarDepEsc(q.replace(/tabulador|salarios?|escalaf\w*/g, ''));
-  if (pedido.length) return mostrarTabEsc(pedido);
+  const otro = /^otro departamento/.test(q), k = cicloDeTexto(q);
+  if (!k) { TAB_PEND = { q, otro }; chatStage = 'tabciclo'; bot('¿De qué ciclo quieres los salarios, de zafra o de reparación?'); chips(['Zafra', 'Reparación', 'Cancelar']); return; }
+  return salariosCiclo(k, q, otro);
+}
+async function salariosCiclo(k, q, otro) {
+  const pedido = otro ? [] : buscarDepEsc(k + ' ' + q.replace(/tabulador|salarios?|escalaf\w*|zafra|reparacion/g, '')).filter(x => x.k === k);
+  if (pedido.length && /\d|[a-z]{4,}/.test(q.replace(/tabulador|salarios?|escalaf\w*|zafra|reparacion|de|del|mi|mis|los|las|el|la|cuales|son|dame|quiero|ver|departamento|otro/g, '').trim())) return mostrarTabEsc(pedido);
   if (!otro) {
     const t = escribiendo(); const { E, mios } = await misDeps(); t.remove();
-    if (mios.length) return mostrarTabEsc(mios, E);
+    const m = mios.filter(x => x.k === k);
+    if (m.length) return mostrarTabEsc(m, E);
   }
-  preguntarDep('tab', otro ? '¿De qué departamento quieres los salarios? Escribe el nombre o el número, o elige uno:'
-    : 'No apareces con planta en los escalafones de zafra ni de reparación. ¿De qué departamento quieres los salarios? Escribe el nombre o el número, o elige uno:');
+  preguntarDep('tab', otro ? `¿De qué departamento de ${CICLO_N[k].toLowerCase()} quieres los salarios? Escribe el nombre o el número, o elige uno:`
+    : `No apareces con planta en el escalafón de ${CICLO_N[k].toLowerCase()}. ¿De qué departamento quieres los salarios? Escribe el nombre o el número, o elige uno:`, k);
+}
+async function pasoTabCiclo(q) {
+  if (/cancel|ya no|olvida/.test(q)) { chatStage = 'chat'; bot('Listo.'); chips(baseChips()); return true; }
+  const k = cicloDeTexto(q);
+  if (!k) { if (q.split(/\s+/).length > 4) { chatStage = 'chat'; return false; } bot('Elige el ciclo: zafra o reparación.'); chips(['Zafra', 'Reparación', 'Cancelar']); return true; }
+  chatStage = 'chat'; const P = TAB_PEND || { q: '', otro: false }; TAB_PEND = null;
+  try { await cargarTab(); } catch (e) { bot('No pude abrir el tabulador de salarios. Revisa tu conexión a internet.'); return true; }
+  await salariosCiclo(k, P.q, P.otro); return true;
 }
 async function pasoTabulador(q) {
   if (/cancel|ya no|olvida/.test(q)) { chatStage = 'chat'; bot('Listo.'); chips(baseChips()); return true; }
   try { await cargarTab(); } catch (e) { chatStage = 'chat'; return false; }
-  const d = buscarDepEsc(q);
+  const d = buscarDepEsc(q).filter(x => !TAB_K || x.k === TAB_K);
   if (d.length) { chatStage = 'chat'; mostrarTabEsc(d); return true; }
   if (q.split(/\s+/).length > 5) { chatStage = 'chat'; return false; }       // parece otra pregunta: se atiende normal
   bot('No encontré ese departamento. Escribe el número o parte del nombre (por ejemplo «zafra 13» o «soldadura»).'); return true;
@@ -3627,7 +3644,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261125122801';
+const APP_VERSION = '20261125123310';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
