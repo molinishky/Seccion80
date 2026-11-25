@@ -2939,6 +2939,8 @@ async function enviarChat(raw) {
   const q = text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   if (chatStage === 'loan' || chatStage === 'loanConfirm') return pasoPrestamo(text, q);
   if (chatStage === 'tab') { const r = await pasoTabulador(q); if (r !== false) return; }
+  if (chatStage === 'escdep') { const r = await pasoEscDep(q); if (r !== false) return; }
+  if (/^otro escalafon/.test(q)) { let E = null; try { E = await cargarEscalafon(); } catch (e) {} if (E && E.llave) { try { await cargarTab(); } catch (e) {} return preguntarDep('escdep', '¿De qué departamento quieres el escalafón? Escribe el nombre o el número, o elige uno:'); } }
   if (pideTabulador(q)) return chatTabulador(q);
   if (/(hablar|platicar|comunicar|contactar|llamar).*(alguien|persona|secretari|delegado|sindicato|comite|humano)|\b(secretario|humano|una persona)\b/.test(q) && !/(prestamo|oficio)/.test(q)) {
     const bx = el('div', 'msg-acc');
@@ -3023,7 +3025,7 @@ let TAB = null;
 const sinAc = t => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 function pideTabulador(q) {
   if (/(que dice|articulo|clausula)/.test(q)) return false;
-  return /tabulador|^otro departamento$/.test(q) || (/(salario|sueldo|cuanto (gana|pagan|se paga))/.test(q) && /(escalaf|categoria|puesto|departamento|plaza|tabla|lista)/.test(q));
+  return /tabulador|^otro departamento$/.test(q) || (/\bsalarios\b/.test(q) && !/(minimo|caidos|vencidos|devengad|integrad|promedio)/.test(q)) || (/(salario|sueldo|cuanto (gana|pagan|se paga))/.test(q) && /(escalaf|categoria|puesto|departamento|plaza|tabla|lista)/.test(q));
 }
 async function cargarTab() { if (TAB) return TAB; const r = await fetch('tabulador.json?v=' + ((DATA && DATA.meta && DATA.meta.version) || ''), { cache: 'no-store' }); if (!r.ok) throw new Error('tab'); return (TAB = await r.json()); }
 const nomDep = d => capital(d.nombre.replace(/\bMANTTO\b|\bMANTO\b/g, 'MANTENIMIENTO').replace(/\bREPN\b|\bREP\b/g, 'REPARACIÓN').replace(/\bFCA\b/g, 'FÁBRICA').replace(/\bELECTR\b/g, 'ELÉCTRICA').replace(/\bCTO HTAS\b/g, 'CUARTO DE HERRAMIENTAS').replace(/\bEDIF\b/g, 'EDIFICIOS').replace(/\bCONST\b/g, 'CONSTRUCCIÓN').replace(/\bSIST\b/g, 'SISTEMA').replace(/\bALIMENT\b/g, 'ALIMENTACIÓN').replace(/\bSUPTCIA\b/g, 'SUPERINTENDENCIA').replace(/\bEQ\b/g, 'EQUIPO').replace(/\bHERRER\b/g, 'HERRERÍA').replace(/PAILERIA/g, 'PAILERÍA').replace(/CLARIFICACION/g, 'CLARIFICACIÓN').replace(/EVAPORACION/g, 'EVAPORACIÓN').replace(/CRISTALIZACION/g, 'CRISTALIZACIÓN').replace(/ELECTRICA\b/g, 'ELÉCTRICA').replace(/ELECTRICO/g, 'ELÉCTRICO').replace(/QUIMICO/g, 'QUÍMICO').replace(/ALMACEN/g, 'ALMACÉN').replace(/AZUCAR/g, 'AZÚCAR').replace(/IRRIGACION/g, 'IRRIGACIÓN').replace(/MISCELANEOS/g, 'MISCELÁNEOS').replace(/CARPINTERIA/g, 'CARPINTERÍA').replace(/FABRICA\b/g, 'FÁBRICA'));
@@ -3035,21 +3037,89 @@ function buscarDep(q) {
   for (const d of TAB.deptos) { const nd = sinAc(nomDep(d) + ' ' + d.nombre); const p = pal.filter(w => nd.includes(w) || nd.split(' ').some(x => x.length > 3 && w.startsWith(x.slice(0, 5)))).length; if (p > pts) { mejor = d; pts = p; } }
   return mejor;
 }
+/* Departamentos de los escalafones (zafra y reparación): los salarios y las listas se dan por el departamento de la planta de cada quien;
+   si no tiene planta, se le pregunta de cuál departamento */
+const CICLO_N = { zafra: 'Zafra', reparacion: 'Reparación' };
+const depsEsc = () => ['zafra', 'reparacion'].flatMap(k => ((TAB && TAB.esc && TAB.esc[k]) || []).map(d => ({ k, d })));
+const chipDep = x => `${CICLO_N[x.k]} · ${x.d.num} ${capital(x.d.nombre)}`;
+function buscarDepEsc(q) {
+  const t = sinAc(q), soloK = /zafra/.test(t) ? 'zafra' : /repara/.test(t) ? 'reparacion' : null;
+  const L = depsEsc().filter(x => !soloK || x.k === soloK);
+  const n = /(?:^|\s|·|depto\.?|departamento|no\.?|num(?:ero)?)\s*(\d{1,2})\b/.exec(t);
+  if (n) { const m = L.filter(x => +x.d.num === +n[1]); if (m.length) return m; }
+  const pal = t.split(/[^a-zñ]+/).filter(w => w.length > 3 && !/^(departamento|depto|tabulador|salario|salarios|sueldo|sueldos|escalafon|zafra|reparacion|quiero|busco|cual|cuales|dame|lista|para|del|los|las|general)$/.test(w));
+  if (!pal.length) return [];
+  let mejor = [], pts = 0;
+  for (const x of L) { const nd = sinAc(x.d.nombre); const p = pal.filter(w => nd.includes(w) || nd.split(/\s+/).some(y => y.length > 3 && w.startsWith(y.slice(0, 5)))).length; if (p > pts) { mejor = [x]; pts = p; } else if (p && p === pts) mejor.push(x); }
+  return mejor;
+}
+async function misDeps() {   // departamentos donde el trabajador tiene planta, según los escalafones
+  let E = null; try { E = await cargarEscalafon(); } catch (e) {}
+  return { E, mios: E ? ['zafra', 'reparacion'].flatMap(k => (E[k] || []).map(d => ({ k, d }))) : [] };
+}
+function preguntarDep(stage, texto) {
+  chatStage = stage;
+  bot(texto);
+  chips([...depsEsc().map(chipDep), 'Cancelar']);
+}
 async function chatTabulador(q) {
   try { await cargarTab(); } catch (e) { bot('No pude abrir el tabulador de salarios. Revisa tu conexión a internet.'); return; }
-  const d = /^otro departamento/.test(q) ? null : buscarDep(q.replace(/tabulador|salarios?|escalaf\w*/g, ''));
-  if (d) return mostrarTab(d);
-  chatStage = 'tab';
-  bot('Claro. ¿De qué departamento quieres el tabulador de salarios? Escribe el nombre o el número, o elige uno:');
-  chips([...TAB.deptos.map(x => `${x.n} · ${nomDep(x)}`), 'Cancelar']);
+  const otro = /^otro departamento/.test(q);
+  const pedido = otro ? [] : buscarDepEsc(q.replace(/tabulador|salarios?|escalaf\w*/g, ''));
+  if (pedido.length) return mostrarTabEsc(pedido);
+  if (!otro) {
+    const t = escribiendo(); const { E, mios } = await misDeps(); t.remove();
+    if (mios.length) return mostrarTabEsc(mios, E);
+  }
+  preguntarDep('tab', otro ? '¿De qué departamento quieres los salarios? Escribe el nombre o el número, o elige uno:'
+    : 'No apareces con planta en los escalafones de zafra ni de reparación. ¿De qué departamento quieres los salarios? Escribe el nombre o el número, o elige uno:');
 }
 async function pasoTabulador(q) {
   if (/cancel|ya no|olvida/.test(q)) { chatStage = 'chat'; bot('Listo.'); chips(baseChips()); return true; }
   try { await cargarTab(); } catch (e) { chatStage = 'chat'; return false; }
-  const d = buscarDep(q);
-  if (d) { chatStage = 'chat'; mostrarTab(d); return true; }
+  const d = buscarDepEsc(q);
+  if (d.length) { chatStage = 'chat'; mostrarTabEsc(d); return true; }
   if (q.split(/\s+/).length > 5) { chatStage = 'chat'; return false; }       // parece otra pregunta: se atiende normal
-  bot('No encontré ese departamento. Escribe el número (por ejemplo 17) o parte del nombre (por ejemplo «soldadura»).'); return true;
+  bot('No encontré ese departamento. Escribe el número o parte del nombre (por ejemplo «zafra 13» o «soldadura»).'); return true;
+}
+// Salarios de los puestos de uno o más departamentos del escalafón, con el salario anterior y el aumento
+function mostrarTabEsc(lista, E) {
+  const cat = {}; TAB.deptos.forEach(d => d.cats.forEach(c => { cat[c.c] = c; }));
+  const sube = TAB.deptos.flatMap(d => d.cats).filter(c => c.antes).map(c => c.ahora / c.antes - 1), pct = sube.length ? sube.reduce((a, b) => a + b, 0) / sube.length * 100 : 0;
+  const bx = el('div', 'msg-acc');
+  bx.append(el('div', null, (E ? 'Estos son los salarios de los puestos de tu departamento' : 'Estos son los salarios de los puestos del departamento') + `. Desde el 16 de octubre de 2026 hubo un aumento de ${pct.toFixed(1)} % parejo a todas las categorías; entre paréntesis va el salario anterior, el que estuvo vigente del 16 de octubre de 2025 al 15 de octubre de 2026.`));
+  const filas = lista.map(({ k, d: d0 }) => {
+    const d = ((TAB.esc || {})[k] || []).find(x => String(x.num) === String(d0.num)) || d0;   // salarios del tabulador; d0 puede traer los trabajadores (tu plaza)
+    const t = el('div'); t.style.marginTop = '10px'; t.append(el('b', null, `${CICLO_N[k]} · Departamento ${d.num} · ${capital(d.nombre)}`)); bx.append(t);
+    const out = [];
+    d.puestos.forEach((p, i) => {
+      const c = p.ahora ? { ahora: p.ahora, antes: p.antes } : cat[+p.cat], q0 = d0.puestos && d0.puestos[i], mio = !!(E && q0 && q0.trab && q0.trab.some(x => x.ibm === E.ibm));
+      const f = el('div'); f.style.cssText = 'margin-top:7px;line-height:1.35';
+      const n = el('div'); n.append(el('b', null, `${p.cat ? p.cat + ' · ' : ''}${capital(p.nombre.replace(/^\s*\d+\.-\s*/, ''))}${mio ? ' (tu plaza)' : ''}`)); f.append(n);
+      f.append(el('div', null, c ? (c.antes ? `${money(c.ahora)} (antes ${money(c.antes)}, +${money(c.ahora - c.antes)})` : money(c.ahora)) : p.esc ? `${money(p.esc)} (salario del escalafón)` : 'Sin salario en el tabulador'));
+      bx.append(f); out.push({ p, c, mio });
+    });
+    return { k, d, out };
+  });
+  bx.append(el('div', 'ley-nota', 'Salario diario de cada categoría según el tabulador del contrato. El número de categoría es el mismo que sale en tu desglose de nómina, junto al puesto.'));
+  const dl = el('button', 'btn-pri sm'); dl.type = 'button'; dl.dataset.pdf = '1'; dl.innerHTML = ICON.dl + '<span>Descargar salarios (PDF)</span>';
+  dl.onclick = async () => { dl.disabled = true; try { await guardarPDF(await buildTabEscPDF(filas, pct), `Salarios_${filas.map(f => f.k + '_' + f.d.num).join('_')}.pdf`); } catch (e) { toast('No pude generar el PDF. Inténtalo de nuevo.'); } dl.disabled = false; };
+  bx.append(dl);
+  bot(bx);
+  chips(['Otro departamento', ...baseChips()]);
+}
+async function buildTabEscPDF(filas, pct) {
+  const m2 = v => '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  let nombre = '', ibm = ''; try { nombre = nombreCompleto(session.data); ibm = 'IBM ' + corto(session.data.socio); } catch (e) {}
+  const P = await pdfSeccion({ titulo: 'Salarios del departamento', sub: filas.map(f => `${CICLO_N[f.k]}: departamento ${f.d.num}, ${capital(f.d.nombre)}`).join(' · ') + ' · tabulador vigente desde el 16 de octubre de 2026',
+    nombre, ibm, pie: 'salarios del departamento', docTitulo: 'Salarios del departamento' });
+  P.cabecera();
+  P.total('Aumento desde el 16 de octubre de 2026', `${pct.toFixed(1)} %`);
+  filas.forEach(f => P.tabla(`${CICLO_N[f.k]} · Departamento ${f.d.num} · ${capital(f.d.nombre)}`, [['Cat.', 40, 'c'], ['Puesto', 250], ['Salario anterior', 90, 'r'], ['Salario vigente', 90, 'r'], ['Aumento', 70, 'r']],
+    f.out.map(({ p, c, mio }) => [String(p.cat || '—'), capital(p.nombre.replace(/^\s*\d+\.-\s*/, '')) + (mio ? ' (tu plaza)' : ''), c && c.antes ? m2(c.antes) : p.esc && !c ? m2(p.esc) : '—', c ? m2(c.ahora) : '—', c && c.antes ? '+' + m2(c.ahora - c.antes) : '—']),
+    { compacto: f.out.length > 30, tonos: f.out.map(x => x.mio ? 'ok' : null) }));
+  P.parrafo('Salario diario de cada categoría. El salario anterior estuvo vigente del 16 de octubre de 2025 al 15 de octubre de 2026. El número de categoría es el mismo que sale en el desglose de nómina, junto al puesto.', 'nota');
+  return P.cerrar();
 }
 function mostrarTab(d) {
   const sube = d.cats.filter(c => c.antes).map(c => c.ahora / c.antes - 1), pct = sube.length ? (sube.reduce((a, b) => a + b, 0) / sube.length * 100) : 0;
@@ -3104,6 +3174,12 @@ async function chatEscalafon(q) {
   try { E = await cargarEscalafon(); } catch (e) { t.remove(); bot('No pude abrir los escalafones. Revisa tu conexión a internet.'); return; }
   await new Promise(r => setTimeout(r, 250)); t.remove();
   if (!E) { const bx = el('div', 'msg-acc'); bx.append(el('div', null, 'No encontré tu IBM en los escalafones de zafra, reparación ni antigüedades. Si crees que es un error, coméntaselo al Secretario de Relaciones.'), botonSecretario('sobre mi lugar en el escalafón')); bot(bx); return; }
+  if (E.llave && !/antig/.test(q)) {   // sin planta: se le pregunta de cuál departamento quiere la lista
+    try { await cargarTab(); } catch (e) { bot('No pude abrir los escalafones. Revisa tu conexión a internet.'); return; }
+    const pedido = buscarDepEsc(q.replace(/escalaf\w*|escalof\w*|lista\w*|pdf/g, ''));
+    if (pedido.length) return mostrarEscDep(pedido, E);
+    return preguntarDep('escdep', `No apareces con planta en los escalafones de zafra ni de reparación${E.antig.length ? ' (sí en el de antigüedades: pídeme «escalafón de antigüedad»)' : ''}. ¿De qué departamento quieres el escalafón? Escribe el nombre o el número, o elige uno:`);
+  }
   let pide = ['zafra', 'reparacion', 'antig'].filter(k => (k === 'zafra' && /zafra/.test(q)) || (k === 'reparacion' && /repara/.test(q)) || (k === 'antig' && /antig/.test(q)));
   if (!pide.length) pide = ['zafra', 'reparacion', 'antig'];
   const bx = el('div', 'msg-acc');
@@ -3126,6 +3202,41 @@ async function chatEscalafon(q) {
   }
   bot(bx);
   chips(['Escalafón de zafra', 'Escalafón de reparación', 'Escalafón de antigüedad'].filter((c, i) => !(pide.length === 1 && pide[0] === ['zafra', 'reparacion', 'antig'][i])));
+}
+async function pasoEscDep(q) {
+  if (/cancel|ya no|olvida/.test(q)) { chatStage = 'chat'; bot('Listo.'); chips(baseChips()); return true; }
+  try { await cargarTab(); } catch (e) { chatStage = 'chat'; return false; }
+  const d = buscarDepEsc(q);
+  if (d.length) { chatStage = 'chat'; let E = null; try { E = await cargarEscalafon(); } catch (e) {} if (E) await mostrarEscDep(d, E); return true; }
+  if (q.split(/\s+/).length > 5) { chatStage = 'chat'; return false; }
+  bot('No encontré ese departamento. Escribe el número o parte del nombre (por ejemplo «zafra 13» o «soldadura»).'); return true;
+}
+let escTodos = null, escTodosDe = null;
+async function cargarEscTodos(E) {   // todos los departamentos, para quien no tiene planta (la llave viene en su archivo cifrado)
+  if (escTodosDe === session.id && escTodos) return escTodos;
+  const r = await fetch(`d/esc/todos.bin?v=${(DATA.meta && DATA.meta.version) || ''}`, { cache: 'no-store' }); if (!r.ok) throw new Error('http ' + r.status);
+  const buf = new Uint8Array(await r.arrayBuffer());
+  const k = await crypto.subtle.importKey('raw', Uint8Array.from(atob(E.llave), ch => ch.charCodeAt(0)), 'AES-GCM', false, ['decrypt']);
+  escTodos = JSON.parse(td.decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(0, 12) }, k, buf.slice(12)))); escTodosDe = session.id;
+  return escTodos;
+}
+async function mostrarEscDep(lista, E) {
+  const t = escribiendo(); let T;
+  try { T = await cargarEscTodos(E); } catch (e) { t.remove(); bot('No pude abrir los escalafones. Revisa tu conexión a internet.'); return; }
+  t.remove();
+  const bx = el('div', 'msg-acc');
+  bx.append(el('div', null, lista.length > 1 ? 'Encontré ese departamento en los dos escalafones. Descarga el que necesites:' : 'Aquí tienes el escalafón del departamento:'));
+  lista.forEach(({ k, d }) => {
+    const dep = (T[k] || []).find(x => String(x.num) === String(d.num)); if (!dep) return;
+    const n = dep.puestos.reduce((a, p) => a + p.trab.length, 0);
+    const i = el('div', null, `${CICLO_N[k]} · Departamento ${dep.num} · ${capital(dep.nombre)}: ${dep.puestos.length} puestos, ${n} trabajadores.`); i.style.marginTop = '8px'; bx.append(i);
+    const E2 = { ...E, zafra: k === 'zafra' ? [dep] : [], reparacion: k === 'reparacion' ? [dep] : [] };
+    const b = el('button', 'btn-pri sm'); b.type = 'button'; b.dataset.pdf = '1'; b.style.marginTop = '8px'; b.innerHTML = ICON.dl + `<span>PDF ${CICLO_N[k].toLowerCase()} · depto. ${dep.num}</span>`;
+    b.onclick = async () => { b.disabled = true; try { await guardarPDF(await buildEscalafon(k, E2), `Escalafon_${k}_depto${dep.num}.pdf`); } catch (e) { toast('No pude generar el PDF. Inténtalo de nuevo.'); } b.disabled = false; };
+    bx.append(b);
+  });
+  bot(bx);
+  chips(['Otro escalafón', 'Escalafón de antigüedad', ...baseChips()]);
 }
 async function buildEscalafon(k, E) {
   const tit = k === 'zafra' ? 'Escalafón departamental de zafra' : k === 'reparacion' ? 'Escalafón departamental de reparación' : 'Escalafón general de antigüedades';
@@ -3168,8 +3279,9 @@ async function buildEscalafon(k, E) {
     return y - 7;
   };
   P.cabecera();
-  P.pg.drawRectangle({ x: M, y: P.y - 9, width: 9, height: 9, color: C.AMA, borderColor: C.LINEA, borderWidth: .5 });
-  P.tx('Tu renglón va resaltado · P Permanente · T Temporal', M + 14, P.y - 8, R, 8, C.GRIS); P.y -= 22;
+  if (E.llave && k !== 'antig') { P.tx('P Permanente · T Temporal', M, P.y - 8, R, 8, C.GRIS); P.y -= 22; }   // sin planta: no hay renglón propio
+  else { P.pg.drawRectangle({ x: M, y: P.y - 9, width: 9, height: 9, color: C.AMA, borderColor: C.LINEA, borderWidth: .5 });
+    P.tx('Tu renglón va resaltado · P Permanente · T Temporal', M + 14, P.y - 8, R, 8, C.GRIS); P.y -= 22; }
   if (k === 'antig') {
     E.antig.forEach(a => {
       P.barra(`Año de clasificación ${a.anio} · ${a.trab.length} trabajadores`);
@@ -3515,7 +3627,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261125181420';
+const APP_VERSION = '20261125122801';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
