@@ -369,7 +369,7 @@ function marcarBurbuja(p, sinAnim) {
   BURB.style.width = t.offsetWidth + 'px'; BURB.style.transform = `translateX(${t.offsetLeft}px)`;
 }
 /* ---------- Actualización automática: si hay versión nueva del panel, se recarga solo (evita la copia guardada del navegador) ---------- */
-const PANEL_V = '20261125131000';
+const PANEL_V = '20261125131500';
 async function revisarVersion() {
   try {
     const v = (await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json()).v;
@@ -1251,6 +1251,11 @@ function buscarVac() {
     const b = await botonFaltasPDF(soc); if (b && $('#vac-ibm').value.trim() === v && !box.querySelector('.fal-btn')) { b.classList.add('fal-btn'); box.append(b); }
   }, 0);
   if (!x) { box.replaceChildren(el('p', 'err', `El IBM ${v} no tiene nóminas en ${VAC.nombre}.`)); return; }
+  { // ya no es aproximado si ya se subió su desglose de pago o el Excel de ese cálculo
+    const CONF = 'Cálculo confirmado con su desglose de pago.', nt = $('#s-vac .nota'), ofi = VAC.oficiales && VAC.oficiales[soc];
+    const t0 = nt.textContent.replace(' ' + PREST_APROX, '').replace(' ' + CONF, '');
+    nt.textContent = t0 + (ofi === 'desglose' ? ' ' + CONF : ofi ? '' : ' ' + PREST_APROX);
+  }
   const fila = (a, b, c) => { const f = el('div', 'fila'); f.append(el('span', null, a), el('span', c || null, b)); return f; };
   if (VAC.tipo === 'generico') {
     const fmt = ([v, k]) => k === '$' ? pesos(v) : k === 'd' ? Number(v || 0).toLocaleString('es-MX', { maximumFractionDigits: 3 }) : k === '%' ? dd(v) + ' %' : String(v);
