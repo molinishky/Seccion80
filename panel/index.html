@@ -369,7 +369,7 @@ function marcarBurbuja(p, sinAnim) {
   BURB.style.width = t.offsetWidth + 'px'; BURB.style.transform = `translateX(${t.offsetLeft}px)`;
 }
 /* ---------- Actualización automática: si hay versión nueva del panel, se recarga solo (evita la copia guardada del navegador) ---------- */
-const PANEL_V = '20261124175500';
+const PANEL_V = '20261125125800';
 async function revisarVersion() {
   try {
     const v = (await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json()).v;
@@ -1175,6 +1175,7 @@ function abrirVac(id) {
 }
 function cerrarVacDet() { $('#vac-ibm').value = ''; $('#vac-res').hidden = true; $('#vac-res').replaceChildren(); $('#vac-det').hidden = true; $('#vac-ciclos').hidden = false; $('#vac-h1').textContent = 'Prestaciones'; scrollTo(0, 0); }
 $('#vac-atras').addEventListener('click', e => { if (!$('#vac-det').hidden) { e.preventDefault(); e.stopPropagation(); cerrarVacDet(); } }, true);
+const PREST_APROX = 'Es un cálculo aproximado: la cantidad que se deposite puede variar, porque hay datos de cada trabajador con los que no contamos, como algunas incapacidades o ajustes en su nómina.';
 async function elegirVac(id) {
   if (!VACS[id]) VACS[id] = await leerJSON(`vacaciones/${id}.json`);
   VAC = VACS[id]; const v = VAC, info = $('#vac-info'), nota = $('#s-vac .nota');
@@ -1182,18 +1183,18 @@ async function elegirVac(id) {
   info.hidden = false;
   if (v.tipo === 'generico') {
     info.querySelector('b').textContent = v.info.titulo; info.querySelector('p').textContent = `${v.info.detalle} · ${v.trabajadores.length} trabajadores`;
-    nota.textContent = v.nota; $('#vac-excel').hidden = !v.trabajadores.length; buscarVac(); return;
+    nota.textContent = v.nota + ' ' + PREST_APROX; $('#vac-excel').hidden = !v.trabajadores.length; buscarVac(); return;
   }
   if (v.tipo === 'aguinaldo') {
     const r = v.reparacion;
     info.querySelector('b').textContent = `${v.nombre}: ${v.zafra.nombre} y ${r.nombre}` + (v.parcial ? ', a la fecha' : '');
     info.querySelector('p').textContent = `${v.zafra.nombre}: ${v.zafra.ordinarios} días ordinarios · ${r.nombre}: semanas ${r.semana_desde} a ${r.semana_hasta}, ${r.ordinarios} días ordinarios · ${v.trabajadores.length} trabajadores` + (v.parcial ? ` · falta la nómina ${r.semana_fin}: el cálculo crece con cada nómina` : '');
-    nota.textContent = 'Cálculo bruto, sin ISR. Art. 94 del Contrato Ley: 17 días por zafra y 15 por reparación, proporcionales a los días del ciclo; las incapacidades y permisos cuentan como días trabajados, Art. 102, Destajo y comisión sindical se pagan como diferencia.';
+    nota.textContent = 'Cálculo bruto, sin ISR. Art. 94 del Contrato Ley: 17 días por zafra y 15 por reparación, proporcionales a los días del ciclo; las incapacidades y los permisos cuentan como días trabajados (Art. 102). El destajo y la comisión sindical se pagan como diferencia. ' + PREST_APROX;
     $('#vac-excel').hidden = false; buscarVac(); return;
   }
   nota.textContent = v.tipo === 'reparacion'
     ? 'Cálculo bruto, sin ISR ni descuentos. Art. 40 del Contrato Ley: reparación 11 días, proporcionales a los días del ciclo; +1 día a los 29 años de antigüedad y +1 cada 5 años más; prima vacacional 65 %. Sueldo promedio = percepciones entre días trabajados; extras = media hora de turno y de alimentos con su integración al séptimo. En reparación no hay destajo: solo se suma la comisión sindical, que se paga como diferencia. Las incapacidades del IMSS y los permisos (defunción, nacimiento o alumbramiento y matrimonio) cuentan como días del ciclo y no como faltas, según el Art. 42.'
-    : 'Cálculo bruto, sin ISR ni descuentos. Art. 40 del Contrato Ley: zafra 15 días, proporcionales a los días del ciclo; +1 día a los 29 años de antigüedad y +1 cada 5 años más; prima vacacional 65 %. El destajo en envase se integra como dice el convenio de envases de 2025: todo el destajo del ciclo entre los días trabajados; la comisión sindical se paga como diferencia. Las incapacidades y los permisos (defunción, nacimiento o alumbramiento y matrimonio) cuentan como días del ciclo y no como faltas, según el Art. 42.';
+    : 'Cálculo bruto, sin ISR ni descuentos. Art. 40 del Contrato Ley: zafra 15 días, proporcionales a los días del ciclo; +1 día a los 29 años de antigüedad y +1 cada 5 años más; prima vacacional 65 %. El destajo en envase se integra como dice el convenio de envases de 2025: todo el destajo del ciclo entre los días trabajados; la comisión sindical se paga como diferencia. Las incapacidades y los permisos (defunción, nacimiento o alumbramiento y matrimonio) cuentan como días del ciclo y no como faltas, según el Art. 42.' + ' ' + PREST_APROX;
   if (v.vacio) {
     const fch = f => new Date(f + 'T12:00').toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).replace(',', '');
     info.querySelector('b').textContent = `Vacaciones de ${v.nombre}`;
