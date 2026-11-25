@@ -3014,12 +3014,36 @@ async function chatPrestacion(q) {
     x.lineas.forEach(l => { const d = el('div', 'ley-nota', l); d.style.marginTop = '6px'; bx.append(d); });
     const pg = el('div', 'ley-nota', 'Cuándo: ' + x.pago + '.' + (x.parcial ? ' El ciclo no ha terminado: la cantidad crece con cada nómina.' : '')); pg.style.marginTop = '6px'; bx.append(pg);
     if (x.revisar) { const r = el('div', 'ley-nota', 'Ojo: tu caso tiene una particularidad y este cálculo puede variar más; si tienes dudas, pregúntale al Secretario de Relaciones.'); r.style.marginTop = '6px'; bx.append(r); }
+    if (x.det && x.det.length) {   // PDF con el formato del desglose (sin días: solo importes)
+      const b = el('button', 'btn-pri sm'); b.type = 'button'; b.dataset.pdf = '1'; b.style.marginTop = '10px'; b.innerHTML = ICON.dl + '<span>Descargar el cálculo (PDF)</span>';
+      b.onclick = async () => { b.disabled = true; try { await guardarPDF(await buildPrestPDF(x, P), `${sinAc(x.titulo).replace(/[^a-z0-9]+/g, '_')}_IBM${corto(session.data.socio)}.pdf`); } catch (e) { toast('No pude generar el PDF. Inténtalo de nuevo.'); } b.disabled = false; };
+      bx.append(b);
+    }
     bot(bx);
   }
   const av = el('div', 'msg-acc');
   av.append(el('div', null, `Estos resultados son aproximados: salen del cálculo de la Sección 80 con las nóminas publicadas al ${fd(P.generado)}. Las cantidades son brutas: el cálculo es sin ISR, así que lo que recibas será menos después del impuesto. No tenemos registro de tus incapacidades del IMSS (no vienen en la nómina), así que si tuviste alguna, la cantidad puede cambiar. La cantidad final la determina la empresa al pagar; si ves algo que no cuadra, coméntaselo al Secretario de Relaciones.`), botonSecretario('sobre el cálculo de mis prestaciones'));
   bot(av);
   chips(['¿Cuánto me toca de aguinaldo?', '¿Cuánto me toca de vacaciones?', 'Mis prestaciones', 'Mi saldo']);
+}
+// PDF de una prestación con el formato del desglose de nómina: total, datos y percepciones de cada ciclo, resumen. Sin días.
+async function buildPrestPDF(x, PR) {
+  const d = session.data;
+  const P = await pdfSeccion({ titulo: x.titulo, sub: (x.parcial ? 'A la fecha · ' : '') + x.pago.charAt(0).toUpperCase() + x.pago.slice(1), nombre: nombreCompleto(d), ibm: 'IBM ' + corto(d.socio),
+    pie: 'cálculo aproximado, bruto, sin ISR', docTitulo: `${x.titulo} - IBM ${corto(d.socio)}` });
+  P.cabecera();
+  P.total(x.parcial ? 'TOTAL BRUTO APROXIMADO, A LA FECHA' : 'TOTAL BRUTO APROXIMADO', money(x.total).replace('MX', ''));
+  const res = [];
+  x.det.forEach(sc => {
+    if (sc.datos.length) P.filas('Datos · ' + sc.titulo, sc.datos.map(([a, b]) => [a, b]));
+    const conCalc = sc.conceptos.some(c => c[1]);
+    if (sc.conceptos.length) P.tabla('Percepciones · ' + sc.titulo, conCalc ? [['Concepto', 170], ['Cálculo', 250], ['Importe', 80, 'r']] : [['Concepto', 400], ['Importe', 100, 'r']],
+      sc.conceptos.map(c => conCalc ? c : [c[0], c[2]]), { normal: true, ...(sc.total ? { total: conCalc ? ['Total del ciclo', '', sc.total] : ['Total del ciclo', sc.total] } : {}) });
+    if (sc.total) res.push([sc.titulo, sc.total]);
+  });
+  if (res.length > 1) P.filas('Resumen', [...res, ['Total', money(x.total).replace('MX', ''), { color: 'ok', negrita: true }]]);
+  P.parrafo('Cálculo bruto, sin ISR. Es un cálculo aproximado: la cantidad que se deposite puede variar, porque hay datos de cada trabajador con los que no contamos, como algunas incapacidades o ajustes en su nómina. Si ves algo que no cuadra, coméntaselo al Secretario de Relaciones.', 'nota');
+  return P.cerrar();
 }
 /* ================= Tabulador de salarios (información general del contrato) ================= */
 let TAB = null;
@@ -3644,7 +3668,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261125124624';
+const APP_VERSION = '20261125130030';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
