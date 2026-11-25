@@ -369,7 +369,7 @@ function marcarBurbuja(p, sinAnim) {
   BURB.style.width = t.offsetWidth + 'px'; BURB.style.transform = `translateX(${t.offsetLeft}px)`;
 }
 /* ---------- Actualización automática: si hay versión nueva del panel, se recarga solo (evita la copia guardada del navegador) ---------- */
-const PANEL_V = '20261125125800';
+const PANEL_V = '20261125131000';
 async function revisarVersion() {
   try {
     const v = (await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json()).v;
@@ -1118,14 +1118,48 @@ async function pdfCalculo(btn) {
     const P = await pdfSeccion({ encabezado: (VAC.info && VAC.info.titulo) || ($('#vac-info b') || {}).textContent || info.titulo, titulo: info.titulo, sub: info.sub,
       nombre, ibm, pie: 'cálculo bruto, sin ISR', escudo: '../escudo.png', docTitulo: `${info.titulo} - ${nombre}` });
     P.cabecera();
+    // Formato del desglose de nómina: total arriba, «Datos» de cada ciclo, tabla de percepciones (concepto, cálculo, días, importe) y resumen
+    const soc = normSocio($('#vac-ibm').value.trim()), x = VAC.trabajadores.find(t => t.socio === soc) || {};
+    const m = v => '$' + Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), d = v => String(Math.round((+v || 0) * 1000) / 1000);
+    const COLS = [['Concepto', 150], ['Cálculo', 270], ['Días', 40, 'r'], ['Importe', 70, 'r']];
     const tot = box.querySelector('.vac-tot');
     if (tot) P.total(tot.querySelector('span').textContent, tot.querySelector('b').textContent);
-    let nb = 0;
-    for (const h of box.querySelectorAll('.hallazgo')) {
-      const tit = h.querySelector(':scope > .pin-ibm'), filas = [...h.querySelectorAll(':scope > .fila')];
-      P.filas(tit ? tit.textContent : (nb++ ? 'Importes' : 'Días del ciclo'), filas.map(f => { const [a, b] = f.querySelectorAll('span');
-        return [a.textContent, b.textContent, { color: b.classList.contains('ok') ? 'ok' : b.classList.contains('rev') ? 'rev' : '' }]; }));
+    const resumen = [];
+    if (VAC.tipo === 'aguinaldo') {
+      for (const [k, base] of [['zafra', 17], ['reparacion', 15]]) {
+        const c = x[k], n = VAC[k].nombre; if (!c) continue;
+        P.filas('Datos · ' + n, [['Días trabajados', d(c.dias_trab)], ['Incapacidades / permisos', `${d(c.incap)} / ${d(c.permisos)}`], ['Días que cuentan del ciclo', `${d(c.dias_ciclo)} de ${c.dias_ordinarios}`],
+          ['Días de aguinaldo', `${d(c.dias_agui)} de ${base}`], ['Sueldo promedio', m(c.sueldo_prom)], ['Promedio media hora de turno y alimentos', m(c.prom_extras)]]);
+        const f = [['Aguinaldo', `${d(c.dias_agui)} días × (${m(c.sueldo_prom)} + ${m(c.prom_extras)})`, d(c.dias_agui), m(c.aguinaldo)]];
+        if (c.dif_primas) f.push(['Diferencia por destajo', `${d(c.dias_agui)} días × ${m(c.destajo_diario)} de destajo diario`, '', m(c.dif_primas)]);
+        if (c.dif_comision) f.push(['Diferencia por comisión sindical', `(${m(c.percepciones)} + ${m(c.comision)} de comisión) ÷ ${d(c.dias_trab)} días × ${d(c.dias_agui)} − aguinaldo`, '', m(c.dif_comision)]);
+        P.tabla('Percepciones · ' + n, COLS, f, { normal: true, total: ['Total del ciclo', '', '', m(c.total)] });
+        resumen.push([n, m(c.total)]);
+      }
+      if (resumen.length) resumen.push(['Total del aguinaldo', m(x.total), { color: 'ok', negrita: true }]);
+    } else if (VAC.tipo === 'generico') {
+      for (const sec of x.secciones || []) {
+        const fmt = ([v, k]) => k === '$' ? m(v) : k === 'd' ? d(v) : k === '%' ? d(v) + ' %' : String(v);
+        const tasa = f => f[1][1] === '$' && /promedio|diario|tabulado|^percepciones$|^salario/i.test(f[0]);   // sueldos y tasas van en «Datos», no son importes
+        const datos = sec.filas.filter(f => f[1][1] !== '$' || tasa(f)), dinero = sec.filas.filter(f => f[1][1] === '$' && !tasa(f));
+        const totF = dinero.find(f => /^total/i.test(f[0])), conc = dinero.filter(f => f !== totF);
+        if (datos.length) P.filas('Datos · ' + sec.titulo, datos.map(f => [f[0], fmt(f[1]), { color: f[2] === 'rev' ? 'rev' : '' }]));
+        if (conc.length) P.tabla('Percepciones · ' + sec.titulo, [['Concepto', 380], ['Importe', 100, 'r']], conc.map(f => { const t = f[0].replace(/^Más:\s*/i, ''); return [t.charAt(0).toUpperCase() + t.slice(1), fmt(f[1])]; }),
+          { normal: true, ...(totF ? { total: [totF[0], fmt(totF[1])] } : {}) });
+        if (totF) resumen.push([sec.titulo, fmt(totF[1])]);
+      }
+      if (resumen.length > 1) resumen.push(['Total', m(x.total), { color: 'ok', negrita: true }]); else resumen.length = 0;
+    } else {
+      P.filas('Datos · ' + (VAC.nombre || info.titulo), [['Días trabajados', d(x.dias_trab)], ['Incapacidades / permisos', `${d(x.incap)} / ${d(x.permisos)}`], ['Días que cuentan del ciclo', `${d(x.dias_ciclo)} de ${VAC.dias_ordinarios}`],
+        ['Antigüedad', x.anios != null ? `${x.anios} años${x.dias_antig ? ` · +${x.dias_antig} día${x.dias_antig > 1 ? 's' : ''}` : ''}` : 'sin dato'], ['Días de vacaciones', d(x.dias_vac)], ['Descansos pagados', d(x.descansos)],
+        ['Total de días', d(x.total_dias), { negrita: true }], ...(x.vac_del ? [['Se disfrutan', `del ${fdia(x.vac_del)} al ${fdia(x.vac_al)}`]] : []), ['Sueldo promedio', m(x.sueldo_prom)], ['Factor extras', m(x.factor_extras)]]);
+      const f = [['Vacaciones', `${d(x.total_dias)} días × ${m(x.sueldo_prom)}`, d(x.total_dias), m(x.vacaciones)],
+        ['Prima vacacional 65 %', `${d(x.total_dias)} días × (${m(x.sueldo_prom)} + ${m(x.factor_extras)}) × 65 %`, '', m(x.prima)]];
+      if (x.diferencia_destajo) f.push(['Diferencia por destajo', `${d(x.total_dias)} días × ${m(x.destajo_diario)} de destajo diario × 1.65`, '', m(x.diferencia_destajo)]);
+      if (x.comision) f.push(['Diferencia por comisión sindical', `${m(x.comision)} de comisión en el ciclo, integrada al sueldo promedio`, '', m(x.diferencia_comision)]);
+      P.tabla('Percepciones · ' + (VAC.nombre || ''), COLS, f, { normal: true, total: ['Total', '', '', m(x.comision ? x.total_con_comision : x.total)] });
     }
+    if (resumen.length) P.filas('Resumen', resumen);
     for (const e of box.querySelectorAll(':scope > .err')) P.parrafo('Revisar: ' + e.textContent, 'rev');
     const nota = ($('#s-vac .nota') || {}).textContent || '';
     if (nota) P.parrafo(nota, 'nota');
