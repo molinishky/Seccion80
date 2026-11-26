@@ -273,6 +273,8 @@ body.en-chat .deco img{opacity:.12}
 .ley-mas{margin-top:6px;background:none;border:0;color:var(--azul);font-weight:600;font-size:13.5px;padding:6px 0;cursor:pointer;text-decoration:underline}
 .ley-sub{font-size:13px;color:var(--mu);font-weight:600}
 .ley-ops{display:flex;flex-wrap:wrap;gap:6px}
+.chips-in{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;max-height:220px;overflow-y:auto;white-space:normal}   /* opciones pegadas a la pregunta del asistente */
+.chips-in .chip{height:auto;min-height:34px;padding:6px 13px;font-size:13.5px;text-align:left}
 .ley-ops .chip{height:auto;min-height:34px;padding:6px 12px;font-size:13px;text-align:left}
 .faq-r{font-size:15px;line-height:1.5}
 .ley-nota{font-size:12.5px;color:var(--mu);font-style:italic}
@@ -2964,8 +2966,15 @@ const bot = c => burbuja('bot', c), yo = t => burbuja('yo', t);
 function escribiendo() { const d = el('span', 'dots'); d.append(el('i'), el('i'), el('i')); const w = bot(d); const r = w.remove.bind(w);
   w.remove = () => { r(); const u = [...clog.querySelectorAll('.pj-av')].pop(); if (u) u.classList.remove('vieja'); }; return w; }   // al quitar los puntitos, el asistente regresa a la última respuesta
 function chips(list) {
-  const c = $('#chat-chips');
-  c.replaceChildren(...list.map(t => { const b = el('button', 'chip', t); b.type = 'button'; b.onclick = () => enviarChat(t); return b; }));
+  const c = $('#chat-chips'), mk = t => { const b = el('button', 'chip', t); b.type = 'button'; b.onclick = () => enviarChat(t); return b; };
+  // Si el asistente acaba de hacer una pregunta, las opciones van pegadas a la pregunta (abajo nadie las notaba) y él las señala
+  const u = clog.lastElementChild, mb = u && u.classList.contains('bot') && u.querySelector('.msg-b');
+  if (mb && /\?\s*$|elige|escribe el (nombre|numero|número)/i.test(mb.textContent.trim()) && !mb.querySelector('.chips-in')) {
+    const ops = el('div', 'chips-in'); ops.append(...list.map(mk)); mb.append(ops);
+    const av = u.querySelector('.pj-av'); if (av && !av.querySelector('.pj-senala')) { av.innerHTML = svgPJ('senala'); av.querySelector('.pj').classList.remove('habla'); }
+    c.replaceChildren(); requestAnimationFrame(() => { clog.scrollTop = clog.scrollHeight; }); return;
+  }
+  c.replaceChildren(...list.map(mk));
 }
 function abrirChat() {
   precargarPJ();
@@ -3041,8 +3050,22 @@ async function enviarChat(raw) {
     if (pideDesg) return chatDesglose(q, d);
     if (d.fondo === false) { bot('Aún no tienes saldo registrado en el fondo de ahorro.'); return; }
     const h = d.historial || [], last = h[h.length - 1];
-    bot(`Tu saldo actual del fondo de ahorro es ${money(d.saldo)}, al ${fdate(d.actualizado)}${last && last.p ? ' (semana ' + last.p + ')' : ''}.`);
-    const b = el('button', 'btn-sec', 'Ver mi fondo de ahorro'); b.type = 'button'; b.dataset.go = 'fondo'; bot(b);
+    // Recuadro como el de prestaciones: saldo, las últimas 3 aportaciones y el reporte en PDF
+    const bx = el('div', 'msg-acc');
+    const cab = el('div'); cab.append(el('b', null, 'Fondo de ahorro')); bx.append(cab);
+    const tot = el('div', null, `Tu saldo es ${money(d.saldo)}, al ${fdate(d.actualizado)}${last && last.p ? ' (semana ' + last.p + ')' : ''}.`); tot.style.marginTop = '6px'; bx.append(tot);
+    const ult = (d.movs || []).slice().sort((a, b) => String(b.f).localeCompare(String(a.f))).slice(0, 3);
+    if (ult.length) {
+      const t = el('div', 'ley-nota', 'Tus últimas aportaciones:'); t.style.marginTop = '8px'; bx.append(t);
+      ult.forEach(x => { const m = String(x.c || '').match(/semana\s*(\d+)/i);
+        const l = el('div', 'ley-nota', `${m ? 'Semana ' + m[1] : 'Aportación'} · ${fdate(x.f)}: ${money(x.m)} (tú ${money(x.tr || 0)} + patronal ${money(x.pa || 0)})`); l.style.marginTop = '4px'; bx.append(l); });
+    }
+    if ((d.movs || []).length) {
+      const b = el('button', 'btn-pri sm'); b.type = 'button'; b.dataset.pdf = '1'; b.style.marginTop = '10px'; b.innerHTML = ICON.dl + '<span>Descargar reporte (PDF)</span>';
+      b.onclick = async () => { b.disabled = true; try { await guardarPDF(await buildFondoPDF(d), `Reporte_fondo_ahorro_IBM${corto(d.socio)}.pdf`); } catch (e) { toast('No pude generar el PDF. Inténtalo de nuevo.'); } b.disabled = false; };
+      bx.append(b);
+    }
+    bot(bx);
     return;
   }
   if (/^(hola|buen|que tal|hey|gracias)\b/.test(q) && q.split(/\s+/).length <= 4) { bot(/^gracias/.test(q) ? '¡Con gusto! Aquí estoy para lo que necesites.' : '¡Hola! ¿Quieres tu saldo, tu desglose de nómina o tienes alguna duda sobre la ley o el Contrato Ley?'); chips(baseChips()); return; }
@@ -3191,7 +3214,7 @@ async function salariosCiclo(k, q, otro) {
 async function pasoTabCiclo(q) {
   if (/cancel|ya no|olvida/.test(q)) { chatStage = 'chat'; bot('Listo.'); chips(baseChips()); return true; }
   const k = cicloDeTexto(q);
-  if (!k) { if (q.split(/\s+/).length > 4) { chatStage = 'chat'; return false; } bot('Elige el ciclo: zafra o reparación.'); chips(['Zafra', 'Reparación', 'Cancelar']); return true; }
+  if (!k) { chatStage = 'chat'; TAB_PEND = null; return false; }   // no contestó el ciclo: es otra pregunta y se atiende normal
   chatStage = 'chat'; const P = TAB_PEND || { q: '', otro: false }; TAB_PEND = null;
   try { await cargarTab(); } catch (e) { bot('No pude abrir el tabulador de salarios. Revisa tu conexión a internet.'); return true; }
   await salariosCiclo(k, P.q, P.otro); return true;
@@ -3201,7 +3224,7 @@ async function pasoTabulador(q) {
   try { await cargarTab(); } catch (e) { chatStage = 'chat'; return false; }
   const d = buscarDepEsc(q).filter(x => !TAB_K || x.k === TAB_K);
   if (d.length) { chatStage = 'chat'; mostrarTabEsc(d); return true; }
-  if (q.split(/\s+/).length > 5) { chatStage = 'chat'; return false; }       // parece otra pregunta: se atiende normal
+  if (q.split(/\s+/).length > 1 || /saldo|fondo|ahorro|aguinaldo|vacacion|prestac|desglose|nomina|prestamo|escalaf|salario|ley|articulo/.test(q)) { chatStage = 'chat'; return false; }   // otra pregunta: se atiende normal
   bot('No encontré ese departamento. Escribe el número o parte del nombre (por ejemplo «zafra 13» o «soldadura»).'); return true;
 }
 // Salarios de los puestos de uno o más departamentos del escalafón, con el salario anterior y el aumento
@@ -3330,7 +3353,7 @@ async function pasoEscDep(q) {
   try { await cargarTab(); } catch (e) { chatStage = 'chat'; return false; }
   const d = buscarDepEsc(q);
   if (d.length) { chatStage = 'chat'; let E = null; try { E = await cargarEscalafon(); } catch (e) {} if (E) await mostrarEscDep(d, E); return true; }
-  if (q.split(/\s+/).length > 5) { chatStage = 'chat'; return false; }
+  if (q.split(/\s+/).length > 1 || /saldo|fondo|ahorro|aguinaldo|vacacion|prestac|desglose|nomina|prestamo|escalaf|salario|ley|articulo/.test(q)) { chatStage = 'chat'; return false; }   // otra pregunta: se atiende normal
   bot('No encontré ese departamento. Escribe el número o parte del nombre (por ejemplo «zafra 13» o «soldadura»).'); return true;
 }
 let escTodos = null, escTodosDe = null;
@@ -3749,7 +3772,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261126015326';
+const APP_VERSION = '20261126020358';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
