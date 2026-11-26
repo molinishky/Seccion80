@@ -152,6 +152,7 @@ html,body{overflow-x:hidden}
 .entra{animation:entra .28s cubic-bezier(.2,.8,.2,1)}
 @keyframes entra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media (min-width:900px){.app{max-width:720px}.rejilla{grid-template-columns:repeat(4,minmax(0,1fr))}nav{max-width:560px}}
+nav{transition:transform .25s ease,opacity .2s ease}body.kb nav{transform:translate(-50%,calc(100% + 30px));opacity:0;pointer-events:none}   /* teclado abierto: sin barra */
 </style>
 </head>
 <body>
@@ -369,7 +370,7 @@ function marcarBurbuja(p, sinAnim) {
   BURB.style.width = t.offsetWidth + 'px'; BURB.style.transform = `translateX(${t.offsetLeft}px)`;
 }
 /* ---------- Actualización automática: si hay versión nueva del panel, se recarga solo (evita la copia guardada del navegador) ---------- */
-const PANEL_V = '20261125131500';
+const PANEL_V = '20261126010500';
 async function revisarVersion() {
   try {
     const v = (await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json()).v;
@@ -1580,6 +1581,23 @@ let tPin; $('#buscar-ibm').addEventListener('input', () => { clearTimeout(tPin);
 elegirTipo('auto');
 try { $('#ibm').value = localStorage.getItem('s80_panel_ibm') || ''; } catch (x) {}
 retomarSesion().then(si => si ? ir('inicio') : pantallaEntrar());
+
+/* Teclado del teléfono: mientras está abierto se esconde la barra de abajo (en iPhone se pegaba arriba del teclado y se veía
+   «brincar» al hacer scroll) y al deslizar la pantalla para hacer scroll se baja el teclado. Vale para todas las pantallas. */
+(() => {
+  const esCampo = e => e && ((e.tagName === 'INPUT' && !/^(checkbox|radio|button|submit|file|range|color)$/i.test(e.type)) || e.tagName === 'TEXTAREA' || e.isContentEditable);
+  let tKb = 0;
+  document.addEventListener('focusin', e => { if (esCampo(e.target)) { clearTimeout(tKb); document.body.classList.add('kb'); } });
+  document.addEventListener('focusout', () => { clearTimeout(tKb); tKb = setTimeout(() => { if (!esCampo(document.activeElement)) document.body.classList.remove('kb'); }, 80); });
+  let y0 = null, x0 = null;
+  document.addEventListener('touchstart', e => { const a = document.activeElement; y0 = x0 = null; if (!esCampo(a) || a.id === 'mensaje' || e.target === a || e.target.closest('label')) return; y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (y0 == null) return;
+    const dy = e.touches[0].clientY - y0, dx = e.touches[0].clientX - x0;
+    if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { y0 = null; const a = document.activeElement; if (esCampo(a)) a.blur(); }
+  }, { passive: true });
+})();
+
 </script>
 </body>
 </html>
