@@ -2852,8 +2852,10 @@ function svgPJ(pose) {
 let pjPre = false;
 function precargarPJ() { if (pjPre) return; pjPre = true; PJ_POSES.forEach(p => ['cuerpo', 'cabeza'].forEach(k => { const i = new Image(); i.src = `asist_${p}_${k}.webp`; })); }
 // La pose del asistente según lo que contesta
+const PJ_BOTON = 'button, a.btn-pri, a.btn-sec, a.btn-wa, .btn-wa, [data-pdf]';
 function poseDe(c) {
   if (c && c.nodeType === 1 && c.classList.contains('dots')) return 'piensa';
+  if (c && c.nodeType === 1 && (c.matches(PJ_BOTON) || c.querySelector(PJ_BOTON))) return 'senala';   // si hay un botón, lo señala
   const t = sinAc(typeof c === 'string' ? c : (c && c.textContent) || '');
   if (/no pude|no encontr|no tengo|todavia no|lo siento|no apareces|no se puede|no hay |sin conexion|revisa tu conexion/.test(t)) return 'lamenta';
   if (/^(hola|buen[oa]s|bienvenid)/.test(t)) return 'saluda';
@@ -2867,7 +2869,8 @@ function burbuja(quien, contenido) {
   if (quien === 'bot') {   // el asistente aparece junto a la respuesta más nueva; en las anteriores queda solo su cara
     const act = clog.querySelector('.pj-av:not(.vieja) .pj'), txt = typeof contenido === 'string' ? contenido : (contenido && contenido.textContent) || '';
     const sigue = act && !(contenido && contenido.nodeType === 1 && contenido.classList.contains('dots')) && txt.replace(/\s+/g, ' ').trim().length < 40;   // botón o texto corto: es la misma respuesta, conserva la pose
-    const pose = sigue ? (PJ_POSES.find(x => act.classList.contains('pj-' + x)) || poseDe(contenido)) : poseDe(contenido);
+    const conBoton = contenido && contenido.nodeType === 1 && (contenido.matches(PJ_BOTON) || contenido.querySelector(PJ_BOTON));
+    const pose = conBoton ? 'senala' : sigue ? (PJ_POSES.find(x => act.classList.contains('pj-' + x)) || poseDe(contenido)) : poseDe(contenido);
     clog.querySelectorAll('.pj-av:not(.vieja)').forEach(x => x.classList.add('vieja'));
     const av = el('div', 'msg-av pj-av' + (sigue ? ' sigue' : '')); av.innerHTML = svgPJ(pose); w.append(av);
     { const pj = av.querySelector('.pj'); if (sigue) pj.classList.remove('habla'); else setTimeout(() => pj.classList.remove('habla'), 1500); }   // mueve la cabeza como si hablara al contestar
@@ -2907,6 +2910,7 @@ function notarBurbuja(quien, contenido, w) {
     };
   }
   w.querySelector('.msg-col').insertBefore(g.btn, w.querySelector('.msg-h'));   // va en la última burbuja de la respuesta
+  { const av = w.querySelector('.pj-av:not(.vieja)'); if (av && !av.querySelector('.pj-senala')) { av.innerHTML = svgPJ('senala'); av.querySelector('.pj').classList.remove('habla'); } }   // y el asistente señala el botón
   requestAnimationFrame(() => { clog.scrollTop = clog.scrollHeight; });
 }
 function nombrePDFChat(g) {
@@ -3003,6 +3007,7 @@ async function enviarChat(raw) {
   yo(text);
   const q = text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   if (chatStage === 'loan' || chatStage === 'loanConfirm') return pasoPrestamo(text, q);
+  if (/por ?que (es |sale |son )?aproximad|por que dice aproximad|explicame lo aproximado/.test(q)) return explicarAproximado();
   if (chatStage === 'tabciclo') { const r = await pasoTabCiclo(q); if (r !== false) return; }
   if (chatStage === 'tab') { const r = await pasoTabulador(q); if (r !== false) return; }
   if (chatStage === 'escdep') { const r = await pasoEscDep(q); if (r !== false) return; }
@@ -3089,9 +3094,18 @@ async function chatPrestacion(q) {
   }
   const av = el('div', 'msg-acc sin-pdf');   // el aviso no lleva PDF: cada prestación trae el suyo
   if (lista.every(x => x.oficial)) { av.append(el('div', null, 'Estas cantidades ya están confirmadas con tu pago. Son brutas: lo que recibes es después del ISR. Si ves algo que no cuadra, coméntaselo al Secretario de Relaciones.'), botonSecretario('sobre el cálculo de mis prestaciones')); bot(av); chips(['¿Cuánto me toca de aguinaldo?', '¿Cuánto me toca de vacaciones?', 'Mis prestaciones', 'Mi saldo']); return; }
-  av.append(el('div', null, `Estos resultados son aproximados: salen del cálculo de la Sección 80 con las nóminas publicadas al ${fd(P.generado)}. Las cantidades son brutas: el cálculo es sin ISR, así que lo que recibas será menos después del impuesto. No tenemos registro de tus incapacidades del IMSS (no vienen en la nómina), así que si tuviste alguna, la cantidad puede cambiar. La cantidad final la determina la empresa al pagar; si ves algo que no cuadra, coméntaselo al Secretario de Relaciones.`), botonSecretario('sobre el cálculo de mis prestaciones'));
+  PREST_FECHA = P.generado;
+  av.append(el('div', null, 'Cálculo bruto, sin ISR y aproximado: lo que se deposite puede variar.'));
   bot(av);
-  chips(['¿Cuánto me toca de aguinaldo?', '¿Cuánto me toca de vacaciones?', 'Mis prestaciones', 'Mi saldo']);
+  chips(['¿Por qué es aproximado?', '¿Cuánto me toca de aguinaldo?', '¿Cuánto me toca de vacaciones?', 'Mis prestaciones']);
+}
+// Explicación completa del aviso de «aproximado» (solo cuando la piden)
+let PREST_FECHA = null;
+function explicarAproximado() {
+  const fd = s => { const d = new Date(s + 'T12:00'); return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }); };
+  const bx = el('div', 'msg-acc sin-pdf');
+  bx.append(el('div', null, `Es aproximado porque sale del cálculo de la Sección 80 con las nóminas publicadas${PREST_FECHA ? ' al ' + fd(PREST_FECHA) : ''}. Las cantidades son brutas: el cálculo es sin ISR, así que lo que recibas será menos después del impuesto. No tenemos registro de tus incapacidades del IMSS (no vienen en la nómina), así que si tuviste alguna, la cantidad puede cambiar. Cuando se publique tu desglose de pago, el cálculo ya no será aproximado.`), el('div', 'ley-nota', 'Si ves algo que no cuadra:'), botonSecretario('sobre el cálculo de mis prestaciones'));
+  bot(bx); chips(['¿Cuánto me toca de aguinaldo?', '¿Cuánto me toca de vacaciones?', 'Mis prestaciones', 'Mi saldo']);
 }
 // PDF de una prestación con el formato del desglose de nómina: total, datos y percepciones de cada ciclo, resumen. Sin días.
 async function buildPrestPDF(x, PR) {
@@ -3738,7 +3752,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261126014012';
+const APP_VERSION = '20261126014838';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
