@@ -206,19 +206,40 @@ body.en-chat .deco img{opacity:.12}
 .msg.yo{align-self:flex-end;flex-direction:row-reverse;max-width:80%}
 .msg-av{width:32px;height:32px;border-radius:50%;background:var(--azul-cl);display:grid;place-items:center;flex:none}
 .msg-av img{height:22px;width:auto}
-/* Asistente del chat (personaje 3D): de cuerpo completo junto a la respuesta más nueva, con la pose según lo que contesta */
-.pj-av{width:auto;height:132px;border-radius:0!important;background:none!important;box-shadow:none!important;display:flex;align-items:flex-end;justify-content:center;min-width:52px;margin-bottom:-4px;animation:pjEntra .45s cubic-bezier(.3,1.5,.5,1) both}
-.pj-av img.pj{display:block;height:132px;width:auto;max-width:96px;object-fit:contain;object-position:bottom;filter:drop-shadow(0 6px 8px rgba(0,30,70,.25));-webkit-user-select:none;user-select:none;pointer-events:none}
+/* Asistente del chat (personaje 3D): junto a la respuesta más nueva, con la pose según lo que contesta.
+   Dos capas por pose: el cuerpo respira y la cabeza se mueve sola (gira desde el cuello), parpadea y «habla» al contestar */
+.pj-av{width:auto;height:132px;border-radius:0!important;background:none!important;box-shadow:none!important;display:flex;align-items:flex-end;justify-content:center;min-width:52px;margin-bottom:-4px;animation:pjEntra .5s cubic-bezier(.3,1.45,.5,1) both}
 .pj-av.sigue{animation:none}
+.pj-av.vieja{display:none}
 .msg.bot:has(.pj-av:not(.vieja)){max-width:94%}
-.pj-av:not(.vieja) .pj{animation:pjRespira 3.2s ease-in-out infinite;transform-origin:50% 100%}
-.pj-av:not(.vieja) .pj-saluda{animation:pjOla .5s ease-in-out 6 alternate}
-.pj-av:not(.vieja) .pj-piensa{animation:pjDuda 2s ease-in-out infinite}
-.pj-av.vieja{display:none}   /* solo el personaje junto a la respuesta más nueva */
-@keyframes pjEntra{from{opacity:0;transform:translateY(10px) scale(.85)}to{opacity:1;transform:none}}
-@keyframes pjRespira{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-1px) scaleY(1.012)}}
-@keyframes pjOla{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
-@keyframes pjDuda{0%,100%{transform:rotate(0)}50%{transform:rotate(-2.5deg)}}
+.pj{position:relative;height:132px;width:auto;max-width:100px;transform-origin:50% 100%;filter:drop-shadow(0 6px 8px rgba(0,30,70,.25));animation:pjRespira 3.6s ease-in-out infinite;-webkit-user-select:none;user-select:none;pointer-events:none}
+.pj img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.pj-ca,.pj-ca2{position:absolute;inset:0}
+.pj-ca{animation:pjCabeza 7s ease-in-out infinite}
+.pj-pa{position:absolute;border-radius:50% 50% 45% 45%/60% 60% 40% 40%;background:var(--c);background:radial-gradient(ellipse at 50% 30%,var(--c),color-mix(in srgb,var(--c) 82%,#5a2d14));border-bottom:1.4px solid rgba(70,35,18,.8);transform:scaleY(0);transform-origin:50% 0;animation:pjParpadea 4.8s linear infinite}
+.pj.habla .pj-ca2{animation:pjHabla .36s ease-in-out 4}
+.pj-saluda{animation:pjSaluda 1.1s ease-in-out 3,pjRespira 3.6s ease-in-out 3.3s infinite}
+.pj-saluda .pj-ca{animation:pjCabezaSaluda 1.1s ease-in-out 3,pjCabeza 7s ease-in-out 3.3s infinite}
+.pj-senala{animation:pjInclina 3.4s ease-in-out infinite}
+.pj-ok .pj-ca{animation:pjAsiente 1.6s ease-in-out 2,pjCabeza 7s ease-in-out 3.2s infinite}
+.pj-piensa .pj-ca{animation:pjPiensa 5s ease-in-out infinite}
+.pj-lamenta .pj-ca{animation:pjNiega 1.4s ease-in-out 1,pjCabeza 7s ease-in-out 1.4s infinite}
+.pj-lamenta{animation:pjHombros 2.8s ease-in-out infinite}
+.pj-dinero{animation:pjBrinca 1.8s ease-in-out 2,pjRespira 3.6s ease-in-out 3.6s infinite}
+@keyframes pjEntra{from{opacity:0;transform:translateY(12px) scale(.86)}to{opacity:1;transform:none}}
+@keyframes pjRespira{0%,100%{transform:scale(1,1)}50%{transform:scale(1.006,1.014)}}
+@keyframes pjCabeza{0%,100%{transform:rotate(0)}18%{transform:rotate(-2.4deg)}38%{transform:rotate(-1.2deg)}55%{transform:rotate(1.6deg)}75%{transform:rotate(.4deg)}}
+@keyframes pjHabla{0%,100%{transform:rotate(0) translateY(0)}50%{transform:rotate(-1.4deg) translateY(.8px)}}
+@keyframes pjParpadea{0%,90%,100%{transform:scaleY(0)}92.5%{transform:scaleY(1)}95%{transform:scaleY(0)}}
+@keyframes pjSaluda{0%,100%{transform:rotate(0)}50%{transform:rotate(2.2deg) translateY(-1px)}}
+@keyframes pjCabezaSaluda{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(3deg)}}
+@keyframes pjInclina{0%,100%{transform:rotate(0)}50%{transform:rotate(1.6deg)}}
+@keyframes pjAsiente{0%,100%{transform:rotate(0) translateY(0)}30%{transform:rotate(-1deg) translateY(1.8px)}60%{transform:rotate(.6deg) translateY(-.6px)}}
+@keyframes pjPiensa{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(-4deg) translateY(-.6px)}}
+@keyframes pjNiega{0%,100%{transform:rotate(0)}20%{transform:rotate(-3.5deg)}45%{transform:rotate(3deg)}70%{transform:rotate(-2deg)}}
+@keyframes pjHombros{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.4px) scale(1.004,1.01)}}
+@keyframes pjBrinca{0%,100%{transform:translateY(0)}35%{transform:translateY(-3px)}55%{transform:translateY(0)}70%{transform:translateY(-1.2px)}}
+@media (prefers-reduced-motion:reduce){.pj,.pj *{animation:none!important}}
 .msg-col{display:flex;flex-direction:column;gap:4px;min-width:0}
 .msg-b{background:var(--azul-cl);border-radius:18px 18px 18px 6px;padding:11px 14px;font-size:15px;line-height:1.4;white-space:pre-wrap;word-wrap:break-word}
 .yo .msg-b{background:var(--azul);color:#fff;border-radius:18px 18px 6px 18px}
@@ -2819,11 +2840,17 @@ function botonSecretario(motivo) {
 }
 const clog = $('#chat-log');
 const hora = () => { const d = new Date(); return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
-/* Asistente del chat: el personaje 3D (asist_<pose>.webp) con la pose según lo que contesta */
+/* Asistente del chat: el personaje 3D, en dos capas por pose (cuerpo y cabeza) para que la cabeza se mueva sola, parpadee y respire.
+   PJ_META: tamaño de cada pose, punto de giro del cuello y lugar de cada ojo (en % de la imagen) con el color de su párpado */
 const PJ_POSES = ['relaja', 'saluda', 'explica', 'senala', 'ok', 'piensa', 'lamenta', 'dinero'];
-function svgPJ(pose) { const P = PJ_POSES.includes(pose) ? pose : 'explica'; return `<img class="pj pj-${P}" src="asist_${P}.webp" alt="" draggable="false">`; }
+const PJ_META = {"relaja":{"w":120,"h":299,"px":48.88,"py":32.13,"ojos":[{"x":40.17,"y":21.15,"rx":6.46,"ry":2.26,"c":"#d7a87e"},{"x":64.61,"y":21.27,"rx":6.46,"ry":2.26,"c":"#d7a87e"}]},"saluda":{"w":176,"h":299,"px":48.46,"py":32.13,"ojos":[{"x":42.31,"y":21.04,"rx":4.42,"ry":2.26,"c":"#d8aa81"},{"x":59.23,"y":21.27,"rx":4.42,"ry":2.26,"c":"#d8aa81"}]},"explica":{"w":155,"h":299,"px":34.78,"py":32.05,"ojos":[{"x":28.7,"y":20.99,"rx":5.0,"ry":2.26,"c":"#dbae84"},{"x":46.52,"y":21.22,"rx":5.0,"ry":2.26,"c":"#dbae84"}]},"senala":{"w":141,"h":298,"px":31.25,"py":31.52,"ojos":[{"x":28.85,"y":21.09,"rx":5.53,"ry":2.27,"c":"#d8ad83"},{"x":48.08,"y":20.41,"rx":5.53,"ry":2.27,"c":"#d8ad83"}]},"ok":{"w":120,"h":299,"px":48.31,"py":31.67,"ojos":[{"x":39.27,"y":21.27,"rx":6.5,"ry":2.26,"c":"#daab81"},{"x":62.71,"y":21.72,"rx":6.5,"ry":2.26,"c":"#daab81"}]},"piensa":{"w":91,"h":299,"px":47.76,"py":31.6,"ojos":[{"x":38.81,"y":20.99,"rx":8.58,"ry":2.26,"c":"#d4aa89"},{"x":69.4,"y":20.99,"rx":8.58,"ry":2.26,"c":"#d4aa89"}]},"lamenta":{"w":199,"h":297,"px":49.49,"py":32.73,"ojos":[{"x":44.56,"y":21.36,"rx":3.91,"ry":2.27,"c":"#d4a57c"},{"x":58.5,"y":21.48,"rx":3.91,"ry":2.27,"c":"#d4a57c"}]},"dinero":{"w":111,"h":299,"px":46.97,"py":32.13,"ojos":[{"x":35.15,"y":21.27,"rx":6.97,"ry":2.26,"c":"#d3a177"},{"x":61.52,"y":21.27,"rx":6.97,"ry":2.26,"c":"#d3a177"}]}};
+function svgPJ(pose) {
+  const P = PJ_POSES.includes(pose) ? pose : 'explica', m = PJ_META[P], d = (Math.random() * 3).toFixed(2);
+  const pa = m.ojos.map(o => `<i class="pj-pa" style="left:${(o.x - o.rx * .95).toFixed(2)}%;top:${(o.y - o.ry * 1.05).toFixed(2)}%;width:${(o.rx * 1.9).toFixed(2)}%;height:${(o.ry * 2.05).toFixed(2)}%;--c:${o.c};animation-delay:${d}s"></i>`).join('');
+  return `<div class="pj pj-${P} habla" style="aspect-ratio:${m.w}/${m.h}"><img class="pj-cu" src="asist_${P}_cuerpo.webp" alt="" draggable="false"><div class="pj-ca" style="transform-origin:${m.px}% ${m.py}%"><div class="pj-ca2" style="transform-origin:${m.px}% ${m.py}%"><img src="asist_${P}_cabeza.webp" alt="" draggable="false">${pa}</div></div></div>`;
+}
 let pjPre = false;
-function precargarPJ() { if (pjPre) return; pjPre = true; PJ_POSES.forEach(p => { const i = new Image(); i.src = `asist_${p}.webp`; }); }
+function precargarPJ() { if (pjPre) return; pjPre = true; PJ_POSES.forEach(p => ['cuerpo', 'cabeza'].forEach(k => { const i = new Image(); i.src = `asist_${p}_${k}.webp`; })); }
 // La pose del asistente según lo que contesta
 function poseDe(c) {
   if (c && c.nodeType === 1 && c.classList.contains('dots')) return 'piensa';
@@ -2843,6 +2870,7 @@ function burbuja(quien, contenido) {
     const pose = sigue ? (PJ_POSES.find(x => act.classList.contains('pj-' + x)) || poseDe(contenido)) : poseDe(contenido);
     clog.querySelectorAll('.pj-av:not(.vieja)').forEach(x => x.classList.add('vieja'));
     const av = el('div', 'msg-av pj-av' + (sigue ? ' sigue' : '')); av.innerHTML = svgPJ(pose); w.append(av);
+    { const pj = av.querySelector('.pj'); if (sigue) pj.classList.remove('habla'); else setTimeout(() => pj.classList.remove('habla'), 1500); }   // mueve la cabeza como si hablara al contestar
   }
   const col = el('div', 'msg-col');
   const b = el('div', 'msg-b'); typeof contenido === 'string' ? (b.textContent = contenido) : b.append(contenido);
@@ -3710,7 +3738,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261126012908';
+const APP_VERSION = '20261126014012';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
