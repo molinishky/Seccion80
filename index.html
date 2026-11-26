@@ -3085,6 +3085,7 @@ async function chatPrestacion(q) {
     x.lineas.forEach(l => { const d = el('div', 'ley-nota', l); d.style.marginTop = '6px'; bx.append(d); });
     const pg = el('div', 'ley-nota', 'Cuándo: ' + x.pago + '.' + (x.parcial ? ' El ciclo no ha terminado: la cantidad crece con cada nómina.' : '')); pg.style.marginTop = '6px'; bx.append(pg);
     if (x.revisar) { const r = el('div', 'ley-nota', 'Ojo: tu caso tiene una particularidad y este cálculo puede variar más; si tienes dudas, pregúntale al Secretario de Relaciones.'); r.style.marginTop = '6px'; bx.append(r); }
+    { const n = el('div', 'ley-nota', x.oficial ? 'Cálculo bruto, sin ISR, confirmado con tu pago.' : 'Cálculo bruto, sin ISR y aproximado: lo que se deposite puede variar.'); n.style.marginTop = '6px'; bx.append(n); }   // el aviso va dentro de la respuesta, arriba del botón
     if (x.det && x.det.length) {   // PDF con el formato del desglose (sin días: solo importes)
       const b = el('button', 'btn-pri sm'); b.type = 'button'; b.dataset.pdf = '1'; b.style.marginTop = '10px'; b.innerHTML = ICON.dl + '<span>Descargar el cálculo (PDF)</span>';
       b.onclick = async () => { b.disabled = true; try { await guardarPDF(await buildPrestPDF(x, P), `${sinAc(x.titulo).replace(/[^a-z0-9]+/g, '_')}_IBM${corto(session.data.socio)}.pdf`); } catch (e) { toast('No pude generar el PDF. Inténtalo de nuevo.'); } b.disabled = false; };
@@ -3092,12 +3093,8 @@ async function chatPrestacion(q) {
     }
     bot(bx);
   }
-  const av = el('div', 'msg-acc sin-pdf');   // el aviso no lleva PDF: cada prestación trae el suyo
-  if (lista.every(x => x.oficial)) { av.append(el('div', null, 'Estas cantidades ya están confirmadas con tu pago. Son brutas: lo que recibes es después del ISR. Si ves algo que no cuadra, coméntaselo al Secretario de Relaciones.'), botonSecretario('sobre el cálculo de mis prestaciones')); bot(av); chips(['¿Cuánto me toca de aguinaldo?', '¿Cuánto me toca de vacaciones?', 'Mis prestaciones', 'Mi saldo']); return; }
   PREST_FECHA = P.generado;
-  av.append(el('div', null, 'Cálculo bruto, sin ISR y aproximado: lo que se deposite puede variar.'));
-  bot(av);
-  chips(['¿Por qué es aproximado?', '¿Cuánto me toca de aguinaldo?', '¿Cuánto me toca de vacaciones?', 'Mis prestaciones']);
+  chips([...(lista.some(x => !x.oficial) ? ['¿Por qué es aproximado?'] : []), '¿Cuánto me toca de aguinaldo?', '¿Cuánto me toca de vacaciones?', 'Mis prestaciones']);
 }
 // Explicación completa del aviso de «aproximado» (solo cuando la piden)
 let PREST_FECHA = null;
@@ -3752,7 +3749,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261126014838';
+const APP_VERSION = '20261126015326';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
