@@ -206,6 +206,19 @@ body.en-chat .deco img{opacity:.12}
 .msg.yo{align-self:flex-end;flex-direction:row-reverse;max-width:80%}
 .msg-av{width:32px;height:32px;border-radius:50%;background:var(--azul-cl);display:grid;place-items:center;flex:none}
 .msg-av img{height:22px;width:auto}
+/* Asistente del chat (personaje 3D): de cuerpo completo junto a la respuesta más nueva, con la pose según lo que contesta */
+.pj-av{width:auto;height:132px;border-radius:0!important;background:none!important;box-shadow:none!important;display:flex;align-items:flex-end;justify-content:center;min-width:52px;margin-bottom:-4px;animation:pjEntra .45s cubic-bezier(.3,1.5,.5,1) both}
+.pj-av img.pj{display:block;height:132px;width:auto;max-width:96px;object-fit:contain;object-position:bottom;filter:drop-shadow(0 6px 8px rgba(0,30,70,.25));-webkit-user-select:none;user-select:none;pointer-events:none}
+.pj-av.sigue{animation:none}
+.msg.bot:has(.pj-av:not(.vieja)){max-width:94%}
+.pj-av:not(.vieja) .pj{animation:pjRespira 3.2s ease-in-out infinite;transform-origin:50% 100%}
+.pj-av:not(.vieja) .pj-saluda{animation:pjOla .5s ease-in-out 6 alternate}
+.pj-av:not(.vieja) .pj-piensa{animation:pjDuda 2s ease-in-out infinite}
+.pj-av.vieja{display:none}   /* solo el personaje junto a la respuesta más nueva */
+@keyframes pjEntra{from{opacity:0;transform:translateY(10px) scale(.85)}to{opacity:1;transform:none}}
+@keyframes pjRespira{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-1px) scaleY(1.012)}}
+@keyframes pjOla{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
+@keyframes pjDuda{0%,100%{transform:rotate(0)}50%{transform:rotate(-2.5deg)}}
 .msg-col{display:flex;flex-direction:column;gap:4px;min-width:0}
 .msg-b{background:var(--azul-cl);border-radius:18px 18px 18px 6px;padding:11px 14px;font-size:15px;line-height:1.4;white-space:pre-wrap;word-wrap:break-word}
 .yo .msg-b{background:var(--azul);color:#fff;border-radius:18px 18px 6px 18px}
@@ -1073,7 +1086,7 @@ html{overscroll-behavior:none}
 <main id="s-chat" class="scr" hidden>
   <header class="top">
     <button class="volver" data-go="home" aria-label="Volver al inicio"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
-    <div class="tt"><h1>Chat</h1><span>Sindicato · En línea</span></div>
+    <div class="tt"><h1>Chat</h1><span>Asistente del sindicato · En línea</span></div>
     <img src="escudo.png" alt="Escudo del sindicato">
   </header>
   <div class="franjas" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
@@ -2806,9 +2819,31 @@ function botonSecretario(motivo) {
 }
 const clog = $('#chat-log');
 const hora = () => { const d = new Date(); return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
+/* Asistente del chat: el personaje 3D (asist_<pose>.webp) con la pose según lo que contesta */
+const PJ_POSES = ['relaja', 'saluda', 'explica', 'senala', 'ok', 'piensa', 'lamenta', 'dinero'];
+function svgPJ(pose) { const P = PJ_POSES.includes(pose) ? pose : 'explica'; return `<img class="pj pj-${P}" src="asist_${P}.webp" alt="" draggable="false">`; }
+let pjPre = false;
+function precargarPJ() { if (pjPre) return; pjPre = true; PJ_POSES.forEach(p => { const i = new Image(); i.src = `asist_${p}.webp`; }); }
+// La pose del asistente según lo que contesta
+function poseDe(c) {
+  if (c && c.nodeType === 1 && c.classList.contains('dots')) return 'piensa';
+  const t = sinAc(typeof c === 'string' ? c : (c && c.textContent) || '');
+  if (/no pude|no encontr|no tengo|todavia no|lo siento|no apareces|no se puede|no hay |sin conexion|revisa tu conexion/.test(t)) return 'lamenta';
+  if (/^(hola|buen[oa]s|bienvenid)/.test(t)) return 'saluda';
+  if (/^(listo|registr|enviad|confirmad|ya quedo|perfecto)/.test(t)) return 'ok';
+  if (/\$\s?[\d,]+\.\d\d/.test(t)) return 'dinero';
+  if (/pdf|descarg|elige|escribe el|toca |aqui tienes|abajo/.test(t)) return 'senala';
+  return 'explica';
+}
 function burbuja(quien, contenido) {
   const w = el('div', 'msg ' + quien);
-  if (quien === 'bot') { const av = el('div', 'msg-av'); const im = el('img'); im.src = 'escudo.png'; im.alt = ''; av.append(im); w.append(av); }
+  if (quien === 'bot') {   // el asistente aparece junto a la respuesta más nueva; en las anteriores queda solo su cara
+    const act = clog.querySelector('.pj-av:not(.vieja) .pj'), txt = typeof contenido === 'string' ? contenido : (contenido && contenido.textContent) || '';
+    const sigue = act && !(contenido && contenido.nodeType === 1 && contenido.classList.contains('dots')) && txt.replace(/\s+/g, ' ').trim().length < 40;   // botón o texto corto: es la misma respuesta, conserva la pose
+    const pose = sigue ? (PJ_POSES.find(x => act.classList.contains('pj-' + x)) || poseDe(contenido)) : poseDe(contenido);
+    clog.querySelectorAll('.pj-av:not(.vieja)').forEach(x => x.classList.add('vieja'));
+    const av = el('div', 'msg-av pj-av' + (sigue ? ' sigue' : '')); av.innerHTML = svgPJ(pose); w.append(av);
+  }
   const col = el('div', 'msg-col');
   const b = el('div', 'msg-b'); typeof contenido === 'string' ? (b.textContent = contenido) : b.append(contenido);
   col.append(b, el('span', 'msg-h', hora()));
@@ -2894,12 +2929,14 @@ async function buildRespuestaPDF(g) {
   return P.cerrar();
 }
 const bot = c => burbuja('bot', c), yo = t => burbuja('yo', t);
-function escribiendo() { const d = el('span', 'dots'); d.append(el('i'), el('i'), el('i')); return bot(d); }
+function escribiendo() { const d = el('span', 'dots'); d.append(el('i'), el('i'), el('i')); const w = bot(d); const r = w.remove.bind(w);
+  w.remove = () => { r(); const u = [...clog.querySelectorAll('.pj-av')].pop(); if (u) u.classList.remove('vieja'); }; return w; }   // al quitar los puntitos, el asistente regresa a la última respuesta
 function chips(list) {
   const c = $('#chat-chips');
   c.replaceChildren(...list.map(t => { const b = el('button', 'chip', t); b.type = 'button'; b.onclick = () => enviarChat(t); return b; }));
 }
 function abrirChat() {
+  precargarPJ();
   if (chatIniciado) return;
   chatIniciado = true; chatStage = 'chat';
   clog.append(el('span', 'hoy', 'Hoy'));
@@ -3673,7 +3710,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261126010205';
+const APP_VERSION = '20261126012908';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
