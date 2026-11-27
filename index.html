@@ -1220,6 +1220,7 @@ async function pdfSeccion({ encabezado = '', titulo = '', sub = '', nombre = '',
     for (const l of P.envolver(titulo, B, 18, W - 2 * M)) { P.tx(l, M, P.y, B, 18); P.y -= 21; }
     P.y += 5;
     if (sub) { for (const l of P.envolver(sub, R, 9, W - 2 * M)) { P.tx(l, M, P.y, R, 9, C.GRIS); P.y -= 11.5; } }
+    if (!nombre && !ibm) { P.y -= 10; return; }   // sin datos de la persona: no se deja el hueco del nombre
     P.y -= 14.5;
     if (nombre) { P.tx(nombre, M, P.y, B, 13); P.y -= 14; }
     if (ibm) { P.tx(ibm, M, P.y, R, 9.5, C.GRIS); P.y -= 6; }
@@ -3036,8 +3037,13 @@ async function enviarChat(raw) {
     t.remove();
     const ps = d.prestamos || [];
     if (!ps.length) { bot('Aún no hay información de préstamos.'); return; }
-    ps.forEach(x => bot(x.saldo > 0.005 ? `${x.t}: tu saldo pendiente es ${money(x.saldo)} ${x.sem ? 'al cierre de la semana ' + x.sem : '(préstamo por acuerdo de asamblea)'}.` : (x.saldo < -0.005 ? `${x.t}: no tienes saldo pendiente y tienes un saldo a favor de ${money(-x.saldo)}.` : `${x.t}: no tienes saldo pendiente.`)));
-    const b = el('button', 'btn-sec', 'Ver mis préstamos'); b.type = 'button'; b.dataset.go = 'prestamos'; bot(b);
+    // un solo recuadro, como el del fondo de ahorro: cada préstamo con su saldo y el botón dentro
+    const bx = el('div', 'msg-acc'); const cab = el('div'); cab.append(el('b', null, 'Tus préstamos')); bx.append(cab);
+    const pend = round2(ps.reduce((a, x) => a + Math.max(0, x.saldo || 0), 0));
+    const tt = el('div', null, pend > 0.005 ? `Saldo pendiente total: ${money(pend)}.` : 'No tienes saldo pendiente.'); tt.style.marginTop = '6px'; bx.append(tt);
+    ps.forEach(x => { const l = el('div', 'ley-nota', x.saldo > 0.005 ? `${x.t}: ${money(x.saldo)} pendiente${x.sem ? ' al cierre de la semana ' + x.sem : ' (por acuerdo de asamblea)'}.` : (x.saldo < -0.005 ? `${x.t}: sin saldo pendiente; saldo a favor de ${money(-x.saldo)}.` : `${x.t}: sin saldo pendiente.`)); l.style.marginTop = '5px'; bx.append(l); });
+    const b = el('button', 'btn-pri sm', 'Ver el detalle de mis préstamos'); b.type = 'button'; b.dataset.go = 'prestamos'; b.style.marginTop = '10px'; bx.append(b);
+    bot(bx);
     return;
   }
   if (!legal && /(prestamo|credito|adelanto)/.test(q)) return iniciarPrestamo();
@@ -3781,7 +3787,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261126193039';
+const APP_VERSION = '20261126193630';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
