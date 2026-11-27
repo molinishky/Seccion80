@@ -3421,14 +3421,17 @@ async function buildEscalafon(k, E) {
   const altoPuesto = p => 4 + (FS + 7) + (RH + 3) + p.trab.length * RH + 7;
   const puesto = (x0, y, p) => {
     y -= 4;
-    const sal = `$${Number(p.salario).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, zs = FS + 0.4;
-    P.tx(P.recorta(p.nombre + (p.cat ? `  ·  Cat. ${p.cat}` : ''), B, zs, CW - P.an(sal, R, FS) - 12), x0 + 3, y - zs, B, zs, C.AZUL);
+    const tb = p._t && p._t.ahora ? p._t : null, cat = (tb && tb.cat) || p.cat;   // salario del tabulador vigente (el escalafón trae el anterior)
+    const sal = `$${Number(tb ? tb.ahora : p.salario).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, zs = FS + 0.4;
+    P.tx(P.recorta(p.nombre + (cat ? `  ·  Cat. ${cat}` : ''), B, zs, CW - P.an(sal, R, FS) - 12), x0 + 3, y - zs, B, zs, C.AZUL);
     P.tx(sal, x0 + CW - 3 - P.an(sal, R, FS), y - zs, R, FS, C.GRIS); y -= FS + 7;
     y = cabTabla(x0, y);
     p.trab.forEach(t => { y = fila(x0, y, [t.prog, t.gral, t.clas, t.anio, t.ibm, t.n, t.nombre], t.ibm === E.ibm); });
     return y - 7;
   };
   P.cabecera();
+  try { await cargarTab(); } catch (e) {}
+  if (k !== 'antig') E[k].forEach(d => { const td = ((TAB && TAB.esc && TAB.esc[k]) || []).find(x => String(x.num) === String(d.num)); d.puestos.forEach((p, i) => { p._t = td && td.puestos[i]; }); });
   if (!mio) { P.tx('P Permanente · T Temporal', M, P.y - 8, R, 8, C.GRIS); P.y -= 22; }   // departamento ajeno: no hay renglón propio
   else { P.pg.drawRectangle({ x: M, y: P.y - 9, width: 9, height: 9, color: C.AMA, borderColor: C.LINEA, borderWidth: .5 });
     P.tx('Tu renglón va resaltado · P Permanente · T Temporal', M + 14, P.y - 8, R, 8, C.GRIS); P.y -= 22; }
@@ -3453,6 +3456,7 @@ async function buildEscalafon(k, E) {
       P.y = Math.min(y1, y2) - 6;
     });
   }
+  if (k !== 'antig') P.parrafo('Salario diario de cada puesto según el tabulador vigente desde el 16 de octubre de 2026.', 'nota');
   P.parrafo(mio ? 'Copia del escalafón vigente que lleva la Sección 80. Si encuentras un error en tu lugar, coméntaselo al Secretario de Relaciones.' : 'Copia del escalafón vigente que lleva la Sección 80.', 'nota');
   return P.cerrar();
 }
@@ -3777,7 +3781,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261126192210';
+const APP_VERSION = '20261126192606';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
