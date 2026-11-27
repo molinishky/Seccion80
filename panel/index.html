@@ -370,7 +370,7 @@ function marcarBurbuja(p, sinAnim) {
   BURB.style.width = t.offsetWidth + 'px'; BURB.style.transform = `translateX(${t.offsetLeft}px)`;
 }
 /* ---------- Actualización automática: si hay versión nueva del panel, se recarga solo (evita la copia guardada del navegador) ---------- */
-const PANEL_V = '20261126010500';
+const PANEL_V = '20261126193800';
 async function revisarVersion() {
   try {
     const v = (await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json()).v;
@@ -870,6 +870,7 @@ async function pdfSeccion({ encabezado = '', titulo = '', sub = '', nombre = '',
     for (const l of P.envolver(titulo, B, 18, W - 2 * M)) { P.tx(l, M, P.y, B, 18); P.y -= 21; }
     P.y += 5;
     if (sub) { for (const l of P.envolver(sub, R, 9, W - 2 * M)) { P.tx(l, M, P.y, R, 9, C.GRIS); P.y -= 11.5; } }
+    if (!nombre && !ibm) { P.y -= 10; return; }   // sin datos de la persona: no se deja el hueco del nombre
     P.y -= 14.5;
     if (nombre) { P.tx(nombre, M, P.y, B, 13); P.y -= 14; }
     if (ibm) { P.tx(ibm, M, P.y, R, 9.5, C.GRIS); P.y -= 6; }
