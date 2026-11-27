@@ -3319,11 +3319,14 @@ async function chatEscalafon(q) {
   try { E = await cargarEscalafon(); } catch (e) { t.remove(); bot('No pude abrir los escalafones. Revisa tu conexión a internet.'); return; }
   await new Promise(r => setTimeout(r, 250)); t.remove();
   if (!E) { const bx = el('div', 'msg-acc'); bx.append(el('div', null, 'No encontré tu IBM en los escalafones de zafra, reparación ni antigüedades. Si crees que es un error, coméntaselo al Secretario de Relaciones.'), botonSecretario('sobre mi lugar en el escalafón')); bot(bx); return; }
-  if (E.llave && !/antig/.test(q)) {   // sin planta: se le pregunta de cuál departamento quiere la lista
+  const sinPlanta = !E.zafra.length && !E.reparacion.length;
+  if (!/antig/.test(q)) {   // el escalafón de otro departamento (o, sin planta, del que elija)
     try { await cargarTab(); } catch (e) { bot('No pude abrir los escalafones. Revisa tu conexión a internet.'); return; }
-    const pedido = buscarDepEsc(q.replace(/escalaf\w*|escalof\w*|lista\w*|pdf/g, ''));
-    if (pedido.length) return mostrarEscDep(pedido, E);
-    return preguntarDep('escdep', `No apareces con planta en los escalafones de zafra ni de reparación${E.antig.length ? ' (sí en el de antigüedades: pídeme «escalafón de antigüedad»)' : ''}. ¿De qué departamento quieres el escalafón? Escribe el nombre o el número, o elige uno:`);
+    const pedido = buscarDepEsc(q.replace(/escalaf\w*|escalof\w*|lista\w*|pdf|\bmi\b|\bmis\b|otro|otra/g, ''));
+    const ajenos = pedido.filter(x => !(E[x.k] || []).some(d => String(d.num) === String(x.d.num)));
+    if (pedido.length && (sinPlanta || ajenos.length)) return mostrarEscDep(ajenos.length ? ajenos : pedido, E);
+    if (sinPlanta) return preguntarDep('escdep', `No apareces con planta en los escalafones de zafra ni de reparación${E.antig.length ? ' (sí en el de antigüedades: pídeme «escalafón de antigüedad»)' : ''}. ¿De qué departamento quieres el escalafón? Escribe el nombre o el número, o elige uno:`);
+    if (/\b(otro|otra|ajeno)\b/.test(q)) return preguntarDep('escdep', '¿De qué departamento quieres el escalafón? Escribe el nombre o el número, o elige uno:');
   }
   let pide = ['zafra', 'reparacion', 'antig'].filter(k => (k === 'zafra' && /zafra/.test(q)) || (k === 'reparacion' && /repara/.test(q)) || (k === 'antig' && /antig/.test(q)));
   if (!pide.length) pide = ['zafra', 'reparacion', 'antig'];
@@ -3346,7 +3349,7 @@ async function chatEscalafon(q) {
     });
   }
   bot(bx);
-  chips(['Escalafón de zafra', 'Escalafón de reparación', 'Escalafón de antigüedad'].filter((c, i) => !(pide.length === 1 && pide[0] === ['zafra', 'reparacion', 'antig'][i])));
+  chips([...['Escalafón de zafra', 'Escalafón de reparación', 'Escalafón de antigüedad'].filter((c, i) => !(pide.length === 1 && pide[0] === ['zafra', 'reparacion', 'antig'][i])), 'Otro escalafón']);
 }
 async function pasoEscDep(q) {
   if (/cancel|ya no|olvida/.test(q)) { chatStage = 'chat'; bot('Listo.'); chips(baseChips()); return true; }
@@ -3424,7 +3427,8 @@ async function buildEscalafon(k, E) {
     return y - 7;
   };
   P.cabecera();
-  if (E.llave && k !== 'antig') { P.tx('P Permanente · T Temporal', M, P.y - 8, R, 8, C.GRIS); P.y -= 22; }   // sin planta: no hay renglón propio
+  const mio = k === 'antig' || (E[k] || []).some(d => d.puestos.some(p => p.trab.some(t => t.ibm === E.ibm)));
+  if (!mio) { P.tx('P Permanente · T Temporal', M, P.y - 8, R, 8, C.GRIS); P.y -= 22; }   // departamento ajeno: no hay renglón propio
   else { P.pg.drawRectangle({ x: M, y: P.y - 9, width: 9, height: 9, color: C.AMA, borderColor: C.LINEA, borderWidth: .5 });
     P.tx('Tu renglón va resaltado · P Permanente · T Temporal', M + 14, P.y - 8, R, 8, C.GRIS); P.y -= 22; }
   if (k === 'antig') {
@@ -3772,7 +3776,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261126143119';
+const APP_VERSION = '20261126191718';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
