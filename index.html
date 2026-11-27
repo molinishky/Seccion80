@@ -3388,12 +3388,14 @@ async function mostrarEscDep(lista, E) {
 }
 async function buildEscalafon(k, E) {
   const tit = k === 'zafra' ? 'Escalafón departamental de zafra' : k === 'reparacion' ? 'Escalafón departamental de reparación' : 'Escalafón general de antigüedades';
-  let nombre = ''; try { nombre = nombreCompleto(session.data); } catch (e) {}
+  const mio = k === 'antig' || (E[k] || []).some(d => d.puestos.some(p => p.trab.some(t => t.ibm === E.ibm)));   // ¿es su propio departamento?
+  let nombre = ''; if (mio) try { nombre = nombreCompleto(session.data); } catch (e) {}   // de otro departamento: nada de quien lo pide
+  const depto = !mio && E[k] && E[k][0] ? `Departamento ${E[k][0].num} · ${capital(E[k][0].nombre)}` : '';
   const lugar = k === 'antig' ? (() => { const a = E.antig[0], yo = a && a.trab.find(x => x.ibm === E.ibm); return yo ? `Año de clasificación ${a.anio} · número ${yo.prog} de ${a.trab.length}` : ''; })() : lugarDep(E, k);
   const P = await pdfSeccion({
     encabezado: tit + (k === 'antig' && E.antig[0] ? ' ' + E.antig[0].anio : ''), titulo: tit,
-    sub: lugar ? 'Tu lugar: ' + lugar.replace(/^departamento/, 'Departamento') : '', nombre, ibm: 'IBM ' + E.ibm,
-    pie: tit.toLowerCase(), docTitulo: `${tit} - IBM ${E.ibm}`
+    sub: mio ? (lugar ? 'Tu lugar: ' + lugar.replace(/^departamento/, 'Departamento') : '') : depto, nombre, ibm: mio ? 'IBM ' + E.ibm : '',
+    pie: tit.toLowerCase(), docTitulo: mio ? `${tit} - IBM ${E.ibm}` : `${tit} - ${depto}`
   });
   const { C, R, B, W, M } = P, ANCHO = W - 2 * M;
   const base = k === 'antig'
@@ -3427,7 +3429,6 @@ async function buildEscalafon(k, E) {
     return y - 7;
   };
   P.cabecera();
-  const mio = k === 'antig' || (E[k] || []).some(d => d.puestos.some(p => p.trab.some(t => t.ibm === E.ibm)));
   if (!mio) { P.tx('P Permanente · T Temporal', M, P.y - 8, R, 8, C.GRIS); P.y -= 22; }   // departamento ajeno: no hay renglón propio
   else { P.pg.drawRectangle({ x: M, y: P.y - 9, width: 9, height: 9, color: C.AMA, borderColor: C.LINEA, borderWidth: .5 });
     P.tx('Tu renglón va resaltado · P Permanente · T Temporal', M + 14, P.y - 8, R, 8, C.GRIS); P.y -= 22; }
@@ -3452,7 +3453,7 @@ async function buildEscalafon(k, E) {
       P.y = Math.min(y1, y2) - 6;
     });
   }
-  P.parrafo('Copia del escalafón vigente que lleva la Sección 80. Si encuentras un error en tu lugar, coméntaselo al Secretario de Relaciones.', 'nota');
+  P.parrafo(mio ? 'Copia del escalafón vigente que lleva la Sección 80. Si encuentras un error en tu lugar, coméntaselo al Secretario de Relaciones.' : 'Copia del escalafón vigente que lleva la Sección 80.', 'nota');
   return P.cerrar();
 }
 
@@ -3776,7 +3777,7 @@ function continuarNavegador(w) {
   arrancar();
 }
 /* ================= Actualizaciones automáticas (sobre todo para el icono de iPhone) ================= */
-const APP_VERSION = '20261126191718';
+const APP_VERSION = '20261126192210';
 function barra(p) { const f = document.getElementById('sp-fill'); if (f) { f.style.width = p + '%'; f.parentNode.setAttribute('aria-valuenow', p); } }
 /* ================= Sudoku: 3 toques al escudo de Inicio ================= */
 (() => {
